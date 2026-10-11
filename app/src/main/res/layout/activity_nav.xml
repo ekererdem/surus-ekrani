@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tam ekran navigasyon: harita, üstte arama veya yön kartı, altta rota özeti -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <org.osmdroid.views.MapView
+        android:id="@+id/navMap"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Arama çubuğu -->
+    <LinearLayout
+        android:id="@+id/searchBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_margin="12dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:orientation="horizontal"
+            android:background="@drawable/field_bg"
+            android:elevation="4dp"
+            android:gravity="center_vertical">
+            <ImageButton
+                android:id="@+id/backBtn"
+                android:layout_width="56dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/selectableItemBackground"
+                android:src="@drawable/ic_back"
+                android:tint="@color/fg"
+                android:contentDescription="Geri" />
+            <EditText
+                android:id="@+id/searchBox"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Nereye gidiyorsun?"
+                android:textColorHint="@color/muted"
+                android:textColor="@color/fg"
+                android:textSize="19sp"
+                android:inputType="textPostalAddress"
+                android:imeOptions="actionSearch"
+                android:singleLine="true" />
+            <ImageButton
+                android:id="@+id/searchBtn"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/selectableItemBackground"
+                android:src="@drawable/ic_search"
+                android:tint="@color/amber"
+                android:contentDescription="Ara" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/quickRow"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+            <Button android:id="@+id/quickHome" style="@style/OutlineBtn"
+                android:layout_width="wrap_content" android:layout_height="52dp"
+                android:background="@drawable/chip_bg" android:paddingStart="20dp" android:paddingEnd="20dp"
+                android:text="Ev" />
+            <Button android:id="@+id/quickWork" style="@style/OutlineBtn"
+                android:layout_width="wrap_content" android:layout_height="52dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/chip_bg" android:paddingStart="20dp" android:paddingEnd="20dp"
+                android:text="İş" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/results"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/field_bg"
+            android:elevation="4dp"
+            android:divider="@color/line"
+            android:dividerHeight="1dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Navigasyon sırasında: sıradaki manevra -->
+    <LinearLayout
+        android:id="@+id/turnCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_margin="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/nav_info_bg"
+        android:padding="16dp"
+        android:elevation="6dp"
+        android:visibility="gone">
+        <ImageView
+            android:id="@+id/turnArrow"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/ic_arrow"
+            android:tint="@color/amber_ink"
+            android:contentDescription="@null" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/turnDist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:textSize="40sp"
+                android:textColor="@color/amber_ink"
+                android:includeFontPadding="false" />
+            <TextView
+                android:id="@+id/turnText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/amber_ink"
+                android:maxLines="2"
+                android:ellipsize="end" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/recenterBtn"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/chip_bg"
+        android:elevation="4dp"
+        android:src="@drawable/ic_locate"
+        android:tint="@color/amber"
+        android:contentDescription="Konumuma dön" />
+
+    <!-- Rota özeti -->
+    <LinearLayout
+        android:id="@+id/bottomPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="12dp"
+        android:orientation="vertical"
+        android:background="@drawable/field_bg"
+        android:padding="16dp"
+        android:elevation="6dp"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/destName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:textColor="@color/fg"
+            android:maxLines="1"
+            android:ellipsize="end" />
+        <TextView
+            android:id="@+id/summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:textSize="26sp"
+            android:textColor="@color/amber" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+            <Button android:id="@+id/mainBtn" style="@style/OutlineBtn"
+                android:layout_width="0dp" android:layout_weight="1.4"
+                android:background="@drawable/tile_amber" android:textColor="@color/amber_ink"
+                android:text="Başlat" />
+            <Button android:id="@+id/extBtn" style="@style/OutlineBtn"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:text="Google Maps" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

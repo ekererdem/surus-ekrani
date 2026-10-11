@@ -48,6 +48,11 @@ public class SettingsActivity extends Activity {
         music.setOnCheckedChangeListener((g, id) ->
                 p.edit().putString("music", id == R.id.rbYtm ? "ytm" : "spotify").apply());
 
+        RadioGroup units = findViewById(R.id.radioUnits);
+        units.check("km".equals(p.units()) ? R.id.rbKm : R.id.rbMiles);
+        units.setOnCheckedChangeListener((g, id) ->
+                p.edit().putString("units", id == R.id.rbKm ? "km" : "mi").apply());
+
         home = findViewById(R.id.editHome);
         work = findViewById(R.id.editWork);
         home.setText(p.home());

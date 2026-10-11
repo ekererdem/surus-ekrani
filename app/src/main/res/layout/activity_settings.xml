@@ -24,7 +24,7 @@
             android:textColor="@color/fg" />
 
         <!-- Uygulamalar -->
-        <TextView style="@style/SectionTitle" android:text="Navigasyon uygulaması" />
+        <TextView style="@style/SectionTitle" android:text="Harici navigasyon uygulaması" />
         <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
             <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
             <RadioButton android:id="@+id/rbWaze" style="@style/Option" android:text="Waze" />
@@ -34,6 +34,12 @@
         <RadioGroup android:id="@+id/radioMusic" android:layout_width="match_parent" android:layout_height="wrap_content">
             <RadioButton android:id="@+id/rbSpotify" style="@style/Option" android:text="Spotify" />
             <RadioButton android:id="@+id/rbYtm" style="@style/Option" android:text="YouTube Music" />
+        </RadioGroup>
+
+        <TextView style="@style/SectionTitle" android:text="Mesafe birimi" />
+        <RadioGroup android:id="@+id/radioUnits" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rbMiles" style="@style/Option" android:text="Mil / fit" />
+            <RadioButton android:id="@+id/rbKm" style="@style/Option" android:text="Kilometre / metre" />
         </RadioGroup>
 
         <!-- Adresler -->

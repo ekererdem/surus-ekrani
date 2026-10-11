@@ -10,6 +10,8 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.view.KeyEvent;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
@@ -87,13 +89,16 @@ public class MainActivity extends Activity {
         musicArt.setClipToOutline(true);
         setupMap();
 
-        findViewById(R.id.navTouch).setOnClickListener(v -> Apps.openNav(this, p, null));
+        findViewById(R.id.navTouch).setOnClickListener(v ->
+                startActivity(new Intent(this, NavActivity.class)));
         findViewById(R.id.musicOpen).setOnClickListener(v -> Apps.openMusic(this, p));
         findViewById(R.id.prevBtn).setOnClickListener(v -> {
             if (ctrl != null) ctrl.getTransportControls().skipToPrevious();
+            else mediaKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS);
         });
         findViewById(R.id.nextBtn).setOnClickListener(v -> {
             if (ctrl != null) ctrl.getTransportControls().skipToNext();
+            else mediaKey(KeyEvent.KEYCODE_MEDIA_NEXT);
         });
         playBtn.setOnClickListener(v -> togglePlay());
 
@@ -172,7 +177,7 @@ public class MainActivity extends Activity {
             }
         } else {
             navTitle.setText("Navigasyon");
-            navSub.setText(Apps.navName(p.nav()) + " · başlatmak için dokun");
+            navSub.setText("Adres aramak için dokun");
             navSub.setVisibility(View.VISIBLE);
         }
         navIcon.setImageResource(R.drawable.ic_nav);
@@ -224,7 +229,7 @@ public class MainActivity extends Activity {
 
     private void togglePlay() {
         if (ctrl == null) {
-            Apps.playMedia(this);
+            mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
             return;
         }
         PlaybackState s = ctrl.getPlaybackState();
@@ -243,7 +248,9 @@ public class MainActivity extends Activity {
             songArtist.setText(hasListenerAccess()
                     ? Apps.musicName(p.music()) + " · açmak için dokun"
                     : "Şarkıyı görmek için Ayarlar → 4. Bildirim erişimi");
-            playBtn.setImageResource(R.drawable.ic_play);
+            AudioManager am = getSystemService(AudioManager.class);
+            boolean active = am != null && am.isMusicActive();
+            playBtn.setImageResource(active ? R.drawable.ic_pause : R.drawable.ic_play);
             return;
         }
         String title = m.getString(MediaMetadata.METADATA_KEY_TITLE);
@@ -297,8 +304,17 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Önce Ayarlar'dan adres ekle", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, SettingsActivity.class));
         } else {
-            Apps.openNav(this, p, addr);
+            startActivity(new Intent(this, NavActivity.class).putExtra(NavActivity.EXTRA_DEST, addr));
         }
+    }
+
+    /** Bildirim erişimi olmadan da çalışan medya tuşu: son çalan uygulamaya gider. */
+    private void mediaKey(int code) {
+        AudioManager am = getSystemService(AudioManager.class);
+        if (am == null) return;
+        am.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, code));
+        am.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, code));
+        playBtn.postDelayed(this::renderMusic, 600);
     }
 
     @Override
