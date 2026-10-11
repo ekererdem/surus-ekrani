@@ -57,48 +57,18 @@
             android:layout_weight="1"
             android:orientation="horizontal">
 
-            <LinearLayout
-                android:id="@+id/navTile"
+            <include
+                layout="@layout/part_nav"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="@drawable/tile_amber"
-                android:padding="22dp"
-                android:clickable="true"
-                android:focusable="true">
-                <ImageView
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:src="@drawable/ic_nav"
-                    android:tint="@color/amber_ink"
-                    android:contentDescription="@null" />
-                <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
-                <TextView style="@style/TileTitle" android:text="Navigasyon" android:textColor="@color/amber_ink" />
-                <TextView android:id="@+id/navSub" style="@style/TileSub" android:textColor="@color/amber_ink" />
-            </LinearLayout>
+                android:layout_weight="1.2" />
 
-            <LinearLayout
-                android:id="@+id/musicTile"
+            <include
+                layout="@layout/part_music"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_marginStart="14dp"
-                android:orientation="vertical"
-                android:background="@drawable/tile_dark"
-                android:padding="22dp"
-                android:clickable="true"
-                android:focusable="true">
-                <ImageView
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:src="@drawable/ic_music"
-                    android:tint="@color/fg"
-                    android:contentDescription="@null" />
-                <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
-                <TextView style="@style/TileTitle" android:text="Müzik" android:textColor="@color/fg" />
-                <TextView android:id="@+id/musicSub" style="@style/TileSub" android:textColor="@color/fg" />
-            </LinearLayout>
+                android:layout_marginStart="14dp" />
         </LinearLayout>
 
         <LinearLayout

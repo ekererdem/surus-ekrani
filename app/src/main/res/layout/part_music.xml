@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Müzik kutusu: kapak, şarkı, sanatçı, kontroller -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/musicTile"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/tile_dark"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:id="@+id/musicOpen"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:id="@+id/musicArt"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/art_bg"
+            android:scaleType="fitCenter"
+            android:padding="36dp"
+            android:src="@drawable/ic_music"
+            android:tint="@color/muted"
+            android:contentDescription="Albüm kapağı" />
+
+        <TextView
+            android:id="@+id/songTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/fg"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="Müzik" />
+
+        <TextView
+            android:id="@+id/songArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/muted"
+            android:singleLine="true"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/prevBtn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/btn_outline"
+            android:src="@drawable/ic_prev"
+            android:tint="@color/fg"
+            android:scaleType="center"
+            android:contentDescription="Önceki" />
+
+        <ImageButton
+            android:id="@+id/playBtn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.4"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/tile_amber"
+            android:src="@drawable/ic_play"
+            android:tint="@color/amber_ink"
+            android:scaleType="center"
+            android:contentDescription="Oynat / Duraklat" />
+
+        <ImageButton
+            android:id="@+id/nextBtn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/btn_outline"
+            android:src="@drawable/ic_next"
+            android:tint="@color/fg"
+            android:scaleType="center"
+            android:contentDescription="Sonraki" />
+    </LinearLayout>
+</LinearLayout>

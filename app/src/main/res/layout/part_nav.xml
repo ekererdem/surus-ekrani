@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navigasyon kutusu: canlı harita, altta yön bilgisi -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/navFrame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/map_frame">
+
+    <org.osmdroid.views.MapView
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/nav_info_bg"
+        android:padding="14dp"
+        android:elevation="4dp">
+
+        <ImageView
+            android:id="@+id/navIcon"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:src="@drawable/ic_nav"
+            android:tint="@color/amber_ink"
+            android:contentDescription="@null" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/navTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed"
+                android:textStyle="bold"
+                android:textSize="28sp"
+                android:textColor="@color/amber_ink"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:text="Navigasyon" />
+            <TextView
+                android:id="@+id/navSub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="16sp"
+                android:textColor="@color/amber_ink"
+                android:alpha="0.8"
+                android:maxLines="2"
+                android:ellipsize="end" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Haritayı kaydırmak yerine dokununca navigasyon uygulamasını açar -->
+    <View
+        android:id="@+id/navTouch"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="5dp"
+        android:contentDescription="Navigasyonu aç" />
+</FrameLayout>

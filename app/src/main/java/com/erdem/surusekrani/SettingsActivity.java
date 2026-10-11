@@ -79,6 +79,10 @@ public class SettingsActivity extends Activity {
         findViewById(R.id.homeAppBtn).setOnClickListener(v ->
                 safeStart(new Intent(Settings.ACTION_HOME_SETTINGS)));
         findViewById(R.id.backBtn).setOnClickListener(v -> finish());
+        findViewById(R.id.listenerBtn).setOnClickListener(v ->
+                safeStart(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
+        findViewById(R.id.appInfoBtn).setOnClickListener(v -> safeStart(new Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))));
     }
 
     @Override
@@ -101,6 +105,11 @@ public class SettingsActivity extends Activity {
                 p.carName().isEmpty() ? "Henüz seçilmedi" : "Seçili: " + p.carName());
         ((TextView) findViewById(R.id.overlayStatus)).setText(
                 Settings.canDrawOverlays(this) ? "Verildi ✓" : "Verilmedi. Otomatik açılma için gerekli.");
+        NotificationManager lnm = getSystemService(NotificationManager.class);
+        boolean listener = lnm != null && lnm.isNotificationListenerAccessGranted(
+                new ComponentName(this, MediaListener.class));
+        ((TextView) findViewById(R.id.listenerStatus)).setText(
+                listener ? "Verildi ✓" : "Verilmedi. Çalan şarkı ve yön bilgisi için gerekli.");
         ((TextView) findViewById(R.id.notifStatus)).setText(
                 notificationsReady() ? "Hazır ✓" : "Kapalı. Yedek bildirim için gerekli.");
     }
