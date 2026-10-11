@@ -18,7 +18,7 @@ final class Prefs {
     String carAddr() { return sp.getString("carAddr", ""); }
     String carName() { return sp.getString("carName", ""); }
     boolean autoOpen() { return sp.getBoolean("autoOpen", true); }
-    String units() { return sp.getString("units", "mi"); }
+    String units() { return sp.getString("units", "km"); }
     boolean autoPlay() { return sp.getBoolean("autoPlay", false); }
 
     SharedPreferences.Editor edit() { return sp.edit(); }

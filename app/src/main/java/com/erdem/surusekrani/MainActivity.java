@@ -89,8 +89,12 @@ public class MainActivity extends Activity {
         musicArt.setClipToOutline(true);
         setupMap();
 
-        findViewById(R.id.navTouch).setOnClickListener(v ->
-                startActivity(new Intent(this, NavActivity.class)));
+        // Dokun: Google Haritalar yan yana açılır. Basılı tut: uygulama içi navigasyon.
+        findViewById(R.id.navTouch).setOnClickListener(v -> Apps.openNavSplit(this, p, null));
+        findViewById(R.id.navTouch).setOnLongClickListener(v -> {
+            startActivity(new Intent(this, NavActivity.class));
+            return true;
+        });
         findViewById(R.id.musicOpen).setOnClickListener(v -> Apps.openMusic(this, p));
         findViewById(R.id.prevBtn).setOnClickListener(v -> {
             if (ctrl != null) ctrl.getTransportControls().skipToPrevious();
@@ -177,7 +181,7 @@ public class MainActivity extends Activity {
             }
         } else {
             navTitle.setText("Navigasyon");
-            navSub.setText("Adres aramak için dokun");
+            navSub.setText(Apps.navName(p.nav()) + " · yan yana açmak için dokun");
             navSub.setVisibility(View.VISIBLE);
         }
         navIcon.setImageResource(R.drawable.ic_nav);
@@ -304,7 +308,7 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Önce Ayarlar'dan adres ekle", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, SettingsActivity.class));
         } else {
-            startActivity(new Intent(this, NavActivity.class).putExtra(NavActivity.EXTRA_DEST, addr));
+            Apps.openNavSplit(this, p, addr);
         }
     }
 
@@ -317,9 +321,22 @@ public class MainActivity extends Activity {
         playBtn.postDelayed(this::renderMusic, 600);
     }
 
+    /** Bölünmüş ekranda harita kutusunu gizle; haritanın kendisi zaten yanda. */
+    private void updateSplitUi() {
+        View nav = findViewById(R.id.navFrame);
+        nav.setVisibility(isInMultiWindowMode() ? View.GONE : View.VISIBLE);
+    }
+
+    @Override
+    public void onMultiWindowModeChanged(boolean inMultiWindow, android.content.res.Configuration cfg) {
+        super.onMultiWindowModeChanged(inMultiWindow, cfg);
+        updateSplitUi();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+        updateSplitUi();
         NotificationManager nm = getSystemService(NotificationManager.class);
         if (nm != null) nm.cancel(BtReceiver.NOTIF_ID);
 

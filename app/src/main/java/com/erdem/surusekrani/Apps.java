@@ -42,6 +42,27 @@ final class Apps {
         start(a, i, pkg);
     }
 
+    /** Navigasyon uygulamasını ekranın diğer yarısında açar (bölünmüş ekran). */
+    static void openNavSplit(Activity a, Prefs p, String dest) {
+        boolean waze = "waze".equals(p.nav());
+        String pkg = waze ? WAZE : MAPS;
+        Intent i;
+        if (dest == null || dest.trim().isEmpty()) {
+            i = a.getPackageManager().getLaunchIntentForPackage(pkg);
+            if (i == null) { openStore(a, pkg); return; }
+        } else if (waze) {
+            i = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://waze.com/ul?navigate=yes&q=" + Uri.encode(dest.trim())));
+            i.setPackage(WAZE);
+        } else {
+            i = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("google.navigation:q=" + Uri.encode(dest.trim()) + "&mode=d"));
+            i.setPackage(MAPS);
+        }
+        i.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT);
+        start(a, i, pkg);
+    }
+
     static void openMusic(Activity a, Prefs p) {
         String pkg = musicPkg(p.music());
         Intent i = a.getPackageManager().getLaunchIntentForPackage(pkg);
