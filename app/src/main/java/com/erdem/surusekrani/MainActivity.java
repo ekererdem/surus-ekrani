@@ -17,6 +17,8 @@ import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.widget.SeekBar;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -56,9 +58,10 @@ public class MainActivity extends Activity {
     private MediaSessionManager msm;
     private ComponentName listenerCn;
     private MediaController ctrl;
-    private ImageView musicArt;
     private ImageButton playBtn;
-    private TextView songTitle, songArtist;
+    private TextView songTitle, songArtist, elapsed, durationTv;
+    private SeekBar seek;
+    private boolean seeking;
 
     private final MediaController.Callback mediaCb = new MediaController.Callback() {
         @Override public void onMetadataChanged(MediaMetadata m) { renderMusic(); }
@@ -80,14 +83,27 @@ public class MainActivity extends Activity {
         navIcon = findViewById(R.id.navIcon);
         navTitle = findViewById(R.id.navTitle);
         navSub = findViewById(R.id.navSub);
-        musicArt = findViewById(R.id.musicArt);
         playBtn = findViewById(R.id.playBtn);
         songTitle = findViewById(R.id.songTitle);
         songArtist = findViewById(R.id.songArtist);
+        elapsed = findViewById(R.id.musicElapsed);
+        durationTv = findViewById(R.id.musicDuration);
+        seek = findViewById(R.id.musicSeek);
 
         findViewById(R.id.navFrame).setClipToOutline(true);
-        musicArt.setClipToOutline(true);
         setupMap();
+
+        // İlerleme çubuğu sürüklenince şarkıda o noktaya atlar.
+        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int value, boolean fromUser) { }
+            @Override public void onStartTrackingTouch(SeekBar sb) { seeking = true; }
+            @Override public void onStopTrackingTouch(SeekBar sb) {
+                seeking = false;
+                if (ctrl == null || ctrl.getMetadata() == null) return;
+                long dur = ctrl.getMetadata().getLong(MediaMetadata.METADATA_KEY_DURATION);
+                if (dur > 0) ctrl.getTransportControls().seekTo(dur * sb.getProgress() / 1000);
+            }
+        });
 
         // Dokun: Google Haritalar yan yana açılır. Basılı tut: uygulama içi navigasyon.
         findViewById(R.id.navTouch).setOnClickListener(v -> Apps.openNavSplit(this, p, null));
@@ -106,8 +122,6 @@ public class MainActivity extends Activity {
         });
         playBtn.setOnClickListener(v -> togglePlay());
 
-        findViewById(R.id.homeChip).setOnClickListener(v -> goTo(p.home()));
-        findViewById(R.id.workChip).setOnClickListener(v -> goTo(p.work()));
         findViewById(R.id.appsBtn).setOnClickListener(v ->
                 startActivity(new Intent(this, AppsActivity.class)));
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
@@ -247,7 +261,9 @@ public class MainActivity extends Activity {
     private void renderMusic() {
         MediaMetadata m = ctrl == null ? null : ctrl.getMetadata();
         if (m == null) {
-            showArtPlaceholder();
+            seek.setProgress(0);
+            elapsed.setText("0:00");
+            durationTv.setText("0:00");
             songTitle.setText("Müzik");
             songArtist.setText(hasListenerAccess()
                     ? Apps.musicName(p.music()) + " · açmak için dokun"
@@ -262,30 +278,45 @@ public class MainActivity extends Activity {
         songTitle.setText(title == null ? "" : title);
         songArtist.setText(artist == null ? "" : artist);
 
-        Bitmap art = m.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
-        if (art == null) art = m.getBitmap(MediaMetadata.METADATA_KEY_ART);
-        if (art == null) art = m.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON);
-        if (art != null) {
-            musicArt.setPadding(0, 0, 0, 0);
-            musicArt.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            musicArt.setImageTintList(null);
-            musicArt.setImageBitmap(art);
-        } else {
-            showArtPlaceholder();
-        }
-
         PlaybackState s = ctrl.getPlaybackState();
         boolean playing = s != null && s.getState() == PlaybackState.STATE_PLAYING;
         playBtn.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
+        updateProgress();
     }
 
-    private void showArtPlaceholder() {
-        int pad = Math.round(36 * getResources().getDisplayMetrics().density);
-        musicArt.setPadding(pad, pad, pad, pad);
-        musicArt.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        musicArt.setImageResource(R.drawable.ic_music);
-        musicArt.setImageTintList(ColorStateList.valueOf(getColor(R.color.muted)));
+    /** Şarkının ilerleme çubuğunu ve sürelerini günceller. */
+    private void updateProgress() {
+        if (ctrl == null || seeking) return;
+        MediaMetadata m = ctrl.getMetadata();
+        PlaybackState s = ctrl.getPlaybackState();
+        long dur = m == null ? 0 : m.getLong(MediaMetadata.METADATA_KEY_DURATION);
+        if (s == null || dur <= 0) {
+            seek.setProgress(0);
+            elapsed.setText("0:00");
+            durationTv.setText("0:00");
+            return;
+        }
+        long pos = s.getPosition();
+        if (s.getState() == PlaybackState.STATE_PLAYING) {
+            pos += (long) ((SystemClock.elapsedRealtime() - s.getLastPositionUpdateTime()) * s.getPlaybackSpeed());
+        }
+        pos = Math.max(0, Math.min(pos, dur));
+        seek.setProgress((int) (pos * 1000 / dur));
+        elapsed.setText(fmt(pos));
+        durationTv.setText(fmt(dur));
     }
+
+    private static String fmt(long ms) {
+        long sec = ms / 1000;
+        return (sec / 60) + ":" + String.format(java.util.Locale.US, "%02d", sec % 60);
+    }
+
+    private final Runnable progressTick = new Runnable() {
+        @Override public void run() {
+            updateProgress();
+            seek.postDelayed(this, 500);
+        }
+    };
 
     // ---------- Yaşam döngüsü ----------
 
@@ -340,12 +371,9 @@ public class MainActivity extends Activity {
         NotificationManager nm = getSystemService(NotificationManager.class);
         if (nm != null) nm.cancel(BtReceiver.NOTIF_ID);
 
-        ((TextView) findViewById(R.id.homeSub)).setText(
-                p.home().isEmpty() ? "Adres eklemek için Ayarlar" : p.home());
-        ((TextView) findViewById(R.id.workSub)).setText(
-                p.work().isEmpty() ? "Adres eklemek için Ayarlar" : p.work());
-
         map.onResume();
+        seek.removeCallbacks(progressTick);
+        seek.post(progressTick);
         startLocation();
 
         NavState.listener = this::renderNav;
@@ -364,6 +392,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        seek.removeCallbacks(progressTick);
         map.onPause();
         myLoc.disableMyLocation();
         NavState.listener = null;
