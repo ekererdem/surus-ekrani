@@ -132,7 +132,7 @@ public class MainActivity extends Activity {
         map.setMultiTouchControls(false);
         map.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
         map.setTilesScaledToDpi(true);
-        map.getMapOverlay().setColorFilter(TilesOverlay.INVERTED_COLORS);
+        map.getMapOverlay().setColorFilter(TilesOverlay.INVERT_COLORS);
         map.getController().setZoom(16.0);
         map.getController().setCenter(new GeoPoint(31.0, -99.0));
 
