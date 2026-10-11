@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.erdem.surusekrani'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.erdem.surusekrani'
+        minSdk 30
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    // Sabit imza: her derleme aynı anahtarla imzalanır, böylece yeni sürüm eskisinin üzerine kurulur.
+    signingConfigs {
+        debug {
+            storeFile file('surus.keystore')
+            storePassword 'surus123'
+            keyAlias 'surus'
+            keyPassword 'surus123'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

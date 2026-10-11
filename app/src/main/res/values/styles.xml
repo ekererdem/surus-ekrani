@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:colorAccent">@color/amber</item>
+        <item name="android:textColorPrimary">@color/fg</item>
+        <item name="android:textColorSecondary">@color/muted</item>
+    </style>
+
+    <style name="TileTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textSize">40sp</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="TileSub">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:alpha">0.75</item>
+        <item name="android:layout_marginTop">4dp</item>
+    </style>
+
+    <style name="ChipTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/fg</item>
+    </style>
+
+    <style name="ChipSub">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/muted</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="OutlineBtn">
+        <item name="android:layout_height">60dp</item>
+        <item name="android:background">@drawable/btn_outline</item>
+        <item name="android:textColor">@color/fg</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <style name="SectionTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/amber</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:layout_marginTop">28dp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+    </style>
+
+    <style name="Note">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/muted</item>
+        <item name="android:layout_marginTop">6dp</item>
+    </style>
+
+    <style name="Field">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/field_bg</item>
+        <item name="android:padding">14dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/fg</item>
+        <item name="android:textColorHint">@color/muted</item>
+        <item name="android:inputType">textPostalAddress</item>
+        <item name="android:layout_marginTop">8dp</item>
+    </style>
+
+    <style name="Option">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/fg</item>
+        <item name="android:buttonTint">@color/amber</item>
+    </style>
+
+    <style name="Toggle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/fg</item>
+        <item name="android:thumbTint">@color/amber</item>
+    </style>
+</resources>

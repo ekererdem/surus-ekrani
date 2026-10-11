@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#0F1418</color>
+    <color name="panel">#182027</color>
+    <color name="panel2">#212B33</color>
+    <color name="line">#2C3842</color>
+    <color name="fg">#E9EEF1</color>
+    <color name="muted">#8A9AA6</color>
+    <color name="amber">#F2A900</color>
+    <color name="amber_ink">#1A1300</color>
+    <color name="teal">#3FC1B0</color>
+</resources>
