@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.osmdroid.config.Configuration;
+import org.osmdroid.config.IConfigurationProvider;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
@@ -117,7 +118,7 @@ public class MainActivity extends Activity {
     // ---------- Harita ----------
 
     private void setupOsm() {
-        Configuration cfg = Configuration.getInstance();
+        IConfigurationProvider cfg = Configuration.getInstance();
         cfg.load(this, getSharedPreferences("osm", MODE_PRIVATE));
         cfg.setUserAgentValue(getPackageName());
         File base = new File(getCacheDir(), "osm");
@@ -131,7 +132,7 @@ public class MainActivity extends Activity {
         map.setMultiTouchControls(false);
         map.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
         map.setTilesScaledToDpi(true);
-        map.getOverlayManager().getTilesOverlay().setColorFilter(TilesOverlay.INVERTED_COLORS);
+        map.getMapOverlay().setColorFilter(TilesOverlay.INVERTED_COLORS);
         map.getController().setZoom(16.0);
         map.getController().setCenter(new GeoPoint(31.0, -99.0));
 
