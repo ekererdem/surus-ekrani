@@ -142,8 +142,6 @@ public class MainActivity extends Activity {
         });
         playBtn.setOnClickListener(v -> togglePlay());
 
-        findViewById(R.id.appsBtn).setOnClickListener(v ->
-                startActivity(new Intent(this, AppsActivity.class)));
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
 

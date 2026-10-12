@@ -6,7 +6,10 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/tile_dark"
-    android:padding="14dp">
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <LinearLayout
         android:id="@+id/musicOpen"
@@ -21,7 +24,7 @@
             android:id="@+id/songTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/fg"
             android:singleLine="true"
@@ -32,7 +35,7 @@
             android:id="@+id/songArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="14sp"
             android:textColor="@color/muted"
             android:singleLine="true"
             android:ellipsize="end" />
@@ -41,8 +44,8 @@
     <SeekBar
         android:id="@+id/musicSeek"
         android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:layout_marginTop="6dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="0dp"
         android:paddingStart="0dp"
         android:paddingEnd="0dp"
         android:max="1000"
@@ -59,7 +62,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textColor="@color/muted"
             android:fontFeatureSettings="tnum"
             android:text="0:00" />
@@ -67,7 +70,7 @@
             android:id="@+id/musicDuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textColor="@color/muted"
             android:fontFeatureSettings="tnum"
             android:text="0:00" />
@@ -75,8 +78,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="46dp"
-        android:layout_marginTop="8dp"
+        android:layout_height="42dp"
+        android:layout_marginTop="4dp"
         android:orientation="horizontal">
 
         <ImageButton
