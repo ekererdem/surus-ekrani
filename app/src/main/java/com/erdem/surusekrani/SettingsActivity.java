@@ -50,11 +50,9 @@ public class SettingsActivity extends Activity {
 
         RadioGroup scale = findViewById(R.id.radioScale);
         float sc = getSharedPreferences("surus", MODE_PRIVATE).getFloat("scale", 1f);
-        scale.check(sc <= 0.71f ? R.id.rbScaleXS : sc <= 0.86f ? R.id.rbScaleS
-                : sc >= 1.25f ? R.id.rbScaleXL : sc >= 1.1f ? R.id.rbScaleL : R.id.rbScaleM);
+        scale.check(sc <= 0.71f ? R.id.rbScaleXS : sc <= 0.86f ? R.id.rbScaleS : sc >= 1.1f ? R.id.rbScaleL : R.id.rbScaleM);
         scale.setOnCheckedChangeListener((g, id) -> p.edit().putFloat("scale",
-                id == R.id.rbScaleXS ? 0.7f : id == R.id.rbScaleS ? 0.85f
-                        : id == R.id.rbScaleL ? 1.15f : id == R.id.rbScaleXL ? 1.3f : 1f).apply());
+                id == R.id.rbScaleXS ? 0.7f : id == R.id.rbScaleS ? 0.85f : id == R.id.rbScaleL ? 1.15f : 1f).apply());
 
         RadioGroup units = findViewById(R.id.radioUnits);
         units.check("km".equals(p.units()) ? R.id.rbKm : R.id.rbMiles);
