@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Haritada ev işaretleme: harita kayar, iğne ortada sabit durur -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <org.osmdroid.views.MapView
+        android:id="@+id/pickMap"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- İğnenin ucu tam ekranın ortasına denk gelir -->
+    <ImageView
+        android:id="@+id/pickPin"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="center"
+        android:translationY="-20dp"
+        android:src="@drawable/ic_pin_fill"
+        android:elevation="6dp"
+        android:contentDescription="Seçilen nokta" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_margin="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/field_bg"
+        android:elevation="4dp"
+        android:padding="6dp">
+        <ImageButton
+            android:id="@+id/pickBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            android:tint="@color/fg"
+            android:contentDescription="Geri" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:textSize="16sp"
+            android:textColor="@color/fg"
+            android:text="Haritayı kaydırıp iğneyi evinin üstüne getir. İki parmakla yakınlaştırabilirsin." />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="12dp"
+        android:orientation="horizontal">
+        <ImageButton
+            android:id="@+id/pickLocate"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/chip_bg"
+            android:elevation="4dp"
+            android:src="@drawable/ic_locate"
+            android:tint="@color/amber"
+            android:contentDescription="Konumuma git" />
+        <Button
+            android:id="@+id/pickSave"
+            style="@style/OutlineBtn"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/tile_amber"
+            android:textColor="@color/amber_ink"
+            android:elevation="4dp"
+            android:text="Burayı ev yap" />
+    </LinearLayout>
+</FrameLayout>

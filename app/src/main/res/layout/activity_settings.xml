@@ -62,19 +62,21 @@
 
         <TextView style="@style/SectionTitle" android:text="Ev adresi" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Evdeyken 'Şu anki konumumu ev yap'a basman yeterli. Ya da semt, mahalle veya sokak yazıp Ara'ya bas ve listeden seç." />
-        <EditText android:id="@+id/editHome" style="@style/Field" android:inputType="textPostalAddress"
-            android:imeOptions="actionSearch" android:hint="Örn. Gölbaşı Seğmenler, Ankara" />
+            android:text="Haritada işaretle'ye bas, haritayı kaydırıp iğneyi evinin üstüne getir. Evdeysen 'Şu anki konumum' da olur." />
+        <EditText android:id="@+id/editHome" style="@style/Field" android:focusable="false"
+            android:cursorVisible="false" android:inputType="none" android:hint="Henüz ev kaydedilmedi" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:orientation="horizontal">
             <Button android:id="@+id/homeSearchBtn" style="@style/OutlineBtn"
-                android:layout_width="0dp" android:layout_weight="1" android:text="Ara" />
+                android:layout_width="0dp" android:layout_weight="1.3"
+                android:background="@drawable/tile_amber" android:textColor="@color/amber_ink"
+                android:text="Haritada işaretle" />
             <Button android:id="@+id/homeHereBtn" style="@style/OutlineBtn"
-                android:layout_width="0dp" android:layout_weight="1.6" android:layout_marginStart="10dp"
-                android:text="Şu anki konumumu ev yap" />
+                android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="10dp"
+                android:text="Şu anki konumum" />
         </LinearLayout>
         <TextView android:id="@+id/homeStatus" style="@style/Note" />
 

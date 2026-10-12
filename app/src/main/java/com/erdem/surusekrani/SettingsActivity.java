@@ -105,6 +105,9 @@ public class SettingsActivity extends Activity {
     protected void onResume() {
         super.onResume();
         refreshStatus();
+        savedHomeLabel = p.home();
+        home.setText(savedHomeLabel);
+        renderHomeStatus();
     }
 
     @Override
@@ -127,15 +130,9 @@ public class SettingsActivity extends Activity {
 
     private void setupHome() {
         savedHomeLabel = p.home();
-        findViewById(R.id.homeSearchBtn).setOnClickListener(v -> searchHome());
+        findViewById(R.id.homeSearchBtn).setOnClickListener(v -> openPicker());
         findViewById(R.id.homeHereBtn).setOnClickListener(v -> homeFromHere());
-        home.setOnEditorActionListener((v, actionId, ev) -> {
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
-                searchHome();
-                return true;
-            }
-            return false;
-        });
+        home.setOnClickListener(v -> openPicker());
         renderHomeStatus();
     }
 
@@ -146,7 +143,7 @@ public class SettingsActivity extends Activity {
             t.setText("Kaydedildi ✓ Ev tuşu tam bu konuma rota başlatır.");
             t.setTextColor(getColor(R.color.teal));
         } else if (!p.home().isEmpty()) {
-            t.setText("Sadece yazı olarak kayıtlı. Daha doğru sonuç için Ara'ya basıp listeden seç.");
+            t.setText("Tam konum kayıtlı değil. Haritada işaretle'ye basıp evini seç.");
             t.setTextColor(getColor(R.color.muted));
         } else {
             t.setText("");
@@ -204,43 +201,8 @@ public class SettingsActivity extends Activity {
         });
     }
 
-    private void searchHome() {
-        String q = home.getText().toString().trim();
-        if (q.isEmpty()) {
-            Toast.makeText(this, "Önce semt, mahalle ya da sokak yaz", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        android.view.inputmethod.InputMethodManager imm =
-                getSystemService(android.view.inputmethod.InputMethodManager.class);
-        if (imm != null) imm.hideSoftInputFromWindow(home.getWindowToken(), 0);
-        android.location.Location l = lastLocation();
-        org.osmdroid.util.GeoPoint near = l == null ? null : new org.osmdroid.util.GeoPoint(l.getLatitude(), l.getLongitude());
-        Toast.makeText(this, "Aranıyor…", Toast.LENGTH_SHORT).show();
-        io.execute(() -> {
-            try {
-                List<Route.Place> r = Route.search(q, near);
-                runOnUiThread(() -> {
-                    if (isFinishing()) return;
-                    if (r.isEmpty()) {
-                        Toast.makeText(this, "Bulunamadı. Daha genel bir şey yaz, örn. 'Gölbaşı, Ankara'.",
-                                Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    String[] names = new String[r.size()];
-                    for (int i = 0; i < r.size(); i++) names[i] = r.get(i).name;
-                    new AlertDialog.Builder(this)
-                            .setTitle("Evin hangisi?")
-                            .setItems(names, (d, which) -> {
-                                Route.Place pl = r.get(which);
-                                saveHome(pl.name, pl.point.getLatitude(), pl.point.getLongitude());
-                            })
-                            .show();
-                });
-            } catch (Exception ex) {
-                runOnUiThread(() -> Toast.makeText(this, "Arama yapılamadı. İnternet bağlantını kontrol et.",
-                        Toast.LENGTH_LONG).show());
-            }
-        });
+    private void openPicker() {
+        startActivity(new Intent(this, MapPickActivity.class));
     }
 
     @Override
