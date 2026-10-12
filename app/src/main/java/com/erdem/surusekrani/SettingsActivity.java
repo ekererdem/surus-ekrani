@@ -68,6 +68,10 @@ public class SettingsActivity extends Activity {
         autoOpen.setChecked(p.autoOpen());
         autoOpen.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("autoOpen", on).apply());
 
+        Switch autoSplit = findViewById(R.id.swAutoSplit);
+        autoSplit.setChecked(p.autoSplit());
+        autoSplit.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("autoSplit", on).apply());
+
         Switch autoPlay = findViewById(R.id.swAutoPlay);
         autoPlay.setChecked(p.autoPlay());
         autoPlay.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("autoPlay", on).apply());

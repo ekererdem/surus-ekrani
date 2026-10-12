@@ -153,6 +153,8 @@ public class MainActivity extends Activity {
                     Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOC);
         }
         handleCarIntent(getIntent());
+        // Uygulama ilk açıldığında haritayı ekranın diğer yarısında başlat.
+        if (savedInstanceState == null) autoSplit();
     }
 
     // ---------- Harita ----------
@@ -348,6 +350,7 @@ public class MainActivity extends Activity {
         if (i != null && i.getBooleanExtra(BtReceiver.EXTRA_FROM_CAR, false)) {
             i.removeExtra(BtReceiver.EXTRA_FROM_CAR);
             if (p.autoPlay()) Apps.playMedia(this);
+            autoSplit();
         }
     }
 
@@ -358,6 +361,15 @@ public class MainActivity extends Activity {
         } else {
             Apps.openNavSplit(this, p, addr);
         }
+    }
+
+    private void autoSplit() {
+        if (!p.autoSplit()) return;
+        playBtn.postDelayed(() -> {
+            if (!isFinishing() && !isDestroyed() && !isInMultiWindowMode()) {
+                Apps.openNavSplit(this, p, null);
+            }
+        }, 700);
     }
 
     /** Bildirim erişimi olmadan da çalışan medya tuşu: son çalan uygulamaya gider. */

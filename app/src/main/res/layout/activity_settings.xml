@@ -29,6 +29,10 @@
             <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
             <RadioButton android:id="@+id/rbWaze" style="@style/Option" android:text="Waze" />
         </RadioGroup>
+        <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="6dp"
+            android:text="Açılınca haritayı yan yana başlat" />
+        <TextView style="@style/Note"
+            android:text="Haritanın ekrandaki payını ortadaki ayırma çizgisini sürükleyerek ayarlayabilirsin." />
 
         <TextView style="@style/SectionTitle" android:text="Müzik uygulaması" />
         <RadioGroup android:id="@+id/radioMusic" android:layout_width="match_parent" android:layout_height="wrap_content">

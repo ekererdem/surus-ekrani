@@ -10,6 +10,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -17,48 +18,130 @@ import android.widget.TextView;
 
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
-/** Ana ekran modunda diğer uygulamalara ulaşmak için basit uygulama listesi. */
+/**
+ * Sadece kullanıcının seçtiği uygulamaları gösterir.
+ * "Düzenle" ile tüm uygulamalar listelenir; dokununca eklenir ya da çıkarılır.
+ */
 public class AppsActivity extends Activity {
-    private final List<ResolveInfo> apps = new ArrayList<>();
-    private final List<String> labels = new ArrayList<>();
+    private static final String KEY = "favApps";
+
+    private PackageManager pm;
+    private final List<ResolveInfo> all = new ArrayList<>();
+    private final Map<String, ResolveInfo> byKey = new HashMap<>();
+    private final Map<String, String> labels = new HashMap<>();
+    private final List<String> favs = new ArrayList<>();
+    private final List<String> shown = new ArrayList<>();
+    private boolean editing;
+
+    private Adapter adapter;
+    private Button editBtn;
+    private TextView title, hint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        PackageManager pm = getPackageManager();
+        setContentView(R.layout.activity_apps);
+        pm = getPackageManager();
 
         Intent q = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> found = pm.queryIntentActivities(q, 0);
-        Collator col = Collator.getInstance(new Locale("tr", "TR"));
         found.removeIf(r -> getPackageName().equals(r.activityInfo.packageName));
-        found.sort((a, b) -> col.compare(a.loadLabel(pm).toString(), b.loadLabel(pm).toString()));
+        for (ResolveInfo r : found) labels.put(key(r), r.loadLabel(pm).toString());
+        Collator col = Collator.getInstance(new Locale("tr", "TR"));
+        found.sort((a, b) -> col.compare(labels.get(key(a)), labels.get(key(b))));
         for (ResolveInfo r : found) {
-            apps.add(r);
-            labels.add(r.loadLabel(pm).toString());
+            all.add(r);
+            byKey.put(key(r), r);
         }
 
-        int pad = dp(16);
-        GridView grid = new GridView(this);
-        grid.setBackgroundColor(getColor(R.color.bg));
-        grid.setPadding(pad, pad, pad, pad);
-        grid.setClipToPadding(false);
-        grid.setNumColumns(GridView.AUTO_FIT);
-        grid.setColumnWidth(dp(96));
-        grid.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
-        grid.setVerticalSpacing(dp(18));
-        grid.setAdapter(new Adapter(pm));
-        grid.setOnItemClickListener((parent, view, pos, id) -> {
-            ResolveInfo r = apps.get(pos);
-            Intent l = new Intent(Intent.ACTION_MAIN)
-                    .addCategory(Intent.CATEGORY_LAUNCHER)
-                    .setClassName(r.activityInfo.packageName, r.activityInfo.name)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-            startActivity(l);
+        String saved = getSharedPreferences("surus", MODE_PRIVATE).getString(KEY, "");
+        if (!saved.isEmpty()) favs.addAll(Arrays.asList(saved.split("\\|")));
+
+        title = findViewById(R.id.appsTitle);
+        hint = findViewById(R.id.appsHint);
+        editBtn = findViewById(R.id.appsEdit);
+        GridView grid = findViewById(R.id.appsGrid);
+        adapter = new Adapter();
+        grid.setAdapter(adapter);
+
+        findViewById(R.id.appsBack).setOnClickListener(v -> onBackPressed());
+        editBtn.setOnClickListener(v -> {
+            editing = !editing;
+            refresh();
         });
-        setContentView(grid);
+        grid.setOnItemClickListener((parent, view, pos, id) -> {
+            String k = shown.get(pos);
+            if (editing) {
+                if (favs.contains(k)) favs.remove(k);
+                else favs.add(k);
+                save();
+                adapter.notifyDataSetChanged();
+            } else {
+                launch(byKey.get(k));
+            }
+        });
+
+        // Hiç uygulama seçilmemişse doğrudan seçim ekranıyla aç.
+        editing = visibleFavs().isEmpty();
+        refresh();
+    }
+
+    private static String key(ResolveInfo r) {
+        return r.activityInfo.packageName + "/" + r.activityInfo.name;
+    }
+
+    private List<String> visibleFavs() {
+        List<String> out = new ArrayList<>();
+        for (String k : favs) if (byKey.containsKey(k)) out.add(k);
+        return out;
+    }
+
+    private void refresh() {
+        shown.clear();
+        if (editing) {
+            for (ResolveInfo r : all) shown.add(key(r));
+            title.setText("Uygulama seç");
+            hint.setText("Görünmesini istediklerine dokun, tekrar dokunursan çıkar. Bitince Tamam'a bas.");
+            hint.setVisibility(View.VISIBLE);
+            editBtn.setText("Tamam");
+        } else {
+            shown.addAll(visibleFavs());
+            title.setText("Uygulamalar");
+            hint.setText("Henüz uygulama eklemedin. Düzenle'ye basıp istediklerini seç.");
+            hint.setVisibility(shown.isEmpty() ? View.VISIBLE : View.GONE);
+            editBtn.setText("Düzenle");
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    private void save() {
+        getSharedPreferences("surus", MODE_PRIVATE).edit()
+                .putString(KEY, TextUtils.join("|", favs)).apply();
+    }
+
+    private void launch(ResolveInfo r) {
+        if (r == null) return;
+        Intent l = new Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_LAUNCHER)
+                .setClassName(r.activityInfo.packageName, r.activityInfo.name)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        startActivity(l);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (editing && !visibleFavs().isEmpty()) {
+            editing = false;
+            refresh();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private int dp(int v) {
@@ -66,12 +149,8 @@ public class AppsActivity extends Activity {
     }
 
     private class Adapter extends BaseAdapter {
-        private final PackageManager pm;
-
-        Adapter(PackageManager pm) { this.pm = pm; }
-
-        @Override public int getCount() { return apps.size(); }
-        @Override public Object getItem(int i) { return apps.get(i); }
+        @Override public int getCount() { return shown.size(); }
+        @Override public Object getItem(int i) { return shown.get(i); }
         @Override public long getItemId(int i) { return i; }
 
         @Override
@@ -84,10 +163,9 @@ public class AppsActivity extends Activity {
                 cell.setOrientation(LinearLayout.VERTICAL);
                 cell.setGravity(Gravity.CENTER_HORIZONTAL);
                 icon = new ImageView(AppsActivity.this);
-                cell.addView(icon, new LinearLayout.LayoutParams(dp(60), dp(60)));
+                cell.addView(icon, new LinearLayout.LayoutParams(dp(56), dp(56)));
                 label = new TextView(AppsActivity.this);
-                label.setTextColor(getColor(R.color.fg));
-                label.setTextSize(14);
+                label.setTextSize(13);
                 label.setGravity(Gravity.CENTER);
                 label.setMaxLines(2);
                 label.setEllipsize(TextUtils.TruncateAt.END);
@@ -100,8 +178,16 @@ public class AppsActivity extends Activity {
                 icon = (ImageView) cell.getChildAt(0);
                 label = (TextView) cell.getChildAt(1);
             }
-            icon.setImageDrawable(apps.get(i).loadIcon(pm));
-            label.setText(labels.get(i));
+            String k = shown.get(i);
+            ResolveInfo r = byKey.get(k);
+            icon.setImageDrawable(r == null ? null : r.loadIcon(pm));
+            label.setText(labels.get(k));
+
+            boolean selected = favs.contains(k);
+            float alpha = editing && !selected ? 0.35f : 1f;
+            icon.setAlpha(alpha);
+            label.setAlpha(alpha);
+            label.setTextColor(getColor(editing && selected ? R.color.amber : R.color.fg));
             return cell;
         }
     }

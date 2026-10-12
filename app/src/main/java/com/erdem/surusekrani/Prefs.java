@@ -19,6 +19,7 @@ final class Prefs {
     String carName() { return sp.getString("carName", ""); }
     boolean autoOpen() { return sp.getBoolean("autoOpen", true); }
     String units() { return sp.getString("units", "km"); }
+    boolean autoSplit() { return sp.getBoolean("autoSplit", true); }
     boolean autoPlay() { return sp.getBoolean("autoPlay", false); }
 
     SharedPreferences.Editor edit() { return sp.edit(); }
