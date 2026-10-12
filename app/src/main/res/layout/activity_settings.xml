@@ -36,6 +36,14 @@
             <RadioButton android:id="@+id/rbYtm" style="@style/Option" android:text="YouTube Music" />
         </RadioGroup>
 
+        <TextView style="@style/SectionTitle" android:text="Ekran ölçeği" />
+        <RadioGroup android:id="@+id/radioScale" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rbScaleXS" style="@style/Option" android:text="Çok küçük" />
+            <RadioButton android:id="@+id/rbScaleS" style="@style/Option" android:text="Küçük" />
+            <RadioButton android:id="@+id/rbScaleM" style="@style/Option" android:text="Normal" />
+            <RadioButton android:id="@+id/rbScaleL" style="@style/Option" android:text="Büyük" />
+        </RadioGroup>
+
         <TextView style="@style/SectionTitle" android:text="Mesafe birimi" />
         <RadioGroup android:id="@+id/radioUnits" android:layout_width="match_parent" android:layout_height="wrap_content">
             <RadioButton android:id="@+id/rbMiles" style="@style/Option" android:text="Mil / fit" />

@@ -47,6 +47,22 @@ public class MainActivity extends Activity {
     private static final int REQ_LOC = 10;
 
     private Prefs p;
+    private boolean compact;
+    private float appliedScale = 1f;
+
+    /** Ayarlar'daki "Ekran ölçeği"ni uygular: tüm ekranı küçültür ya da büyütür. */
+    @Override
+    protected void attachBaseContext(android.content.Context base) {
+        float s = base.getSharedPreferences("surus", MODE_PRIVATE).getFloat("scale", 1f);
+        appliedScale = s;
+        if (s != 1f) {
+            android.content.res.Configuration c =
+                    new android.content.res.Configuration(base.getResources().getConfiguration());
+            c.densityDpi = Math.round(c.densityDpi * s);
+            base = base.createConfigurationContext(c);
+        }
+        super.attachBaseContext(base);
+    }
 
     // Harita
     private MapView map;
@@ -78,7 +94,8 @@ public class MainActivity extends Activity {
         p = new Prefs(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setupOsm();
-        setContentView(R.layout.activity_main);
+        compact = isInMultiWindowMode();
+        setContentView(compact ? R.layout.activity_main_compact : R.layout.activity_main);
 
         navIcon = findViewById(R.id.navIcon);
         navTitle = findViewById(R.id.navTitle);
@@ -361,12 +378,21 @@ public class MainActivity extends Activity {
     @Override
     public void onMultiWindowModeChanged(boolean inMultiWindow, android.content.res.Configuration cfg) {
         super.onMultiWindowModeChanged(inMultiWindow, cfg);
+        if (inMultiWindow != compact) {
+            recreate();
+            return;
+        }
         updateSplitUi();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        float wantScale = getSharedPreferences("surus", MODE_PRIVATE).getFloat("scale", 1f);
+        if (wantScale != appliedScale || isInMultiWindowMode() != compact) {
+            recreate();
+            return;
+        }
         updateSplitUi();
         NotificationManager nm = getSystemService(NotificationManager.class);
         if (nm != null) nm.cancel(BtReceiver.NOTIF_ID);
