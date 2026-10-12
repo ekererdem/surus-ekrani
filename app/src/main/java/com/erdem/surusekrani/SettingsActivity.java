@@ -68,11 +68,6 @@ public class SettingsActivity extends Activity {
         autoOpen.setChecked(p.autoOpen());
         autoOpen.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("autoOpen", on).apply());
 
-        RadioGroup navMode = findViewById(R.id.radioNavMode);
-        navMode.check("split".equals(p.navMode()) ? R.id.rbModeSplit : R.id.rbModeFloat);
-        navMode.setOnCheckedChangeListener((g, id) ->
-                p.edit().putString("navMode", id == R.id.rbModeSplit ? "split" : "float").apply());
-
         Switch autoSplit = findViewById(R.id.swAutoSplit);
         autoSplit.setChecked(p.autoSplit());
         autoSplit.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("autoSplit", on).apply());

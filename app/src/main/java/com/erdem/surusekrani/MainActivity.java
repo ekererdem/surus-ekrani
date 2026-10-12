@@ -126,7 +126,7 @@ public class MainActivity extends Activity {
         });
 
         // Dokun: Google Haritalar yan yana açılır. Basılı tut: uygulama içi navigasyon.
-        findViewById(R.id.navTouch).setOnClickListener(v -> openMap(null));
+        findViewById(R.id.navTouch).setOnClickListener(v -> Apps.openNavSplit(this, p, null));
         findViewById(R.id.navTouch).setOnLongClickListener(v -> {
             startActivity(new Intent(this, NavActivity.class));
             return true;
@@ -364,29 +364,15 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Önce Ayarlar'dan adres ekle", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, SettingsActivity.class));
         } else {
-            openMap(addr);
+            Apps.openNavSplit(this, p, addr);
         }
-    }
-
-    /** Ayara göre haritayı tam ekran + yüzen çubukla ya da yan yana açar. */
-    private void openMap(String dest) {
-        if ("float".equals(p.navMode())) {
-            if (android.provider.Settings.canDrawOverlays(this)) {
-                Apps.openNav(this, p, dest);
-                FloatService.show(this);
-                return;
-            }
-            Toast.makeText(this, "Yüzen çubuk için Ayarlar → 1. Diğer uygulamaların üzerinde göster iznini ver",
-                    Toast.LENGTH_LONG).show();
-        }
-        Apps.openNavSplit(this, p, dest);
     }
 
     private void autoSplit() {
         if (!p.autoSplit()) return;
         playBtn.postDelayed(() -> {
             if (!isFinishing() && !isDestroyed() && !isInMultiWindowMode()) {
-                openMap(null);
+                Apps.openNavSplit(this, p, null);
             }
         }, 700);
     }
@@ -419,7 +405,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        FloatService.hide(this);
         float wantScale = getSharedPreferences("surus", MODE_PRIVATE).getFloat("scale", 1f);
         if (wantScale != appliedScale || isInMultiWindowMode() != compact) {
             recreate();
