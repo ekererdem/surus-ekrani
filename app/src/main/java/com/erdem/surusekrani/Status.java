@@ -34,7 +34,7 @@ final class Status {
     private final Activity a;
     private final SharedPreferences sp;
     private final TextView weatherTemp, weatherDesc, battText;
-    private final ImageView btIcon, battIcon;
+    private final ImageView btIcon, battIcon, signalIcon;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private long lastWeather;
 
@@ -66,6 +66,7 @@ final class Status {
         battText = a.findViewById(R.id.battText);
         btIcon = a.findViewById(R.id.btIcon);
         battIcon = a.findViewById(R.id.battIcon);
+        signalIcon = a.findViewById(R.id.signalIcon);
 
         // Son bilinen hava durumunu hemen göster (3 saatten eskiyse gösterme).
         if (System.currentTimeMillis() - sp.getLong("wAt", 0) < 3 * 3600 * 1000L) {
@@ -87,10 +88,13 @@ final class Status {
         renderBt();
         weatherTemp.removeCallbacks(weatherTick);
         weatherTemp.post(weatherTick);
+        signalIcon.removeCallbacks(signalTick);
+        signalIcon.post(signalTick);
     }
 
     void pause() {
         weatherTemp.removeCallbacks(weatherTick);
+        signalIcon.removeCallbacks(signalTick);
         btIcon.removeCallbacks(this::renderBt);
         try {
             a.unregisterReceiver(receiver);
@@ -100,6 +104,33 @@ final class Status {
 
     void destroy() {
         io.shutdownNow();
+    }
+
+    // ---------- Şebeke çekimi ----------
+
+    private static final int[] SIGNAL = {
+            R.drawable.ic_signal_0, R.drawable.ic_signal_1, R.drawable.ic_signal_2,
+            R.drawable.ic_signal_3, R.drawable.ic_signal_4};
+
+    private final Runnable signalTick = new Runnable() {
+        @Override public void run() {
+            renderSignal();
+            signalIcon.postDelayed(this, 10 * 1000L);
+        }
+    };
+
+    private void renderSignal() {
+        int level = 0;
+        try {
+            android.telephony.TelephonyManager tm = a.getSystemService(android.telephony.TelephonyManager.class);
+            android.telephony.SignalStrength ss = tm == null ? null : tm.getSignalStrength();
+            if (ss != null) level = Math.max(0, Math.min(4, ss.getLevel()));
+        } catch (Exception ignored) {
+        }
+        signalIcon.setImageResource(SIGNAL[level]);
+        int color = a.getColor(level <= 1 ? R.color.low : R.color.muted);
+        signalIcon.setImageTintList(ColorStateList.valueOf(color));
+        signalIcon.setContentDescription("Şebeke çekimi " + level + "/4");
     }
 
     // ---------- Pil ----------
@@ -184,7 +215,7 @@ final class Status {
 
     private void showWeather(int temp, int code, boolean day) {
         weatherTemp.setText(icon(code, day) + " " + temp + "°");
-        weatherDesc.setText(" · " + describe(code));
+        weatherDesc.setText(describe(code));
         weatherTemp.setVisibility(View.VISIBLE);
         weatherDesc.setVisibility(View.VISIBLE);
     }
