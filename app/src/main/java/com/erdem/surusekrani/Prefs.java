@@ -20,7 +20,9 @@ final class Prefs {
     boolean autoOpen() { return sp.getBoolean("autoOpen", true); }
     String units() { return sp.getString("units", "km"); }
     boolean autoSplit() { return sp.getBoolean("autoSplit", true); }
-    String plate() { return sp.getString("plate", "06 GE 6501"); }
+    String plate() { return sp.getString("plate", ""); }
+    String fav3Name() { return sp.getString("fav3Name", ""); }
+    String fav3Addr() { return sp.getString("fav3Addr", ""); }
     boolean autoPlay() { return sp.getBoolean("autoPlay", false); }
 
     SharedPreferences.Editor edit() { return sp.edit(); }

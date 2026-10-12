@@ -357,7 +357,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void goTo(String addr) {
+    void goTo(String addr) {
         if (addr.trim().isEmpty()) {
             Toast.makeText(this, "Önce Ayarlar'dan adres ekle", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this, SettingsActivity.class));
@@ -417,6 +417,7 @@ public class MainActivity extends Activity {
         seek.post(progressTick);
         status.resume();
         Shortcuts.render(this);
+        QuickNav.render(this, p);
         String plate = p.plate();
         ((TextView) findViewById(R.id.plateText)).setText(plate);
         findViewById(R.id.plate).setVisibility(plate.isEmpty() ? View.GONE : View.VISIBLE);

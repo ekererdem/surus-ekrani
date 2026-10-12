@@ -30,7 +30,7 @@ public class SettingsActivity extends Activity {
     private static final int REQ_NOTIF = 2;
 
     private Prefs p;
-    private EditText home, work, plate;
+    private EditText home, work, plate, fav3Name, fav3Addr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +62,10 @@ public class SettingsActivity extends Activity {
         plate = findViewById(R.id.editPlate);
         plate.setText(p.plate());
         home = findViewById(R.id.editHome);
+        fav3Name = findViewById(R.id.editFav3Name);
+        fav3Addr = findViewById(R.id.editFav3Addr);
+        fav3Name.setText(p.fav3Name());
+        fav3Addr.setText(p.fav3Addr());
         work = findViewById(R.id.editWork);
         home.setText(p.home());
         work.setText(p.work());
@@ -115,6 +119,8 @@ public class SettingsActivity extends Activity {
                 .putString("plate", plate.getText().toString().trim().toUpperCase(new java.util.Locale("tr", "TR")))
                 .putString("home", home.getText().toString().trim())
                 .putString("work", work.getText().toString().trim())
+                .putString("fav3Name", fav3Name.getText().toString().trim())
+                .putString("fav3Addr", fav3Addr.getText().toString().trim())
                 .apply();
     }
 

@@ -144,7 +144,7 @@
                     android:textColor="#151515"
                     android:singleLine="true"
                     android:includeFontPadding="false"
-                    android:text="06 GE 6501" />
+                    android:text="" />
             </LinearLayout>
 
             <include
