@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Plaka: müzik çaların üstünde ortalı -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/plate"
+    android:layout_width="wrap_content"
+    android:layout_height="32dp"
+    android:orientation="horizontal"
+    android:background="@drawable/plate_bg"
+    android:padding="1.5dp"
+    android:elevation="2dp">
+    <TextView
+        android:layout_width="15dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/plate_band"
+        android:gravity="bottom|center_horizontal"
+        android:paddingBottom="2dp"
+        android:text="TR"
+        android:textColor="#FFFFFF"
+        android:textSize="7sp"
+        android:textStyle="bold"
+        android:includeFontPadding="false" />
+    <TextView
+        android:id="@+id/plateText"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:paddingStart="7dp"
+        android:paddingEnd="8dp"
+        android:fontFamily="sans-serif-condensed"
+        android:textStyle="bold"
+        android:textSize="19sp"
+        android:letterSpacing="0.04"
+        android:textColor="#151515"
+        android:singleLine="true"
+        android:includeFontPadding="false"
+        android:text="" />
+</LinearLayout>
