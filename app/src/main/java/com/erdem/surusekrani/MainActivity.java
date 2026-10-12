@@ -418,6 +418,7 @@ public class MainActivity extends Activity {
         seek.removeCallbacks(progressTick);
         seek.post(progressTick);
         status.resume();
+        Shortcuts.render(this);
         startLocation();
 
         NavState.listener = this::renderNav;

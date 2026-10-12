@@ -30,6 +30,7 @@ import java.util.Map;
  */
 public class AppsActivity extends Activity {
     private static final String KEY = "favApps";
+    static final String EXTRA_EDIT = "edit";
 
     private PackageManager pm;
     private final List<ResolveInfo> all = new ArrayList<>();
@@ -88,7 +89,7 @@ public class AppsActivity extends Activity {
         });
 
         // Hiç uygulama seçilmemişse doğrudan seçim ekranıyla aç.
-        editing = visibleFavs().isEmpty();
+        editing = getIntent().getBooleanExtra(EXTRA_EDIT, false) || visibleFavs().isEmpty();
         refresh();
     }
 
@@ -107,7 +108,7 @@ public class AppsActivity extends Activity {
         if (editing) {
             for (ResolveInfo r : all) shown.add(key(r));
             title.setText("Uygulama seç");
-            hint.setText("Görünmesini istediklerine dokun, tekrar dokunursan çıkar. Bitince Tamam'a bas.");
+            hint.setText("Görünmesini istediklerine dokun, tekrar dokunursan çıkar. İlk seçtiğin dört uygulama ana ekranda müzik çaların altında da görünür.");
             hint.setVisibility(View.VISIBLE);
             editBtn.setText("Tamam");
         } else {
