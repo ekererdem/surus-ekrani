@@ -324,7 +324,7 @@ public class MainActivity extends Activity {
     }
 
     private void showArtPlaceholder() {
-        int pad = Math.round(34 * getResources().getDisplayMetrics().density);
+        int pad = Math.round(28 * getResources().getDisplayMetrics().density);
         musicArt.setPadding(pad, pad, pad, pad);
         musicArt.setScaleType(ImageView.ScaleType.FIT_CENTER);
         musicArt.setImageResource(R.drawable.ic_music);

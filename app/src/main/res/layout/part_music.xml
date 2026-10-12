@@ -14,12 +14,12 @@
 
     <ImageView
         android:id="@+id/musicArt"
-        android:layout_width="124dp"
-        android:layout_height="124dp"
+        android:layout_width="104dp"
+        android:layout_height="104dp"
         android:background="@drawable/art_bg"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_music"
-        android:padding="34dp"
+        android:padding="28dp"
         android:tint="@color/muted"
         android:clickable="true"
         android:focusable="true"
