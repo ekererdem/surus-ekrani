@@ -545,9 +545,6 @@ public class MainActivity extends Activity {
         status.resume();
         Shortcuts.render(this);
         renderCalls();
-        String plate = p.plate();
-        ((TextView) findViewById(R.id.plateText)).setText(plate);
-        findViewById(R.id.plate).setVisibility(plate.isEmpty() ? View.GONE : View.VISIBLE);
         startLocation();
 
         NavState.listener = this::renderNav;

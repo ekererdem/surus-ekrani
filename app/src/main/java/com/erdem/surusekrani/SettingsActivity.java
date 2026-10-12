@@ -32,7 +32,7 @@ public class SettingsActivity extends Activity {
     private static final int PICK_CALL2 = 22;
 
     private Prefs p;
-    private EditText home, plate;
+    private EditText home;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +61,6 @@ public class SettingsActivity extends Activity {
         units.setOnCheckedChangeListener((g, id) ->
                 p.edit().putString("units", id == R.id.rbKm ? "km" : "mi").apply());
 
-        plate = findViewById(R.id.editPlate);
-        plate.setText(p.plate());
         home = findViewById(R.id.editHome);
         home.setText(p.home());
         setupHome();
@@ -118,7 +116,6 @@ public class SettingsActivity extends Activity {
         super.onPause();
         String typed = home.getText().toString().trim();
         android.content.SharedPreferences.Editor e = p.edit()
-                .putString("plate", plate.getText().toString().trim().toUpperCase(new java.util.Locale("tr", "TR")))
                 .putString("home", typed);
         // Yazı elle değiştirildiyse kayıtlı tam konum artık geçersiz.
         if (!typed.equals(savedHomeLabel)) e.remove("homeCoord");
