@@ -75,8 +75,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginTop="10dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal">
 
         <ImageButton
@@ -94,7 +94,7 @@
             android:id="@+id/playBtn"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1.4"
+            android:layout_weight="1.2"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:background="@drawable/tile_amber"

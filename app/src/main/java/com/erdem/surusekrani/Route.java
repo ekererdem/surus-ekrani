@@ -39,7 +39,7 @@ final class Route {
 
     // ---------- Ağ ----------
 
-    private static String get(String url) throws IOException {
+    static String get(String url) throws IOException {
         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
         c.setRequestProperty("User-Agent", "SurusEkrani/1.0 (kisisel kullanim)");
         c.setRequestProperty("Accept-Language", "tr,en");

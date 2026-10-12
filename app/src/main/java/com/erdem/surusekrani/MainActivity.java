@@ -48,6 +48,7 @@ public class MainActivity extends Activity {
 
     private Prefs p;
     private boolean compact;
+    private Status status;
     private float appliedScale = 1f;
 
     /** Ayarlar'daki "Ekran ölçeği"ni uygular: tüm ekranı küçültür ya da büyütür. */
@@ -96,6 +97,8 @@ public class MainActivity extends Activity {
         setupOsm();
         compact = isInMultiWindowMode();
         setContentView(compact ? R.layout.activity_main_compact : R.layout.activity_main);
+        if (compact) ((TextView) findViewById(R.id.clock)).setTextSize(38);
+        status = new Status(this);
 
         navIcon = findViewById(R.id.navIcon);
         navTitle = findViewById(R.id.navTitle);
@@ -147,10 +150,12 @@ public class MainActivity extends Activity {
         msm = getSystemService(MediaSessionManager.class);
         listenerCn = new ComponentName(this, MediaListener.class);
 
-        if (!hasLocation()) {
+        if (!hasLocation() || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_LOC);
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.BLUETOOTH_CONNECT}, REQ_LOC);
         }
         handleCarIntent(getIntent());
         // Uygulama ilk açıldığında haritayı ekranın diğer yarısında başlat.
@@ -412,6 +417,7 @@ public class MainActivity extends Activity {
         map.onResume();
         seek.removeCallbacks(progressTick);
         seek.post(progressTick);
+        status.resume();
         startLocation();
 
         NavState.listener = this::renderNav;
@@ -430,6 +436,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        status.pause();
         seek.removeCallbacks(progressTick);
         map.onPause();
         myLoc.disableMyLocation();
@@ -444,7 +451,17 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
-        if (code == REQ_LOC) startLocation();
+        if (code == REQ_LOC) {
+            startLocation();
+            status.pause();
+            status.resume();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (status != null) status.destroy();
     }
 
     @Override
