@@ -142,6 +142,7 @@ public class MainActivity extends Activity {
         });
         playBtn.setOnClickListener(v -> togglePlay());
         findViewById(R.id.shuffleBtn).setOnClickListener(v -> toggleShuffle());
+        findViewById(R.id.shuffleBtn).setOnLongClickListener(v -> { showMediaActions(); return true; });
         renderShuffle();
 
         findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
@@ -300,6 +301,31 @@ public class MainActivity extends Activity {
         getSharedPreferences("surus", MODE_PRIVATE).edit().putBoolean("shuffle", next).apply();
         renderShuffle();
         Toast.makeText(this, next ? "Karışık çal açık" : "Karışık çal kapalı", Toast.LENGTH_SHORT).show();
+    }
+
+    /** Test: çalan uygulamanın sunduğu ek komutları listeler; dokununca o komutu gönderir. */
+    private void showMediaActions() {
+        if (ctrl == null) {
+            Toast.makeText(this, "Önce Spotify'da bir şarkı çal", Toast.LENGTH_LONG).show();
+            return;
+        }
+        PlaybackState st = ctrl.getPlaybackState();
+        java.util.List<PlaybackState.CustomAction> list = new java.util.ArrayList<>();
+        if (st != null && st.getCustomActions() != null) list.addAll(st.getCustomActions());
+        String[] items = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            items[i] = list.get(i).getName() + "\n" + list.get(i).getAction();
+        }
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(ctrl.getPackageName() + " · " + list.size() + " ek komut")
+                .setItems(items.length == 0 ? new String[]{"(hiç ek komut yok)"} : items, (d, which) -> {
+                    if (which < list.size()) {
+                        ctrl.getTransportControls().sendCustomAction(list.get(which), null);
+                        Toast.makeText(this, "Gönderildi: " + list.get(which).getName(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Kapat", null)
+                .show();
     }
 
     private void renderShuffle() {
