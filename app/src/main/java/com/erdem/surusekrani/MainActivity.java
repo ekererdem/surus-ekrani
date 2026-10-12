@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.widget.SeekBar;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
@@ -150,6 +151,22 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
         findViewById(R.id.assistBtn).setOnClickListener(v -> openAssistant());
+        // Düğmeler uzayınca simgeler dev olmasın: simge en fazla 34dp
+        View row = (View) findViewById(R.id.assistBtn).getParent();
+        row.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            if (b - t == ob - ot) return;
+            int h = b - t;
+            float d = getResources().getDisplayMetrics().density;
+            int pad = Math.max(Math.round(13 * d), (h - Math.round(34 * d)) / 2);
+            ViewGroup g = (ViewGroup) v;
+            for (int i = 0; i < g.getChildCount(); i++) {
+                View c = g.getChildAt(i);
+                if (c instanceof ImageButton) {
+                    int side = Math.max(Math.round(8 * d), Math.min(pad, (c.getWidth() - Math.round(34 * d)) / 2));
+                    c.setPadding(side, pad, side, pad);
+                }
+            }
+        });
         findViewById(R.id.parkBtn).setOnClickListener(v -> showPark());
         findViewById(R.id.parkBtn).setOnLongClickListener(v -> {
             Toast.makeText(this, Park.saveHere(this) ? "Park yeri kaydedildi" : "Konum bulunamadı",
@@ -340,7 +357,6 @@ public class MainActivity extends Activity {
         b.setVisibility(View.VISIBLE);
         String first = name.trim().isEmpty() ? num : name.trim().split("\\s+")[0];
         b.setText(first);
-        b.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_phone, 0, 0, 0);
         b.setContentDescription(name + " ara");
         b.setOnClickListener(v -> call(num));
         b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });

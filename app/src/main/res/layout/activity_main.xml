@@ -10,6 +10,12 @@
     <include layout="@layout/part_header" />
 
     <include
+        layout="@layout/part_icons"
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:layout_marginTop="12dp" />
+
+    <include
         layout="@layout/part_nav"
         android:layout_width="match_parent"
         android:layout_height="0dp"

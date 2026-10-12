@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Üst bölüm: 1. satır hava + hız | durum simgeleri; 2. satır eşit boyda düğmeler -->
+<!-- Üst satır: hava + hız | durum simgeleri -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -125,10 +125,4 @@
                 android:fontFeatureSettings="tnum" />
         </LinearLayout>
     </LinearLayout>
-
-    <include
-        layout="@layout/part_icons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp" />
 </LinearLayout>

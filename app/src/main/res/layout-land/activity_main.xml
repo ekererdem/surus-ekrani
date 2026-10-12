@@ -15,7 +15,12 @@
 
         <include layout="@layout/part_header" />
 
-        <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+        <include
+            layout="@layout/part_icons"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="12dp" />
 
         <include
             layout="@layout/part_music"
