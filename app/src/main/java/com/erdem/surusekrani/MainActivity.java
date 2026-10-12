@@ -152,21 +152,8 @@ public class MainActivity extends Activity {
         findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
         findViewById(R.id.assistBtn).setOnClickListener(v -> openAssistant());
         // Düğmeler uzayınca simgeler dev olmasın: simge en fazla 34dp
-        View row = (View) findViewById(R.id.assistBtn).getParent();
-        row.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
-            if (b - t == ob - ot) return;
-            int h = b - t;
-            float d = getResources().getDisplayMetrics().density;
-            int pad = Math.max(Math.round(13 * d), (h - Math.round(34 * d)) / 2);
-            ViewGroup g = (ViewGroup) v;
-            for (int i = 0; i < g.getChildCount(); i++) {
-                View c = g.getChildAt(i);
-                if (c instanceof ImageButton) {
-                    int side = Math.max(Math.round(8 * d), Math.min(pad, (c.getWidth() - Math.round(34 * d)) / 2));
-                    c.setPadding(side, pad, side, pad);
-                }
-            }
-        });
+        findViewById(R.id.iconsGrid).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
+                v.post(this::fitQuickIcons));
         findViewById(R.id.parkBtn).setOnClickListener(v -> showPark());
         findViewById(R.id.parkBtn).setOnLongClickListener(v -> {
             Toast.makeText(this, Park.saveHere(this) ? "Park yeri kaydedildi" : "Konum bulunamadı",
@@ -295,6 +282,47 @@ public class MainActivity extends Activity {
         if (ctrl != null) ctrl.unregisterCallback(mediaCb);
         ctrl = c;
         if (ctrl != null) ctrl.registerCallback(mediaCb);
+    }
+
+    // ---------- Hızlı düğmeler (iki sıra) ----------
+
+    private static final int[] QUICK = {
+            R.id.assistBtn, R.id.call1Btn, R.id.call2Btn, R.id.parkBtn, R.id.homeBtn, R.id.settingsBtn};
+
+    /** Görünen düğmeleri iki sıraya eşit dağıtır (üst sıra bir fazla alabilir). */
+    private void arrangeQuick() {
+        ViewGroup r1 = findViewById(R.id.iconsRow1), r2 = findViewById(R.id.iconsRow2);
+        java.util.List<View> vis = new java.util.ArrayList<>();
+        java.util.List<View> hidden = new java.util.ArrayList<>();
+        for (int id : QUICK) {
+            View v = findViewById(id);
+            ((ViewGroup) v.getParent()).removeView(v);
+            (v.getVisibility() == View.GONE ? hidden : vis).add(v);
+        }
+        int top = (vis.size() + 1) / 2;
+        int gap = Math.round(8 * getResources().getDisplayMetrics().density);
+        for (int i = 0; i < vis.size(); i++) {
+            ViewGroup row = i < top ? r1 : r2;
+            android.widget.LinearLayout.LayoutParams lp =
+                    new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+            if (row.getChildCount() > 0) lp.setMarginStart(gap);
+            row.addView(vis.get(i), lp);
+        }
+        for (View v : hidden) r2.addView(v); // görünmez, yer kaplamaz
+        fitQuickIcons();
+    }
+
+    /** Simge boyutunu düğmenin küçük kenarına göre sınırla. */
+    private void fitQuickIcons() {
+        float d = getResources().getDisplayMetrics().density;
+        int max = Math.round(34 * d), min = Math.round(10 * d);
+        for (int id : QUICK) {
+            View c = findViewById(id);
+            if (!(c instanceof ImageButton) || c.getWidth() == 0) continue;
+            int px = Math.max(min, (c.getWidth() - max) / 2);
+            int py = Math.max(min, (c.getHeight() - max) / 2);
+            if (c.getPaddingLeft() != px || c.getPaddingTop() != py) c.setPadding(px, py, px, py);
+        }
     }
 
     // ---------- Sesli asistan ----------
@@ -430,7 +458,7 @@ public class MainActivity extends Activity {
     }
 
     private void showArtPlaceholder() {
-        int pad = Math.round(28 * getResources().getDisplayMetrics().density);
+        int pad = Math.round(22 * getResources().getDisplayMetrics().density);
         musicArt.setPadding(pad, pad, pad, pad);
         musicArt.setScaleType(ImageView.ScaleType.FIT_CENTER);
         musicArt.setImageResource(R.drawable.ic_music);
@@ -561,6 +589,7 @@ public class MainActivity extends Activity {
         status.resume();
         Shortcuts.render(this);
         renderCalls();
+        arrangeQuick();
         startLocation();
 
         NavState.listener = this::renderNav;
