@@ -57,7 +57,7 @@
         <!-- Adresler -->
         <TextView style="@style/SectionTitle" android:text="Plaka" />
         <EditText android:id="@+id/editPlate" style="@style/Field" android:inputType="textCapCharacters"
-            android:hint="Örn. 06 GE 6501" />
+            android:hint="Örn. 34 ABC 123" />
         <TextView style="@style/Note" android:text="Ana ekranda Ayarlar çarkının yanında görünür. Boş bırakırsan gizlenir." />
 
         <TextView style="@style/SectionTitle" android:text="Hızlı rota tuşları" />
