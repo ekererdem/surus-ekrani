@@ -29,10 +29,15 @@
             <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
             <RadioButton android:id="@+id/rbWaze" style="@style/Option" android:text="Waze" />
         </RadioGroup>
-        <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="6dp"
-            android:text="Açılınca haritayı yan yana başlat" />
+        <TextView style="@style/SectionTitle" android:text="Harita nasıl açılsın" />
+        <RadioGroup android:id="@+id/radioNavMode" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rbModeFloat" style="@style/Option" android:text="Tam ekran + yüzen müzik çubuğu" />
+            <RadioButton android:id="@+id/rbModeSplit" style="@style/Option" android:text="Yan yana (bölünmüş ekran)" />
+        </RadioGroup>
         <TextView style="@style/Note"
-            android:text="Haritanın ekrandaki payını ortadaki ayırma çizgisini sürükleyerek ayarlayabilirsin." />
+            android:text="Yüzen çubuğu boş yerinden tutup sürükleyebilirsin. Çizgi tuşu küçültür, çarpı kapatır, boş yerine dokunmak Sürüş Ekranı'nı açar." />
+        <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="6dp"
+            android:text="Uygulama açılınca haritayı otomatik başlat" />
 
         <TextView style="@style/SectionTitle" android:text="Müzik uygulaması" />
         <RadioGroup android:id="@+id/radioMusic" android:layout_width="match_parent" android:layout_height="wrap_content">

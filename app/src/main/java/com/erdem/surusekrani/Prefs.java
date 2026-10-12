@@ -20,6 +20,7 @@ final class Prefs {
     boolean autoOpen() { return sp.getBoolean("autoOpen", true); }
     String units() { return sp.getString("units", "km"); }
     boolean autoSplit() { return sp.getBoolean("autoSplit", true); }
+    String navMode() { return sp.getString("navMode", "float"); }
     boolean autoPlay() { return sp.getBoolean("autoPlay", false); }
 
     SharedPreferences.Editor edit() { return sp.edit(); }

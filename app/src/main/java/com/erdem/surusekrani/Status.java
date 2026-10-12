@@ -189,7 +189,7 @@ final class Status {
         weatherDesc.setVisibility(View.VISIBLE);
     }
 
-    private static String icon(int c, boolean day) {
+    static String icon(int c, boolean day) {
         if (c == 0) return day ? "☀️" : "🌙";
         if (c <= 2) return day ? "⛅" : "☁️";
         if (c == 3) return "☁️";
