@@ -77,6 +77,7 @@ public class MainActivity extends Activity {
     private MediaController ctrl;
     private ImageButton playBtn;
     private TextView songTitle, songArtist, elapsed, durationTv;
+    private ImageView musicArt;
     private SeekBar seek;
     private boolean seeking;
 
@@ -141,9 +142,9 @@ public class MainActivity extends Activity {
             else mediaKey(KeyEvent.KEYCODE_MEDIA_NEXT);
         });
         playBtn.setOnClickListener(v -> togglePlay());
-        findViewById(R.id.shuffleBtn).setOnClickListener(v -> toggleShuffle());
-        findViewById(R.id.shuffleBtn).setOnLongClickListener(v -> { showMediaActions(); return true; });
-        renderShuffle();
+        musicArt = findViewById(R.id.musicArt);
+        musicArt.setClipToOutline(true);
+        musicArt.setOnClickListener(v -> Apps.openMusic(this, p));
 
         findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
@@ -270,71 +271,6 @@ public class MainActivity extends Activity {
         if (ctrl != null) ctrl.registerCallback(mediaCb);
     }
 
-    /** Spotify'da karışık çalı açıp kapatır. */
-    private void toggleShuffle() {
-        if (ctrl == null) {
-            Toast.makeText(this, "Karışık çal için müzik çalıyor olmalı ve bildirim erişimi açık olmalı",
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
-        boolean next = !getSharedPreferences("surus", MODE_PRIVATE).getBoolean("shuffle", false);
-        boolean sent = false;
-        // 1) Uygulamanın kendi sunduğu "karışık çal" eylemi (Spotify bunu Android Auto için sunar)
-        PlaybackState st = ctrl.getPlaybackState();
-        if (st != null && st.getCustomActions() != null) {
-            for (PlaybackState.CustomAction ca : st.getCustomActions()) {
-                String id = (ca.getAction() + " " + ca.getName()).toLowerCase(new java.util.Locale("tr", "TR"));
-                if (id.contains("shuffle") || id.contains("karış") || id.contains("karis")) {
-                    ctrl.getTransportControls().sendCustomAction(ca, null);
-                    sent = true;
-                    break;
-                }
-            }
-        }
-        // 2) Genel Android müzik komutu
-        if (!sent) {
-            Bundle b = new Bundle();
-            b.putInt("android.support.v4.media.session.action.ARGUMENT_SHUFFLE_MODE", next ? 1 : 0);
-            ctrl.getTransportControls().sendCustomAction(
-                    "android.support.v4.media.session.action.SET_SHUFFLE_MODE", b);
-        }
-        getSharedPreferences("surus", MODE_PRIVATE).edit().putBoolean("shuffle", next).apply();
-        renderShuffle();
-        Toast.makeText(this, next ? "Karışık çal açık" : "Karışık çal kapalı", Toast.LENGTH_SHORT).show();
-    }
-
-    /** Test: çalan uygulamanın sunduğu ek komutları listeler; dokununca o komutu gönderir. */
-    private void showMediaActions() {
-        if (ctrl == null) {
-            Toast.makeText(this, "Önce Spotify'da bir şarkı çal", Toast.LENGTH_LONG).show();
-            return;
-        }
-        PlaybackState st = ctrl.getPlaybackState();
-        java.util.List<PlaybackState.CustomAction> list = new java.util.ArrayList<>();
-        if (st != null && st.getCustomActions() != null) list.addAll(st.getCustomActions());
-        String[] items = new String[list.size()];
-        for (int i = 0; i < list.size(); i++) {
-            items[i] = list.get(i).getName() + "\n" + list.get(i).getAction();
-        }
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(ctrl.getPackageName() + " · " + list.size() + " ek komut")
-                .setItems(items.length == 0 ? new String[]{"(hiç ek komut yok)"} : items, (d, which) -> {
-                    if (which < list.size()) {
-                        ctrl.getTransportControls().sendCustomAction(list.get(which), null);
-                        Toast.makeText(this, "Gönderildi: " + list.get(which).getName(), Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("Kapat", null)
-                .show();
-    }
-
-    private void renderShuffle() {
-        boolean on = getSharedPreferences("surus", MODE_PRIVATE).getBoolean("shuffle", false);
-        ImageButton b = findViewById(R.id.shuffleBtn);
-        b.setImageTintList(ColorStateList.valueOf(getColor(on ? R.color.amber : R.color.muted)));
-        b.setContentDescription(on ? "Karışık çal açık" : "Karışık çal kapalı");
-    }
-
     private void togglePlay() {
         if (ctrl == null) {
             mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
@@ -354,6 +290,7 @@ public class MainActivity extends Activity {
             seek.setProgress(0);
             elapsed.setText("0:00");
             durationTv.setText("0:00");
+            showArtPlaceholder();
             songTitle.setText("Müzik");
             songArtist.setText(hasListenerAccess()
                     ? Apps.musicName(p.music()) + " · açmak için dokun"
@@ -368,10 +305,30 @@ public class MainActivity extends Activity {
         songTitle.setText(title == null ? "" : title);
         songArtist.setText(artist == null ? "" : artist);
 
+        Bitmap art = m.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
+        if (art == null) art = m.getBitmap(MediaMetadata.METADATA_KEY_ART);
+        if (art == null) art = m.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON);
+        if (art != null) {
+            musicArt.setPadding(0, 0, 0, 0);
+            musicArt.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            musicArt.setImageTintList(null);
+            musicArt.setImageBitmap(art);
+        } else {
+            showArtPlaceholder();
+        }
+
         PlaybackState s = ctrl.getPlaybackState();
         boolean playing = s != null && s.getState() == PlaybackState.STATE_PLAYING;
         playBtn.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
         updateProgress();
+    }
+
+    private void showArtPlaceholder() {
+        int pad = Math.round(34 * getResources().getDisplayMetrics().density);
+        musicArt.setPadding(pad, pad, pad, pad);
+        musicArt.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        musicArt.setImageResource(R.drawable.ic_music);
+        musicArt.setImageTintList(ColorStateList.valueOf(getColor(R.color.muted)));
     }
 
     /** Şarkının ilerleme çubuğunu ve sürelerini günceller. */

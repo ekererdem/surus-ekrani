@@ -1,135 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Müzik kutusu (dar): şarkı, sanatçı, ilerleme çubuğu, kontroller -->
+<!-- Müzik kutusu: solda albüm kapağı, sağda şarkı, ilerleme çubuğu ve tuşlar -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/musicTile"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:background="@drawable/tile_dark"
-    android:paddingStart="14dp"
+    android:paddingStart="10dp"
     android:paddingEnd="14dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
-    <LinearLayout
-        android:id="@+id/musicOpen"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="?android:attr/selectableItemBackground"
+    <ImageView
+        android:id="@+id/musicArt"
+        android:layout_width="124dp"
+        android:layout_height="124dp"
+        android:background="@drawable/art_bg"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_music"
+        android:padding="34dp"
+        android:tint="@color/muted"
         android:clickable="true"
-        android:focusable="true">
-
-        <TextView
-            android:id="@+id/songTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/fg"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:text="Müzik" />
-
-        <TextView
-            android:id="@+id/songArtist"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textSize="14sp"
-            android:textColor="@color/muted"
-            android:singleLine="true"
-            android:ellipsize="end" />
-    </LinearLayout>
-
-    <SeekBar
-        android:id="@+id/musicSeek"
-        android:layout_width="match_parent"
-        android:layout_height="24dp"
-        android:layout_marginTop="0dp"
-        android:paddingStart="0dp"
-        android:paddingEnd="0dp"
-        android:max="1000"
-        android:progressTint="@color/amber"
-        android:progressBackgroundTint="@color/line"
-        android:thumbTint="@color/amber" />
+        android:focusable="true"
+        android:contentDescription="Albüm kapağı" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <TextView
-            android:id="@+id/musicElapsed"
-            android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_marginStart="14dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/musicOpen"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="12sp"
-            android:textColor="@color/muted"
-            android:fontFeatureSettings="tnum"
-            android:text="0:00" />
-        <TextView
-            android:id="@+id/musicDuration"
-            android:layout_width="wrap_content"
+            android:orientation="vertical"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/songTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/fg"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="Müzik" />
+
+            <TextView
+                android:id="@+id/songArtist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textColor="@color/muted"
+                android:singleLine="true"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/musicSeek"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:max="1000"
+            android:progressTint="@color/amber"
+            android:progressBackgroundTint="@color/line"
+            android:thumbTint="@color/amber" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@color/muted"
-            android:fontFeatureSettings="tnum"
-            android:text="0:00" />
-    </LinearLayout>
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/musicElapsed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:textColor="@color/muted"
+                android:fontFeatureSettings="tnum"
+                android:text="0:00" />
+            <TextView
+                android:id="@+id/musicDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/muted"
+                android:fontFeatureSettings="tnum"
+                android:text="0:00" />
+        </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="42dp"
-        android:layout_marginTop="4dp"
-        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
 
-        <ImageButton
-            android:id="@+id/shuffleBtn"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.75"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/btn_outline"
-            android:src="@drawable/ic_shuffle"
-            android:tint="@color/muted"
-            android:padding="11dp"
-            android:scaleType="fitCenter"
-            android:contentDescription="Karışık çal" />
+            <ImageButton
+                android:id="@+id/prevBtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/btn_outline"
+                android:src="@drawable/ic_prev"
+                android:tint="@color/fg"
+                android:scaleType="center"
+                android:contentDescription="Önceki" />
 
-        <ImageButton
-            android:id="@+id/prevBtn"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/btn_outline"
-            android:src="@drawable/ic_prev"
-            android:tint="@color/fg"
-            android:scaleType="center"
-            android:contentDescription="Önceki" />
+            <ImageButton
+                android:id="@+id/playBtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.2"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/tile_amber"
+                android:src="@drawable/ic_play"
+                android:tint="@color/amber_ink"
+                android:scaleType="center"
+                android:contentDescription="Oynat / Duraklat" />
 
-        <ImageButton
-            android:id="@+id/playBtn"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.2"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/tile_amber"
-            android:src="@drawable/ic_play"
-            android:tint="@color/amber_ink"
-            android:scaleType="center"
-            android:contentDescription="Oynat / Duraklat" />
-
-        <ImageButton
-            android:id="@+id/nextBtn"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/btn_outline"
-            android:src="@drawable/ic_next"
-            android:tint="@color/fg"
-            android:scaleType="center"
-            android:contentDescription="Sonraki" />
+            <ImageButton
+                android:id="@+id/nextBtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/btn_outline"
+                android:src="@drawable/ic_next"
+                android:tint="@color/fg"
+                android:scaleType="center"
+                android:contentDescription="Sonraki" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>
