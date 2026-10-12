@@ -16,8 +16,10 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
+            <!-- Saat gizli: arabanın kendi saati var -->
             <TextClock
                 android:id="@+id/clock"
+                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:format12Hour="HH:mm"
@@ -31,9 +33,8 @@
                 android:id="@+id/weatherTemp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
                 android:fontFamily="sans-serif-condensed"
-                android:textSize="26sp"
+                android:textSize="30sp"
                 android:textColor="@color/fg"
                 android:singleLine="true"
                 android:visibility="gone" />
