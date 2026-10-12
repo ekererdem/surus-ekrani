@@ -142,7 +142,7 @@ public class MainActivity extends Activity {
         });
         playBtn.setOnClickListener(v -> togglePlay());
 
-        findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.home()));
+        findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
 

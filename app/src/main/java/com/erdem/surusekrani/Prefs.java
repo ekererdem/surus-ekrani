@@ -23,6 +23,11 @@ final class Prefs {
     String plate() { return sp.getString("plate", ""); }
     String fav3Name() { return sp.getString("fav3Name", ""); }
     String fav3Addr() { return sp.getString("fav3Addr", ""); }
+    /** Ev tuşunun hedefi: kayıtlı tam konum varsa o, yoksa yazılan adres. */
+    String homeTarget() {
+        String c = sp.getString("homeCoord", "");
+        return c.isEmpty() ? home() : c;
+    }
     boolean autoPlay() { return sp.getBoolean("autoPlay", false); }
 
     SharedPreferences.Editor edit() { return sp.edit(); }

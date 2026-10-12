@@ -63,6 +63,7 @@ public class SettingsActivity extends Activity {
         plate.setText(p.plate());
         home = findViewById(R.id.editHome);
         home.setText(p.home());
+        setupHome();
 
         Switch autoOpen = findViewById(R.id.swAutoOpen);
         autoOpen.setChecked(p.autoOpen());
@@ -109,10 +110,143 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        p.edit()
+        String typed = home.getText().toString().trim();
+        android.content.SharedPreferences.Editor e = p.edit()
                 .putString("plate", plate.getText().toString().trim().toUpperCase(new java.util.Locale("tr", "TR")))
-                .putString("home", home.getText().toString().trim())
+                .putString("home", typed);
+        // Yazı elle değiştirildiyse kayıtlı tam konum artık geçersiz.
+        if (!typed.equals(savedHomeLabel)) e.remove("homeCoord");
+        e.apply();
+    }
+
+    // ---------- Ev adresi ----------
+
+    private String savedHomeLabel = "";
+    private final java.util.concurrent.ExecutorService io =
+            java.util.concurrent.Executors.newSingleThreadExecutor();
+
+    private void setupHome() {
+        savedHomeLabel = p.home();
+        findViewById(R.id.homeSearchBtn).setOnClickListener(v -> searchHome());
+        findViewById(R.id.homeHereBtn).setOnClickListener(v -> homeFromHere());
+        home.setOnEditorActionListener((v, actionId, ev) -> {
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                searchHome();
+                return true;
+            }
+            return false;
+        });
+        renderHomeStatus();
+    }
+
+    private void renderHomeStatus() {
+        TextView t = findViewById(R.id.homeStatus);
+        String coord = getSharedPreferences("surus", MODE_PRIVATE).getString("homeCoord", "");
+        if (!coord.isEmpty()) {
+            t.setText("Kaydedildi ✓ Ev tuşu tam bu konuma rota başlatır.");
+            t.setTextColor(getColor(R.color.teal));
+        } else if (!p.home().isEmpty()) {
+            t.setText("Sadece yazı olarak kayıtlı. Daha doğru sonuç için Ara'ya basıp listeden seç.");
+            t.setTextColor(getColor(R.color.muted));
+        } else {
+            t.setText("");
+        }
+    }
+
+    private void saveHome(String label, double lat, double lon) {
+        savedHomeLabel = label;
+        home.setText(label);
+        p.edit()
+                .putString("home", label)
+                .putString("homeCoord", String.format(java.util.Locale.US, "%.6f,%.6f", lat, lon))
                 .apply();
+        renderHomeStatus();
+        Toast.makeText(this, "Ev adresi kaydedildi", Toast.LENGTH_SHORT).show();
+    }
+
+    private android.location.Location lastLocation() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return null;
+        }
+        android.location.LocationManager lm = getSystemService(android.location.LocationManager.class);
+        try {
+            android.location.Location g = lm.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
+            android.location.Location n = lm.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER);
+            if (g == null || (n != null && n.getTime() > g.getTime() + 60000)) return n;
+            return g;
+        } catch (SecurityException | IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private void homeFromHere() {
+        android.location.Location l = lastLocation();
+        if (l == null) {
+            Toast.makeText(this, "Konum bulunamadı. Konumu açıp ana ekranda haritanın yüklenmesini bekle, sonra tekrar dene.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+        double lat = l.getLatitude(), lon = l.getLongitude();
+        Toast.makeText(this, "Adres bulunuyor…", Toast.LENGTH_SHORT).show();
+        io.execute(() -> {
+            String label = null;
+            try {
+                List<android.location.Address> r = new android.location.Geocoder(this, new java.util.Locale("tr", "TR"))
+                        .getFromLocation(lat, lon, 1);
+                if (r != null && !r.isEmpty() && r.get(0).getAddressLine(0) != null) {
+                    label = r.get(0).getAddressLine(0);
+                }
+            } catch (Exception ignored) {
+            }
+            String finalLabel = label != null ? label : "Ev (kayıtlı konum)";
+            runOnUiThread(() -> saveHome(finalLabel, lat, lon));
+        });
+    }
+
+    private void searchHome() {
+        String q = home.getText().toString().trim();
+        if (q.isEmpty()) {
+            Toast.makeText(this, "Önce semt, mahalle ya da sokak yaz", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        android.view.inputmethod.InputMethodManager imm =
+                getSystemService(android.view.inputmethod.InputMethodManager.class);
+        if (imm != null) imm.hideSoftInputFromWindow(home.getWindowToken(), 0);
+        android.location.Location l = lastLocation();
+        org.osmdroid.util.GeoPoint near = l == null ? null : new org.osmdroid.util.GeoPoint(l.getLatitude(), l.getLongitude());
+        Toast.makeText(this, "Aranıyor…", Toast.LENGTH_SHORT).show();
+        io.execute(() -> {
+            try {
+                List<Route.Place> r = Route.search(q, near);
+                runOnUiThread(() -> {
+                    if (isFinishing()) return;
+                    if (r.isEmpty()) {
+                        Toast.makeText(this, "Bulunamadı. Daha genel bir şey yaz, örn. 'Gölbaşı, Ankara'.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    String[] names = new String[r.size()];
+                    for (int i = 0; i < r.size(); i++) names[i] = r.get(i).name;
+                    new AlertDialog.Builder(this)
+                            .setTitle("Evin hangisi?")
+                            .setItems(names, (d, which) -> {
+                                Route.Place pl = r.get(which);
+                                saveHome(pl.name, pl.point.getLatitude(), pl.point.getLongitude());
+                            })
+                            .show();
+                });
+            } catch (Exception ex) {
+                runOnUiThread(() -> Toast.makeText(this, "Arama yapılamadı. İnternet bağlantını kontrol et.",
+                        Toast.LENGTH_LONG).show());
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        io.shutdownNow();
     }
 
     private void refreshStatus() {
