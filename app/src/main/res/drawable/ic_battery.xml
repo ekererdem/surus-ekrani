@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Pil gövdesi (boş). Doluluk battery_level.xml içinde çiziliyor. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="26dp" android:height="20dp"
+    android:width="30dp" android:height="23dp"
     android:viewportWidth="26" android:viewportHeight="20">
     <path
         android:pathData="M3.5,4.5h17a1.5,1.5 0,0 1,1.5 1.5v8a1.5,1.5 0,0 1,-1.5 1.5h-17a1.5,1.5 0,0 1,-1.5 -1.5v-8a1.5,1.5 0,0 1,1.5 -1.5z"

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pil simgesi: gövde + doluluk oranına göre soldan dolan iç kısım (setLevel 0-10000) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_battery" />
+    <item
+        android:left="5.3dp"
+        android:top="8.1dp"
+        android:right="7.6dp"
+        android:bottom="8.1dp">
+        <clip
+            android:clipOrientation="horizontal"
+            android:gravity="left">
+            <shape android:shape="rectangle">
+                <solid android:color="#FFFFFFFF" />
+                <corners android:radius="1dp" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

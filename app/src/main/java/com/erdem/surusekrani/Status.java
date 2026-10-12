@@ -144,8 +144,13 @@ final class Status {
                 || status == BatteryManager.BATTERY_STATUS_FULL;
         int pct = Math.round(level * 100f / scale);
 
-        battText.setText("%" + pct);
-        battIcon.setImageResource(charging ? R.drawable.ic_battery_charging : R.drawable.ic_battery);
+        battText.setText((charging ? "⚡%" : "%") + pct);
+        if (battIcon.getTag() == null) {
+            battIcon.setImageResource(R.drawable.battery_level);
+            battIcon.setTag("level");
+        }
+        // Az doluyken de bir çizgi görünsün
+        battIcon.getDrawable().setLevel(Math.max(pct, 6) * 100);
         int color = a.getColor(charging ? R.color.teal : pct <= 15 ? R.color.low : R.color.muted);
         battIcon.setImageTintList(ColorStateList.valueOf(color));
         battText.setTextColor(color);
