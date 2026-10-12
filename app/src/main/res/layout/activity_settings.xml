@@ -31,11 +31,11 @@
         </RadioGroup>
         <TextView style="@style/SectionTitle" android:text="Harita nasıl açılsın" />
         <RadioGroup android:id="@+id/radioNavMode" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/rbModeFloat" style="@style/Option" android:text="Tam ekran + yüzen müzik çubuğu" />
             <RadioButton android:id="@+id/rbModeSplit" style="@style/Option" android:text="Yan yana (bölünmüş ekran)" />
+            <RadioButton android:id="@+id/rbModeFloat" style="@style/Option" android:text="Tam ekran + yüzen müzik çubuğu" />
         </RadioGroup>
         <TextView style="@style/Note"
-            android:text="Yüzen çubuğu boş yerinden tutup sürükleyebilirsin. Çizgi tuşu küçültür, çarpı kapatır, boş yerine dokunmak Sürüş Ekranı'nı açar." />
+            android:text="Haritayı küçültmek için: telefonun Geliştirici seçenekleri → En küçük genişlik değerini büyüt, sonra buradaki Ekran ölçeği'ni Büyük ya da Çok büyük yap. Böylece sadece harita küçük kalır." />
         <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="6dp"
             android:text="Uygulama açılınca haritayı otomatik başlat" />
 
@@ -51,6 +51,7 @@
             <RadioButton android:id="@+id/rbScaleS" style="@style/Option" android:text="Küçük" />
             <RadioButton android:id="@+id/rbScaleM" style="@style/Option" android:text="Normal" />
             <RadioButton android:id="@+id/rbScaleL" style="@style/Option" android:text="Büyük" />
+            <RadioButton android:id="@+id/rbScaleXL" style="@style/Option" android:text="Çok büyük" />
         </RadioGroup>
 
         <TextView style="@style/SectionTitle" android:text="Mesafe birimi" />
