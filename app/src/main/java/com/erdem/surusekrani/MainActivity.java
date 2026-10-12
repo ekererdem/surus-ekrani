@@ -142,6 +142,7 @@ public class MainActivity extends Activity {
         });
         playBtn.setOnClickListener(v -> togglePlay());
 
+        findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.home()));
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
 
@@ -417,7 +418,6 @@ public class MainActivity extends Activity {
         seek.post(progressTick);
         status.resume();
         Shortcuts.render(this);
-        QuickNav.render(this, p);
         String plate = p.plate();
         ((TextView) findViewById(R.id.plateText)).setText(plate);
         findViewById(R.id.plate).setVisibility(plate.isEmpty() ? View.GONE : View.VISIBLE);

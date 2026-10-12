@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Köşedeki küçük Ayarlar simgesi -->
+<!-- Köşedeki küçük Ev ve Ayarlar simgeleri -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
+    <ImageButton
+        android:id="@+id/homeBtn"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/btn_outline"
+        android:src="@drawable/ic_home"
+        android:tint="@color/amber"
+        android:padding="12dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="Eve rota başlat" />
     <ImageButton
         android:id="@+id/settingsBtn"
         android:layout_width="48dp"
