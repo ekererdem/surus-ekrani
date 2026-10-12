@@ -2,6 +2,8 @@
 <resources>
     <style name="AppTheme" parent="android:Theme.DeviceDefault.NoActionBar">
         <item name="android:windowBackground">@color/bg</item>
+        <!-- Yatayda kamera çentiğinin olduğu kenarı da kullan -->
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
         <item name="android:statusBarColor">@color/bg</item>
         <item name="android:navigationBarColor">@color/bg</item>
         <item name="android:colorAccent">@color/amber</item>

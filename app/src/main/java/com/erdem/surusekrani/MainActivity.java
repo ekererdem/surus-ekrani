@@ -559,6 +559,7 @@ public class MainActivity extends Activity {
     private void hideBars() {
         WindowInsetsController c = getWindow().getInsetsController();
         if (c == null) return;
+        getWindow().setDecorFitsSystemWindows(false);
         c.hide(WindowInsets.Type.systemBars());
         c.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
     }
