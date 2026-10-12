@@ -141,6 +141,8 @@ public class MainActivity extends Activity {
             else mediaKey(KeyEvent.KEYCODE_MEDIA_NEXT);
         });
         playBtn.setOnClickListener(v -> togglePlay());
+        findViewById(R.id.shuffleBtn).setOnClickListener(v -> toggleShuffle());
+        renderShuffle();
 
         findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
@@ -265,6 +267,46 @@ public class MainActivity extends Activity {
         if (ctrl != null) ctrl.unregisterCallback(mediaCb);
         ctrl = c;
         if (ctrl != null) ctrl.registerCallback(mediaCb);
+    }
+
+    /** Spotify'da karışık çalı açıp kapatır. */
+    private void toggleShuffle() {
+        if (ctrl == null) {
+            Toast.makeText(this, "Karışık çal için müzik çalıyor olmalı ve bildirim erişimi açık olmalı",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+        boolean next = !getSharedPreferences("surus", MODE_PRIVATE).getBoolean("shuffle", false);
+        boolean sent = false;
+        // 1) Uygulamanın kendi sunduğu "karışık çal" eylemi (Spotify bunu Android Auto için sunar)
+        PlaybackState st = ctrl.getPlaybackState();
+        if (st != null && st.getCustomActions() != null) {
+            for (PlaybackState.CustomAction ca : st.getCustomActions()) {
+                String id = (ca.getAction() + " " + ca.getName()).toLowerCase(new java.util.Locale("tr", "TR"));
+                if (id.contains("shuffle") || id.contains("karış") || id.contains("karis")) {
+                    ctrl.getTransportControls().sendCustomAction(ca, null);
+                    sent = true;
+                    break;
+                }
+            }
+        }
+        // 2) Genel Android müzik komutu
+        if (!sent) {
+            Bundle b = new Bundle();
+            b.putInt("android.support.v4.media.session.action.ARGUMENT_SHUFFLE_MODE", next ? 1 : 0);
+            ctrl.getTransportControls().sendCustomAction(
+                    "android.support.v4.media.session.action.SET_SHUFFLE_MODE", b);
+        }
+        getSharedPreferences("surus", MODE_PRIVATE).edit().putBoolean("shuffle", next).apply();
+        renderShuffle();
+        Toast.makeText(this, next ? "Karışık çal açık" : "Karışık çal kapalı", Toast.LENGTH_SHORT).show();
+    }
+
+    private void renderShuffle() {
+        boolean on = getSharedPreferences("surus", MODE_PRIVATE).getBoolean("shuffle", false);
+        ImageButton b = findViewById(R.id.shuffleBtn);
+        b.setImageTintList(ColorStateList.valueOf(getColor(on ? R.color.amber : R.color.muted)));
+        b.setContentDescription(on ? "Karışık çal açık" : "Karışık çal kapalı");
     }
 
     private void togglePlay() {

@@ -24,6 +24,7 @@
             android:id="@+id/songTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/fg"
@@ -35,6 +36,7 @@
             android:id="@+id/songArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:textSize="14sp"
             android:textColor="@color/muted"
             android:singleLine="true"
@@ -81,6 +83,19 @@
         android:layout_height="42dp"
         android:layout_marginTop="4dp"
         android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/shuffleBtn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.75"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/btn_outline"
+            android:src="@drawable/ic_shuffle"
+            android:tint="@color/muted"
+            android:padding="11dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Karışık çal" />
 
         <ImageButton
             android:id="@+id/prevBtn"
