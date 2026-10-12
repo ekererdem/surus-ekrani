@@ -75,6 +75,7 @@ final class Shortcuts {
     }
 
     private static void openEditor(Activity a) {
+        MainActivity.sOwnScreen = true;
         a.startActivity(new Intent(a, AppsActivity.class).putExtra(AppsActivity.EXTRA_EDIT, true));
     }
 

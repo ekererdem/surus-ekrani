@@ -144,7 +144,7 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
-                startActivity(new Intent(this, SettingsActivity.class)));
+                openOwn(new Intent(this, SettingsActivity.class)));
 
         msm = getSystemService(MediaSessionManager.class);
         listenerCn = new ComponentName(this, MediaListener.class);
@@ -158,7 +158,6 @@ public class MainActivity extends Activity {
         }
         handleCarIntent(getIntent());
         // Uygulama ilk açıldığında haritayı ekranın diğer yarısında başlat.
-        if (savedInstanceState == null) autoSplit();
     }
 
     // ---------- Harita ----------
@@ -354,26 +353,37 @@ public class MainActivity extends Activity {
         if (i != null && i.getBooleanExtra(BtReceiver.EXTRA_FROM_CAR, false)) {
             i.removeExtra(BtReceiver.EXTRA_FROM_CAR);
             if (p.autoPlay()) Apps.playMedia(this);
-            autoSplit();
         }
     }
 
     void goTo(String addr) {
         if (addr.trim().isEmpty()) {
             Toast.makeText(this, "Önce Ayarlar'dan adres ekle", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, SettingsActivity.class));
+            openOwn(new Intent(this, SettingsActivity.class));
         } else {
             Apps.openNavSplit(this, p, addr);
         }
     }
 
+    /** Uygulamanın kendi ekranlarına (Ayarlar vb.) gidip dönerken haritayı tekrar açma. */
+    static boolean sOwnScreen;
+
+    void openOwn(Intent i) {
+        sOwnScreen = true;
+        startActivity(i);
+    }
+
+    private final Runnable autoSplitRun = () -> {
+        if (!isFinishing() && !isDestroyed() && !isInMultiWindowMode()) {
+            Apps.openNavSplit(this, p, null);
+        }
+    };
+
+    /** Ekran bölünmüş değilse haritayı yanına aç. */
     private void autoSplit() {
-        if (!p.autoSplit()) return;
-        playBtn.postDelayed(() -> {
-            if (!isFinishing() && !isDestroyed() && !isInMultiWindowMode()) {
-                Apps.openNavSplit(this, p, null);
-            }
-        }, 700);
+        playBtn.removeCallbacks(autoSplitRun);
+        if (!p.autoSplit() || isInMultiWindowMode()) return;
+        playBtn.postDelayed(autoSplitRun, 700);
     }
 
     /** Bildirim erişimi olmadan da çalışan medya tuşu: son çalan uygulamaya gider. */
@@ -394,6 +404,7 @@ public class MainActivity extends Activity {
     @Override
     public void onMultiWindowModeChanged(boolean inMultiWindow, android.content.res.Configuration cfg) {
         super.onMultiWindowModeChanged(inMultiWindow, cfg);
+        if (!inMultiWindow) sOwnScreen = true; // elle tam ekrana geçildi, haritayı geri açma
         if (inMultiWindow != compact) {
             recreate();
             return;
@@ -434,11 +445,15 @@ public class MainActivity extends Activity {
         }
         pickController();
         hideBars();
+
+        if (sOwnScreen) sOwnScreen = false;
+        else autoSplit();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        playBtn.removeCallbacks(autoSplitRun);
         status.pause();
         seek.removeCallbacks(progressTick);
         map.onPause();
