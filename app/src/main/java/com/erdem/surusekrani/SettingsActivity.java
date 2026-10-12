@@ -28,6 +28,8 @@ import java.util.Set;
 public class SettingsActivity extends Activity {
     private static final int REQ_BT = 1;
     private static final int REQ_NOTIF = 2;
+    private static final int PICK_CALL1 = 21;
+    private static final int PICK_CALL2 = 22;
 
     private Prefs p;
     private EditText home, plate;
@@ -64,6 +66,7 @@ public class SettingsActivity extends Activity {
         home = findViewById(R.id.editHome);
         home.setText(p.home());
         setupHome();
+        setupCalls();
 
         Switch autoOpen = findViewById(R.id.swAutoOpen);
         autoOpen.setChecked(p.autoOpen());
@@ -199,6 +202,55 @@ public class SettingsActivity extends Activity {
             String finalLabel = label != null ? label : "Ev (kayıtlı konum)";
             runOnUiThread(() -> saveHome(finalLabel, lat, lon));
         });
+    }
+
+    // ---------- Hızlı arama ----------
+
+    private void setupCalls() {
+        bindPick(R.id.call1Pick, "call1", 1, PICK_CALL1);
+        bindPick(R.id.call2Pick, "call2", 2, PICK_CALL2);
+    }
+
+    private void bindPick(int id, String key, int no, int req) {
+        android.widget.Button b = findViewById(id);
+        android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
+        String name = sp.getString(key + "Name", "");
+        String num = sp.getString(key + "Num", "");
+        b.setText(num.isEmpty() ? no + ". kişiyi seç" : no + ". " + (name.isEmpty() ? num : name) + "  ·  " + num);
+        b.setOnClickListener(v -> {
+            try {
+                startActivityForResult(new Intent(Intent.ACTION_PICK,
+                        android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI), req);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(this, "Rehber açılamadı", Toast.LENGTH_SHORT).show();
+            }
+        });
+        b.setOnLongClickListener(v -> {
+            sp.edit().remove(key + "Name").remove(key + "Num").apply();
+            setupCalls();
+            Toast.makeText(this, "Kaldırıldı", Toast.LENGTH_SHORT).show();
+            return true;
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if ((req != PICK_CALL1 && req != PICK_CALL2) || res != RESULT_OK || data == null || data.getData() == null) return;
+        String key = req == PICK_CALL1 ? "call1" : "call2";
+        String[] cols = {android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER};
+        try (android.database.Cursor c = getContentResolver().query(data.getData(), cols, null, null, null)) {
+            if (c != null && c.moveToFirst()) {
+                String name = c.getString(0) == null ? "" : c.getString(0);
+                String num = c.getString(1) == null ? "" : c.getString(1).replaceAll("[^0-9+]", "");
+                getSharedPreferences("surus", MODE_PRIVATE).edit()
+                        .putString(key + "Name", name).putString(key + "Num", num).apply();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Kişi okunamadı", Toast.LENGTH_SHORT).show();
+        }
+        setupCalls();
     }
 
     private void openPicker() {

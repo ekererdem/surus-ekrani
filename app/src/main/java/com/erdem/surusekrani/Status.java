@@ -35,6 +35,8 @@ final class Status {
     private final SharedPreferences sp;
     private final TextView weatherTemp, weatherDesc, battText;
     private final ImageView btIcon, battIcon, signalIcon;
+    private final TextView speedText;
+    private long lastSpeedAt;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private long lastWeather;
 
@@ -67,6 +69,7 @@ final class Status {
         btIcon = a.findViewById(R.id.btIcon);
         battIcon = a.findViewById(R.id.battIcon);
         signalIcon = a.findViewById(R.id.signalIcon);
+        speedText = a.findViewById(R.id.speedText);
 
         // Son bilinen hava durumunu hemen göster (3 saatten eskiyse gösterme).
         if (System.currentTimeMillis() - sp.getLong("wAt", 0) < 3 * 3600 * 1000L) {
@@ -75,6 +78,7 @@ final class Status {
     }
 
     void resume() {
+        startSpeed();
         IntentFilter f = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         f.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         f.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
@@ -93,6 +97,7 @@ final class Status {
     }
 
     void pause() {
+        stopSpeed();
         weatherTemp.removeCallbacks(weatherTick);
         signalIcon.removeCallbacks(signalTick);
         btIcon.removeCallbacks(this::renderBt);
@@ -104,6 +109,49 @@ final class Status {
 
     void destroy() {
         io.shutdownNow();
+    }
+
+    // ---------- Hız (GPS) ----------
+
+    private final android.location.LocationListener speedListener = this::onLocation;
+
+    private final Runnable speedStale = new Runnable() {
+        @Override public void run() {
+            // 4 saniyedir yeni konum yoksa duruyoruz say
+            if (System.currentTimeMillis() - lastSpeedAt > 4000) speedText.setText("0");
+            speedText.postDelayed(this, 2000);
+        }
+    };
+
+    private void startSpeed() {
+        if (a.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            speedText.setText("–");
+            return;
+        }
+        try {
+            LocationManager lm = a.getSystemService(LocationManager.class);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, speedListener,
+                    android.os.Looper.getMainLooper());
+        } catch (SecurityException | IllegalArgumentException ignored) {
+        }
+        speedText.removeCallbacks(speedStale);
+        speedText.postDelayed(speedStale, 2000);
+    }
+
+    private void stopSpeed() {
+        speedText.removeCallbacks(speedStale);
+        try {
+            a.getSystemService(LocationManager.class).removeUpdates(speedListener);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void onLocation(Location l) {
+        lastSpeedAt = System.currentTimeMillis();
+        int kmh = l.hasSpeed() ? Math.round(l.getSpeed() * 3.6f) : 0;
+        if (kmh < 3) kmh = 0; // durağanken GPS titremesi
+        speedText.setText(String.valueOf(kmh));
+        Park.rememberLocation(a, l);
     }
 
     // ---------- Şebeke çekimi ----------

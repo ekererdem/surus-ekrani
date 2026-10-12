@@ -18,10 +18,13 @@ public class BtReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context c, Intent in) {
-        if (!BluetoothDevice.ACTION_ACL_CONNECTED.equals(in.getAction())) return;
+        String action = in.getAction();
+        boolean connected = BluetoothDevice.ACTION_ACL_CONNECTED.equals(action);
+        boolean disconnected = BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action);
+        if (!connected && !disconnected) return;
 
         Prefs p = new Prefs(c);
-        if (!p.autoOpen() || p.carAddr().isEmpty()) return;
+        if (p.carAddr().isEmpty()) return;
 
         BluetoothDevice d;
         if (Build.VERSION.SDK_INT >= 33) {
@@ -30,6 +33,13 @@ public class BtReceiver extends BroadcastReceiver {
             d = in.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         }
         if (d == null || !p.carAddr().equalsIgnoreCase(d.getAddress())) return;
+
+        // Arabadan ayrılınca park yerini kaydet
+        if (disconnected) {
+            Park.saveHere(c);
+            return;
+        }
+        if (!p.autoOpen()) return;
 
         Intent open = new Intent(c, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK

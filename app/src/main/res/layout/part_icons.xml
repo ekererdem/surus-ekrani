@@ -1,24 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Köşedeki küçük Ev ve Ayarlar simgeleri -->
+<!-- Eşit boyda hızlı düğmeler: Asistan, Kişi 1, Kişi 2, Arabam, Ev, Ayarlar -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
     android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/assistBtn"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/btn_outline"
+        android:src="@drawable/ic_mic"
+        android:tint="@color/amber"
+        android:padding="12dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="Sesli asistan" />
+
+    <TextView
+        android:id="@+id/call1Btn"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/btn_outline"
+        android:gravity="center"
+        android:drawablePadding="4dp"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="@color/fg"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/call2Btn"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/btn_outline"
+        android:gravity="center"
+        android:drawablePadding="4dp"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="@color/fg"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/parkBtn"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/btn_outline"
+        android:src="@drawable/ic_car"
+        android:tint="@color/fg"
+        android:padding="11dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="Arabam nerede" />
+
     <ImageButton
         android:id="@+id/homeBtn"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="8dp"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
         android:background="@drawable/btn_outline"
         android:src="@drawable/ic_home"
         android:tint="@color/amber"
         android:padding="12dp"
         android:scaleType="fitCenter"
         android:contentDescription="Eve rota başlat" />
+
     <ImageButton
         android:id="@+id/settingsBtn"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
         android:background="@drawable/btn_outline"
         android:src="@drawable/ic_settings"
         android:tint="@color/muted"

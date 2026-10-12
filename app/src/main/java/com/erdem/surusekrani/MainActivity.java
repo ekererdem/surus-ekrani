@@ -45,6 +45,8 @@ import java.util.List;
 /** Büyük butonlu sürüş ekranı: canlı harita + çalan şarkı. */
 public class MainActivity extends Activity {
     private static final int REQ_LOC = 10;
+    private static final int REQ_CALL = 11;
+    private String pendingCall;
 
     private Prefs p;
     private boolean compact;
@@ -147,6 +149,13 @@ public class MainActivity extends Activity {
         musicArt.setOnClickListener(v -> Apps.openMusic(this, p));
 
         findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
+        findViewById(R.id.assistBtn).setOnClickListener(v -> openAssistant());
+        findViewById(R.id.parkBtn).setOnClickListener(v -> showPark());
+        findViewById(R.id.parkBtn).setOnLongClickListener(v -> {
+            Toast.makeText(this, Park.saveHere(this) ? "Park yeri kaydedildi" : "Konum bulunamadı",
+                    Toast.LENGTH_SHORT).show();
+            return true;
+        });
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
                 openOwn(new Intent(this, SettingsActivity.class)));
 
@@ -269,6 +278,87 @@ public class MainActivity extends Activity {
         if (ctrl != null) ctrl.unregisterCallback(mediaCb);
         ctrl = c;
         if (ctrl != null) ctrl.registerCallback(mediaCb);
+    }
+
+    // ---------- Sesli asistan ----------
+
+    private void openAssistant() {
+        Intent[] tries = {
+                new Intent(Intent.ACTION_VOICE_COMMAND),
+                new Intent("android.intent.action.ASSIST"),
+                new Intent(android.speech.RecognizerIntent.ACTION_WEB_SEARCH)};
+        for (Intent i : tries) {
+            try {
+                startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                return;
+            } catch (Exception ignored) {
+            }
+        }
+        Toast.makeText(this, "Sesli asistan bulunamadı", Toast.LENGTH_SHORT).show();
+    }
+
+    // ---------- Arabam nerede ----------
+
+    private void showPark() {
+        String c = Park.coord(this);
+        if (c.isEmpty()) {
+            Toast.makeText(this, "Henüz park yeri yok. Arabadan inince kendiliğinden kaydedilir; "
+                    + "elle kaydetmek için bu düğmeye basılı tut.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        long mins = (System.currentTimeMillis() - Park.savedAt(this)) / 60000;
+        String ago = mins < 1 ? "az önce" : mins < 60 ? mins + " dk önce"
+                : mins < 1440 ? (mins / 60) + " saat önce" : (mins / 1440) + " gün önce";
+        Toast.makeText(this, "Park yeri " + ago + " kaydedildi", Toast.LENGTH_SHORT).show();
+        Intent i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(
+                "https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + c));
+        i.setPackage(Apps.MAPS);
+        try {
+            startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        } catch (Exception e) {
+            i.setPackage(null);
+            startActivity(i);
+        }
+    }
+
+    // ---------- Hızlı arama ----------
+
+    private void renderCalls() {
+        bindCall(R.id.call1Btn, "call1");
+        bindCall(R.id.call2Btn, "call2");
+    }
+
+    private void bindCall(int id, String key) {
+        TextView b = findViewById(id);
+        android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
+        String name = sp.getString(key + "Name", "");
+        String num = sp.getString(key + "Num", "");
+        if (num.isEmpty()) {
+            b.setVisibility(View.GONE);
+            return;
+        }
+        b.setVisibility(View.VISIBLE);
+        String first = name.trim().isEmpty() ? num : name.trim().split("\\s+")[0];
+        b.setText(first);
+        b.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_phone, 0, 0, 0);
+        b.setContentDescription(name + " ara");
+        b.setOnClickListener(v -> call(num));
+        b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });
+    }
+
+    private void call(String num) {
+        android.net.Uri tel = android.net.Uri.parse("tel:" + num);
+        if (checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+            startActivity(new Intent(Intent.ACTION_CALL, tel).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        } else if (pendingCall == null && !shouldShowRequestPermissionRationale(Manifest.permission.CALL_PHONE)
+                && !getSharedPreferences("surus", MODE_PRIVATE).getBoolean("callAsked", false)) {
+            getSharedPreferences("surus", MODE_PRIVATE).edit().putBoolean("callAsked", true).apply();
+            pendingCall = num;
+            requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, REQ_CALL);
+        } else {
+            // İzin yoksa numara çevirici açılır, yeşil tuşa basman yeterli
+            startActivity(new Intent(Intent.ACTION_DIAL, tel).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        }
     }
 
     private void togglePlay() {
@@ -454,6 +544,7 @@ public class MainActivity extends Activity {
         seek.post(progressTick);
         status.resume();
         Shortcuts.render(this);
+        renderCalls();
         String plate = p.plate();
         ((TextView) findViewById(R.id.plateText)).setText(plate);
         findViewById(R.id.plate).setVisibility(plate.isEmpty() ? View.GONE : View.VISIBLE);
@@ -494,6 +585,11 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
+        if (code == REQ_CALL) {
+            if (pendingCall != null) call(pendingCall);
+            pendingCall = null;
+            return;
+        }
         if (code == REQ_LOC) {
             startLocation();
             status.pause();

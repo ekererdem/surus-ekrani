@@ -60,6 +60,14 @@
             android:hint="Örn. 34 ABC 123" />
         <TextView style="@style/Note" android:text="Ana ekranda Ayarlar çarkının yanında görünür. Boş bırakırsan gizlenir." />
 
+        <TextView style="@style/SectionTitle" android:text="Hızlı arama" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Seçtiğin kişiler ana ekranda düğme olur; dokununca doğrudan aranır. Değiştirmek için tekrar seç, kaldırmak için basılı tut." />
+        <Button android:id="@+id/call1Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
+            android:layout_marginTop="10dp" />
+        <Button android:id="@+id/call2Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
+            android:layout_marginTop="10dp" />
+
         <TextView style="@style/SectionTitle" android:text="Ev adresi" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
             android:text="Haritada işaretle'ye bas, haritayı kaydırıp iğneyi evinin üstüne getir. Evdeysen 'Şu anki konumum' da olur." />
