@@ -55,6 +55,11 @@
         </RadioGroup>
 
         <!-- Adresler -->
+        <TextView style="@style/SectionTitle" android:text="Plaka" />
+        <EditText android:id="@+id/editPlate" style="@style/Field" android:inputType="textCapCharacters"
+            android:hint="Örn. 06 GE 6501" />
+        <TextView style="@style/Note" android:text="Ana ekranda Ayarlar çarkının yanında görünür. Boş bırakırsan gizlenir." />
+
         <TextView style="@style/SectionTitle" android:text="Kısayol adresleri" />
         <TextView style="@style/Note" android:text="Ev" />
         <EditText android:id="@+id/editHome" style="@style/Field" android:hint="Örn. 1200 Main St, Houston, TX" />

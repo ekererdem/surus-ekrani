@@ -30,7 +30,7 @@ public class SettingsActivity extends Activity {
     private static final int REQ_NOTIF = 2;
 
     private Prefs p;
-    private EditText home, work;
+    private EditText home, work, plate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +59,8 @@ public class SettingsActivity extends Activity {
         units.setOnCheckedChangeListener((g, id) ->
                 p.edit().putString("units", id == R.id.rbKm ? "km" : "mi").apply());
 
+        plate = findViewById(R.id.editPlate);
+        plate.setText(p.plate());
         home = findViewById(R.id.editHome);
         work = findViewById(R.id.editWork);
         home.setText(p.home());
@@ -110,6 +112,7 @@ public class SettingsActivity extends Activity {
     protected void onPause() {
         super.onPause();
         p.edit()
+                .putString("plate", plate.getText().toString().trim().toUpperCase(new java.util.Locale("tr", "TR")))
                 .putString("home", home.getText().toString().trim())
                 .putString("work", work.getText().toString().trim())
                 .apply();
