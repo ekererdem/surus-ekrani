@@ -269,8 +269,6 @@ final class Status {
     private void showWeather(int temp, int code, boolean day) {
         weatherTemp.setText(icon(code, day) + " " + temp + "°");
         weatherDesc.setText(describe(code));
-        weatherTemp.setVisibility(View.VISIBLE);
-        weatherDesc.setVisibility(View.VISIBLE);
     }
 
     private static String icon(int c, boolean day) {

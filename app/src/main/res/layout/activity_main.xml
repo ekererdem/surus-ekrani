@@ -13,7 +13,7 @@
         layout="@layout/part_icons"
         android:layout_width="match_parent"
         android:layout_height="140dp"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="6dp" />
 
     <include
         layout="@layout/part_nav"

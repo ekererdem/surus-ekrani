@@ -29,12 +29,6 @@
             <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
             <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
         </RadioGroup>
-        <TextView style="@style/SectionTitle" android:text="Ekran yönü" />
-        <Switch android:id="@+id/swLockRot" style="@style/Toggle"
-            android:text="Bölünmüş ekranda da yatay kalsın" />
-        <TextView android:id="@+id/lockRotNote" style="@style/Note"
-            android:text="Sürüş Ekranı açılınca telefonun döndürme kilidi yataya alınır, araba Bluetooth'u ayrılınca eski haline döner. İlk açışta 'Sistem ayarlarını değiştirme' izni istenir." />
-
         <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
         <Switch android:id="@+id/swAssist" style="@style/Toggle"
             android:text="Sesli asistan (mikrofon) düğmesi" />

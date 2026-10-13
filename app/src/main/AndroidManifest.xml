@@ -9,7 +9,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
@@ -34,7 +33,6 @@
 
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="landscape"
             android:exported="true"
             android:launchMode="singleTask"
             android:showWhenLocked="true"
@@ -58,15 +56,11 @@
             </intent-filter>
         </activity-alias>
 
-        <activity android:name=".SettingsActivity"
-            android:screenOrientation="landscape" android:exported="false" />
-        <activity android:name=".AppsActivity"
-            android:screenOrientation="landscape" android:exported="false" />
-        <activity android:name=".MapPickActivity"
-            android:screenOrientation="landscape" android:exported="false" />
+        <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".AppsActivity" android:exported="false" />
+        <activity android:name=".MapPickActivity" android:exported="false" />
         <activity
             android:name=".NavActivity"
-            android:screenOrientation="landscape"
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
             android:windowSoftInputMode="adjustNothing|stateHidden" />

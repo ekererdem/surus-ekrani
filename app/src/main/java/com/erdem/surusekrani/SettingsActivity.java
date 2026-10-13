@@ -63,18 +63,6 @@ public class SettingsActivity extends Activity {
         Places.migrate(this);
         setupCalls();
 
-        Switch lockRot = findViewById(R.id.swLockRot);
-        lockRot.setChecked(Rotation.enabled(this));
-        lockRot.setOnCheckedChangeListener((b, on) -> {
-            p.edit().putBoolean("lockRot", on).apply();
-            if (on && !Rotation.canWrite(this)) {
-                Toast.makeText(this, "Listede Sürüş Ekranı için izni aç, sonra geri dön", Toast.LENGTH_LONG).show();
-                safeStart(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + getPackageName())));
-            } else if (!on) {
-                Rotation.restore(this);
-            }
-        });
-
         Switch assist = findViewById(R.id.swAssist);
         assist.setChecked(getSharedPreferences("surus", MODE_PRIVATE).getBoolean("assistBtn", true));
         assist.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("assistBtn", on).apply());

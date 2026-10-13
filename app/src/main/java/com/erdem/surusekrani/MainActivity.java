@@ -96,7 +96,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         p = new Prefs(this);
         Places.migrate(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -495,7 +494,7 @@ public class MainActivity extends Activity {
     }
 
     private void showArtPlaceholder() {
-        int pad = Math.round(22 * getResources().getDisplayMetrics().density);
+        int pad = Math.round(32 * getResources().getDisplayMetrics().density);
         musicArt.setPadding(pad, pad, pad, pad);
         musicArt.setScaleType(ImageView.ScaleType.FIT_CENTER);
         musicArt.setImageResource(R.drawable.ic_music);
@@ -570,10 +569,6 @@ public class MainActivity extends Activity {
     }
 
     private final Runnable autoSplitRun = () -> {
-        // Önce ekran yataya dönsün; bölünmüş ekrana geçince yön isteği yok sayılıyor.
-        if (getResources().getConfiguration().orientation != android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
-            return; // dönünce ekran yeniden kurulur ve onResume tekrar dener
-        }
         if (!isFinishing() && !isDestroyed() && !isInMultiWindowMode()) {
             Apps.openNavSplit(this, p, null);
         }
@@ -645,7 +640,7 @@ public class MainActivity extends Activity {
         pickController();
         hideBars();
 
-        Rotation.lockLandscape(this);
+        Rotation.giveBack(this); // daha önce kilitlendiyse telefonun kendi ayarına dön
         if (sOwnScreen) sOwnScreen = false;
         else autoSplit();
     }

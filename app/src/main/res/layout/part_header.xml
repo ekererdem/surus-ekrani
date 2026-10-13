@@ -18,8 +18,9 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
-        <!-- Hava durumu -->
+        <!-- Hava durumu (gizli) -->
         <LinearLayout
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">

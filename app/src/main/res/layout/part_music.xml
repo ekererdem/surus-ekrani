@@ -9,17 +9,17 @@
     android:background="@drawable/tile_dark"
     android:paddingStart="10dp"
     android:paddingEnd="14dp"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
 
     <ImageView
         android:id="@+id/musicArt"
-        android:layout_width="86dp"
-        android:layout_height="86dp"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
         android:background="@drawable/art_bg"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_music"
-        android:padding="22dp"
+        android:padding="32dp"
         android:tint="@color/muted"
         android:clickable="true"
         android:focusable="true"
@@ -46,7 +46,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textSize="17sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/fg"
                 android:singleLine="true"
@@ -58,7 +58,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textSize="13sp"
+                android:textSize="15sp"
                 android:textColor="@color/muted"
                 android:singleLine="true"
                 android:ellipsize="end" />
@@ -67,7 +67,7 @@
         <SeekBar
             android:id="@+id/musicSeek"
             android:layout_width="match_parent"
-            android:layout_height="20dp"
+            android:layout_height="28dp"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
             android:max="1000"
@@ -84,7 +84,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textColor="@color/muted"
                 android:fontFeatureSettings="tnum"
                 android:text="0:00" />
@@ -92,7 +92,7 @@
                 android:id="@+id/musicDuration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textColor="@color/muted"
                 android:fontFeatureSettings="tnum"
                 android:text="0:00" />
@@ -100,8 +100,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="38dp"
-            android:layout_marginTop="2dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="6dp"
             android:orientation="horizontal">
 
             <ImageButton
