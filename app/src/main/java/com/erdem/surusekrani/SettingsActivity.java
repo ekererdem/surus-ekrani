@@ -41,9 +41,9 @@ public class SettingsActivity extends Activity {
         p = new Prefs(this);
 
         RadioGroup nav = findViewById(R.id.radioNav);
-        nav.check("waze".equals(p.nav()) ? R.id.rbWaze : R.id.rbMaps);
+        nav.check("waze".equals(p.nav()) ? R.id.rbWaze : "yandex".equals(p.nav()) ? R.id.rbYandex : R.id.rbMaps);
         nav.setOnCheckedChangeListener((g, id) ->
-                p.edit().putString("nav", id == R.id.rbWaze ? "waze" : "gmaps").apply());
+                p.edit().putString("nav", id == R.id.rbWaze ? "waze" : id == R.id.rbYandex ? "yandex" : "gmaps").apply());
 
         RadioGroup music = findViewById(R.id.radioMusic);
         music.check("ytm".equals(p.music()) ? R.id.rbYtm : R.id.rbSpotify);

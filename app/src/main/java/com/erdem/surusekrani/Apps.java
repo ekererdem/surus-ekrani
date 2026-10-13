@@ -18,47 +18,60 @@ final class Apps {
 
     private Apps() {}
 
-    static String navName(String key) { return "waze".equals(key) ? "Waze" : "Google Maps"; }
+    static final String YANDEX = "ru.yandex.yandexnavi";
+
+    static String navName(String key) {
+        if ("waze".equals(key)) return "Waze";
+        if ("yandex".equals(key)) return "Yandex Navigasyon";
+        return "Google Maps";
+    }
     static String musicName(String key) { return "ytm".equals(key) ? "YouTube Music" : "Spotify"; }
     static String musicPkg(String key) { return "ytm".equals(key) ? YTM : SPOTIFY; }
 
+    static String navPkg(String key) {
+        if ("waze".equals(key)) return WAZE;
+        if ("yandex".equals(key)) return YANDEX;
+        return MAPS;
+    }
+
+    /** Seçili navigasyon uygulaması için intent. dest boşsa uygulamayı açar; "enlem,boylam" ya da adres olabilir. */
+    private static Intent navIntent(Activity a, Prefs p, String dest) {
+        String key = p.nav();
+        String pkg = navPkg(key);
+        if (dest == null || dest.trim().isEmpty()) {
+            return a.getPackageManager().getLaunchIntentForPackage(pkg);
+        }
+        String d = dest.trim();
+        Intent i;
+        if ("waze".equals(key)) {
+            i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://waze.com/ul?navigate=yes&q=" + Uri.encode(d)));
+        } else if ("yandex".equals(key)) {
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("^\\s*(-?\\d+(?:\\.\\d+)?)\\s*,\\s*(-?\\d+(?:\\.\\d+)?)\\s*$").matcher(d);
+            Uri u = m.matches()
+                    ? Uri.parse("yandexnavi://build_route_on_map?lat_to=" + m.group(1) + "&lon_to=" + m.group(2))
+                    : Uri.parse("yandexnavi://map_search?text=" + Uri.encode(d));
+            i = new Intent(Intent.ACTION_VIEW, u);
+        } else {
+            i = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=" + Uri.encode(d) + "&mode=d"));
+        }
+        i.setPackage(pkg);
+        return i;
+    }
+
     /** dest boşsa uygulamayı açar, doluysa o adrese navigasyonu başlatır. */
     static void openNav(Activity a, Prefs p, String dest) {
-        boolean waze = "waze".equals(p.nav());
-        String pkg = waze ? WAZE : MAPS;
-        Intent i;
-        if (dest == null || dest.trim().isEmpty()) {
-            i = a.getPackageManager().getLaunchIntentForPackage(pkg);
-            if (i == null) { openStore(a, pkg); return; }
-        } else if (waze) {
-            i = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://waze.com/ul?navigate=yes&q=" + Uri.encode(dest.trim())));
-            i.setPackage(WAZE);
-        } else {
-            i = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("google.navigation:q=" + Uri.encode(dest.trim()) + "&mode=d"));
-            i.setPackage(MAPS);
-        }
+        String pkg = navPkg(p.nav());
+        Intent i = navIntent(a, p, dest);
+        if (i == null) { openStore(a, pkg); return; }
         start(a, i, pkg);
     }
 
     /** Navigasyon uygulamasını ekranın diğer yarısında açar (bölünmüş ekran). */
     static void openNavSplit(Activity a, Prefs p, String dest) {
-        boolean waze = "waze".equals(p.nav());
-        String pkg = waze ? WAZE : MAPS;
-        Intent i;
-        if (dest == null || dest.trim().isEmpty()) {
-            i = a.getPackageManager().getLaunchIntentForPackage(pkg);
-            if (i == null) { openStore(a, pkg); return; }
-        } else if (waze) {
-            i = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://waze.com/ul?navigate=yes&q=" + Uri.encode(dest.trim())));
-            i.setPackage(WAZE);
-        } else {
-            i = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("google.navigation:q=" + Uri.encode(dest.trim()) + "&mode=d"));
-            i.setPackage(MAPS);
-        }
+        String pkg = navPkg(p.nav());
+        Intent i = navIntent(a, p, dest);
+        if (i == null) { openStore(a, pkg); return; }
         i.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT);
         start(a, i, pkg);
     }
