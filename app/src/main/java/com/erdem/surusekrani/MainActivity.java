@@ -666,8 +666,10 @@ public class MainActivity extends Activity {
             playBtn.postDelayed(() -> { if (!musicActive()) startMusicApp(); }, 1500);
             return;
         }
-        // Spotify kapalı (ya da başka bir uygulamanın oturumu var): Spotify'ı kendisi başlat
-        startMusicApp();
+        // Spotify kapalı: sistemin medya tuşu, son çalan uygulamayı (Spotify) arka planda
+        // uyandırıp kaldığı yerden çaldırır. Eski sürümlerdeki yöntem buydu.
+        mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
+        playBtn.postDelayed(() -> { if (!musicActive()) startMusicApp(); }, 1500);
     }
 
     private android.media.browse.MediaBrowser browser;
@@ -703,11 +705,13 @@ public class MainActivity extends Activity {
                     .putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(action, KeyEvent.KEYCODE_MEDIA_PLAY)));
         }
         playBtn.postDelayed(() -> {
-            if (musicActive()) { pickController(); return; }
-            // Son çare: uygulamayı aç, oturumu görününce çaldır
-            pendingAutoPlay = true;
-            Apps.openMusic(this, p);
-            playBtn.postDelayed(() -> pendingAutoPlay = false, 15000);
+            pickController();
+            // Hâlâ çalmıyorsa son bir kez medya tuşu (uygulama bu arada uyanmış olabilir)
+            if (!musicActive()) {
+                if (ctrl != null && Apps.musicPkg(p.music()).equals(ctrl.getPackageName()))
+                    ctrl.getTransportControls().play();
+                else mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY);
+            }
         }, 2500);
     }
 
