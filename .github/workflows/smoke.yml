@@ -31,6 +31,7 @@ jobs:
             adb logcat -c
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 15
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
+            adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb logcat -d -b crash > crash.txt || true
             adb logcat -d '*:E' | grep -A40 -i 'FATAL\|AndroidRuntime' > err.txt || true
             cat crash.txt err.txt
