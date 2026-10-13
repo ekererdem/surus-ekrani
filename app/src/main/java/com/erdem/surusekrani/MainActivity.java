@@ -635,6 +635,7 @@ public class MainActivity extends Activity {
         pickController();
         hideBars();
 
+        Rotation.lockLandscape(this);
         if (sOwnScreen) sOwnScreen = false;
         else autoSplit();
     }

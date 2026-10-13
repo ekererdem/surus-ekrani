@@ -37,6 +37,7 @@ public class BtReceiver extends BroadcastReceiver {
         // Arabadan ayrılınca park yerini kaydet
         if (disconnected) {
             Park.saveHere(c);
+            Rotation.restore(c);
             return;
         }
         if (!p.autoOpen()) return;
