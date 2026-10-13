@@ -83,6 +83,18 @@
             android:id="@+id/call2Btn"
             style="@style/QuickText"
             android:visibility="gone" />
+        <TextView
+            android:id="@+id/call3Btn"
+            style="@style/QuickText"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/call4Btn"
+            style="@style/QuickText"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/call5Btn"
+            style="@style/QuickText"
+            android:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout

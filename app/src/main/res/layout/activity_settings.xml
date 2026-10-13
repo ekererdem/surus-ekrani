@@ -58,12 +58,18 @@
         </RadioGroup>
 
         <!-- Adresler -->
-        <TextView style="@style/SectionTitle" android:text="Hızlı arama" />
+        <TextView style="@style/SectionTitle" android:text="Hızlı arama (en fazla 5)" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
             android:text="Seçtiğin kişiler ana ekranda düğme olur; dokununca doğrudan aranır. Değiştirmek için tekrar seç, kaldırmak için basılı tut." />
         <Button android:id="@+id/call1Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
             android:layout_marginTop="10dp" />
         <Button android:id="@+id/call2Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
+            android:layout_marginTop="10dp" />
+        <Button android:id="@+id/call3Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
+            android:layout_marginTop="10dp" />
+        <Button android:id="@+id/call4Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
+            android:layout_marginTop="10dp" />
+        <Button android:id="@+id/call5Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
             android:layout_marginTop="10dp" />
 
         <TextView style="@style/SectionTitle" android:text="Hızlı rotalar (en fazla 5)" />

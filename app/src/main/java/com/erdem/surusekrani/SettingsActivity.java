@@ -28,8 +28,9 @@ import java.util.Set;
 public class SettingsActivity extends Activity {
     private static final int REQ_BT = 1;
     private static final int REQ_NOTIF = 2;
-    private static final int PICK_CALL1 = 21;
-    private static final int PICK_CALL2 = 22;
+    private static final int PICK_CALL = 21; // 21..25
+    private static final int[] CALL_PICKS = {
+            R.id.call1Pick, R.id.call2Pick, R.id.call3Pick, R.id.call4Pick, R.id.call5Pick};
 
     private Prefs p;
 
@@ -299,8 +300,8 @@ public class SettingsActivity extends Activity {
     // ---------- Hızlı arama ----------
 
     private void setupCalls() {
-        bindPick(R.id.call1Pick, "call1", 1, PICK_CALL1);
-        bindPick(R.id.call2Pick, "call2", 2, PICK_CALL2);
+        for (int i = 0; i < CALL_PICKS.length; i++)
+            bindPick(CALL_PICKS[i], "call" + (i + 1), i + 1, PICK_CALL + i);
     }
 
     private void bindPick(int id, String key, int no, int req) {
@@ -328,8 +329,9 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
-        if ((req != PICK_CALL1 && req != PICK_CALL2) || res != RESULT_OK || data == null || data.getData() == null) return;
-        String key = req == PICK_CALL1 ? "call1" : "call2";
+        if (req < PICK_CALL || req >= PICK_CALL + CALL_PICKS.length
+                || res != RESULT_OK || data == null || data.getData() == null) return;
+        String key = "call" + (req - PICK_CALL + 1);
         String[] cols = {android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
                 android.provider.ContactsContract.CommonDataKinds.Phone.NUMBER};
         try (android.database.Cursor c = getContentResolver().query(data.getData(), cols, null, null, null)) {

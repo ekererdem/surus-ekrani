@@ -286,16 +286,18 @@ public class MainActivity extends Activity {
 
     // ---------- Hızlı düğmeler (iki sıra) ----------
 
+    /** Üst sıra: durum, hava, araba, mikrofon, ayarlar. */
+    private static final int[] ROW1 = {
+            R.id.statusTile, R.id.weatherTile, R.id.parkBtn, R.id.assistBtn, R.id.settingsBtn};
+    /** Alt sıra: hızlı aramalar, sonra hızlı rotalar (koddan eklenir). */
+    static final int[] CALLS = {R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
     private static final int[] QUICK = {
-            R.id.weatherTile, R.id.statusTile, R.id.assistBtn, R.id.call1Btn, R.id.call2Btn, R.id.parkBtn, R.id.settingsBtn};
+            R.id.statusTile, R.id.weatherTile, R.id.parkBtn, R.id.assistBtn, R.id.settingsBtn,
+            R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
     private final java.util.List<View> placeViews = new java.util.ArrayList<>();
 
-    /** Görünen düğmeleri iki sıraya eşit dağıtır (üst sıra bir fazla alabilir). */
     private void arrangeQuick() {
         ViewGroup r1 = findViewById(R.id.iconsRow1), r2 = findViewById(R.id.iconsRow2);
-        java.util.List<View> vis = new java.util.ArrayList<>();
-        java.util.List<View> hidden = new java.util.ArrayList<>();
-        // Eski rota düğmelerini kaldır, güncel listeyi yeniden kur
         for (View v : placeViews) if (v.getParent() != null) ((ViewGroup) v.getParent()).removeView(v);
         placeViews.clear();
         findViewById(R.id.assistBtn).setVisibility(
@@ -303,27 +305,16 @@ public class MainActivity extends Activity {
         for (int id : QUICK) {
             View v = findViewById(id);
             ((ViewGroup) v.getParent()).removeView(v);
-            if (id == R.id.settingsBtn) {
-                vis.addAll(buildPlaceButtons()); // rotalar ayarlardan hemen önce
-            }
-            (v.getVisibility() == View.GONE ? hidden : vis).add(v);
         }
-        // Sıraları ağırlığa göre dengele (durum kutusu iki düğme sayılır)
-        int total = 0;
-        for (View v : vis) total += weightOf(v);
-        int half = (total + 1) / 2, acc = 0;
-        int gap = Math.round(8 * getResources().getDisplayMetrics().density);
-        for (int i = 0; i < vis.size(); i++) {
-            int wgt = weightOf(vis.get(i));
-            ViewGroup row = acc < half ? r1 : r2;
-            acc += wgt;
-            android.widget.LinearLayout.LayoutParams lp =
-                    new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, wgt);
-            if (row.getChildCount() > 0) lp.setMarginStart(gap);
-            row.addView(vis.get(i), lp);
-        }
-        for (View v : hidden) r2.addView(v); // görünmez, yer kaplamaz
+        for (int id : ROW1) addQuick(r1, findViewById(id));
+        for (int id : CALLS) addQuick(r2, findViewById(id));
+        for (View v : buildPlaceButtons()) addQuick(r2, v);
         findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
+    }
+
+    private void addQuick(ViewGroup row, View v) {
+        row.addView(v, new android.widget.LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.MATCH_PARENT, weightOf(v)));
     }
 
     /** Ayarlar'da eklenen hızlı rotalar için düğmeler: simge + kısa ad. */
@@ -359,21 +350,26 @@ public class MainActivity extends Activity {
         if (g.getWidth() == 0) return;
         int gap = Math.round(8 * d);
         int h = (g.getHeight() - gap) / 2;
-        int cols = Math.max(visibleCount(r1), visibleCount(r2));
-        int w = Math.round(65 * d); // sabit genişlik (yükseklikten bağımsız)
-        if (cols > 0) w = Math.min(w, (g.getWidth() - (cols - 1) * gap) / cols); // ekrana sığsın
         if (g.getPaddingLeft() != 0) g.setPadding(0, 0, 0, 0);
         for (ViewGroup r : new ViewGroup[]{r1, r2}) {
             ((android.widget.LinearLayout) r).setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+            int cols = visibleCount(r);
+            // Alt sıra boşsa yeri yine dursun (üst sıra uzamasın)
+            r.setVisibility(cols == 0 ? View.INVISIBLE : View.VISIBLE);
+            int w = Math.round(65 * d); // sabit genişlik (yükseklikten bağımsız)
+            if (cols > 0) w = Math.min(w, (g.getWidth() - (cols - 1) * gap) / cols); // sığmazsa daralt
+            boolean first = true;
             for (int i = 0; i < r.getChildCount(); i++) {
                 View c = r.getChildAt(i);
                 if (c.getVisibility() == View.GONE) continue;
-                int k = weightOf(c), cw = w * k + gap * (k - 1);
+                int k = weightOf(c), cw = w * k + gap * (k - 1), ms = first ? 0 : gap;
+                first = false;
                 android.widget.LinearLayout.LayoutParams lp =
                         (android.widget.LinearLayout.LayoutParams) c.getLayoutParams();
-                if (lp.width != cw || lp.weight != 0) {
+                if (lp.width != cw || lp.weight != 0 || lp.getMarginStart() != ms) {
                     lp.width = cw;
                     lp.weight = 0;
+                    lp.setMarginStart(ms);
                     c.setLayoutParams(lp);
                 }
             }
@@ -389,7 +385,9 @@ public class MainActivity extends Activity {
 
     private static int weightOf(View v) {
         int id = v.getId();
-        return id == R.id.statusTile || id == R.id.call1Btn || id == R.id.call2Btn ? 2 : 1;
+        if (id == R.id.statusTile) return 2;
+        for (int c : CALLS) if (c == id) return 2;
+        return 1;
     }
 
     /** Simge boyutunu düğmenin küçük kenarına göre sınırla. */
@@ -441,8 +439,7 @@ public class MainActivity extends Activity {
     // ---------- Hızlı arama ----------
 
     private void renderCalls() {
-        bindCall(R.id.call1Btn, "call1");
-        bindCall(R.id.call2Btn, "call2");
+        for (int i = 0; i < CALLS.length; i++) bindCall(CALLS[i], "call" + (i + 1));
     }
 
     private void bindCall(int id, String key) {
