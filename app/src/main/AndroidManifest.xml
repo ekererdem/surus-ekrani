@@ -15,7 +15,7 @@
     <queries>
         <package android:name="com.google.android.apps.maps" />
         <package android:name="com.waze" />
-        <package android:name="ru.yandex.yandexnavi" />
+        <package android:name="ru.yandex.yandexmaps" />
         <package android:name="com.spotify.music" />
         <package android:name="com.google.android.apps.youtube.music" />
         <intent>

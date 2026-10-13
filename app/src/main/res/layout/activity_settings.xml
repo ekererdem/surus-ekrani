@@ -28,7 +28,7 @@
         <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
             <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
             <RadioButton android:id="@+id/rbWaze" style="@style/Option" android:text="Waze" />
-            <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Navigasyon" />
+            <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
         </RadioGroup>
         <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="6dp"
             android:text="Açılınca haritayı yan yana başlat" />

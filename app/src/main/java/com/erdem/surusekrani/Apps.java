@@ -18,11 +18,11 @@ final class Apps {
 
     private Apps() {}
 
-    static final String YANDEX = "ru.yandex.yandexnavi";
+    static final String YANDEX = "ru.yandex.yandexmaps";
 
     static String navName(String key) {
         if ("waze".equals(key)) return "Waze";
-        if ("yandex".equals(key)) return "Yandex Navigasyon";
+        if ("yandex".equals(key)) return "Yandex Haritalar";
         return "Google Maps";
     }
     static String musicName(String key) { return "ytm".equals(key) ? "YouTube Music" : "Spotify"; }
@@ -48,9 +48,10 @@ final class Apps {
         } else if ("yandex".equals(key)) {
             java.util.regex.Matcher m = java.util.regex.Pattern
                     .compile("^\\s*(-?\\d+(?:\\.\\d+)?)\\s*,\\s*(-?\\d+(?:\\.\\d+)?)\\s*$").matcher(d);
+            // Yandex Haritalar: rtext=~hedef → bulunduğun yerden hedefe araç rotası
             Uri u = m.matches()
-                    ? Uri.parse("yandexnavi://build_route_on_map?lat_to=" + m.group(1) + "&lon_to=" + m.group(2))
-                    : Uri.parse("yandexnavi://map_search?text=" + Uri.encode(d));
+                    ? Uri.parse("yandexmaps://maps.yandex.ru/?rtext=~" + m.group(1) + "," + m.group(2) + "&rtt=auto")
+                    : Uri.parse("yandexmaps://maps.yandex.ru/?text=" + Uri.encode(d));
             i = new Intent(Intent.ACTION_VIEW, u);
         } else {
             i = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=" + Uri.encode(d) + "&mode=d"));
