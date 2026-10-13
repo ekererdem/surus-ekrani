@@ -1,0 +1,43 @@
+name: Emülatörde dene
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Derle
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Çalıştır
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: |
+            adb install -r -g app/build/outputs/apk/debug/app-debug.apk
+            adb logcat -c
+            adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 15
+            adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
+            adb logcat -d -b crash > crash.txt || true
+            adb logcat -d '*:E' | grep -A40 -i 'FATAL\|AndroidRuntime' > err.txt || true
+            cat crash.txt err.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: log
+          path: |
+            crash.txt
+            err.txt
