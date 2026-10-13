@@ -34,6 +34,11 @@ jobs:
             adb logcat -d -b crash > crash.txt || true
             adb logcat -d '*:E' | grep -A40 -i 'FATAL\|AndroidRuntime' > err.txt || true
             cat crash.txt err.txt
+      - name: Rapor
+        if: always()
+        run: |
+          f=crash.txt; [ -s crash.txt ] || f=err.txt
+          if [ -s "$f" ]; then echo "::error::$(grep -v '^-' $f | head -45 | sed ':a;N;$!ba;s/\n/%0A/g')"; else echo "::notice::Çökme yok"; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
