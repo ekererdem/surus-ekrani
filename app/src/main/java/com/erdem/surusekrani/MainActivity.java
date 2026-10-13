@@ -650,6 +650,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    /*
+     * DİKKAT: Bu davranış kullanıcı tarafından onaylandı (v6.6), değiştirmeden önce CLAUDE.md'ye bak.
+     * Spotify kapalıyken Play → medya tuşu ile arka planda çalar; Spotify ekranı ASLA açılmaz.
+     */
     private void togglePlay() {
         PlaybackState s = ctrl == null ? null : ctrl.getPlaybackState();
         boolean playing = (s != null && s.getState() == PlaybackState.STATE_PLAYING)
