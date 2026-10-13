@@ -276,6 +276,7 @@ public class MainActivity extends Activity {
         if (best == null && !list.isEmpty()) best = list.get(0);
         setController(best);
         renderMusic();
+        autoPlayIfPending();
     }
 
     private void setController(MediaController c) {
@@ -651,25 +652,71 @@ public class MainActivity extends Activity {
 
     private void togglePlay() {
         PlaybackState s = ctrl == null ? null : ctrl.getPlaybackState();
-        AudioManager am = getSystemService(AudioManager.class);
         boolean playing = (s != null && s.getState() == PlaybackState.STATE_PLAYING)
-                || (ctrl == null && am != null && am.isMusicActive());
+                || (ctrl == null && musicActive());
         if (playing) {
             if (ctrl != null) ctrl.getTransportControls().pause();
             else mediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE);
             return;
         }
-        // Başlat: önce bilinen oturum, olmazsa medya tuşu, o da olmazsa
-        // müzik uygulamasına doğrudan "çal" (kapalı olsa bile uyandırır).
-        if (ctrl != null) ctrl.getTransportControls().play();
-        else mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY);
+        String want = Apps.musicPkg(p.music());
+        // Spotify'ın oturumu açıksa doğrudan ona "çal" de
+        if (ctrl != null && want.equals(ctrl.getPackageName())) {
+            ctrl.getTransportControls().play();
+            playBtn.postDelayed(() -> { if (!musicActive()) startMusicApp(); }, 1500);
+            return;
+        }
+        // Spotify kapalı (ya da başka bir uygulamanın oturumu var): Spotify'ı kendisi başlat
+        startMusicApp();
+    }
+
+    private android.media.browse.MediaBrowser browser;
+    private boolean pendingAutoPlay;
+
+    /** Kapalı müzik uygulamasını arka planda başlatıp çaldır; olmazsa uygulamayı açıp çaldır. */
+    private void startMusicApp() {
+        String pkg = Apps.musicPkg(p.music());
+        android.content.ComponentName svc = null;
+        try {
+            List<android.content.pm.ResolveInfo> r = getPackageManager().queryIntentServices(
+                    new Intent("android.media.browse.MediaBrowserService").setPackage(pkg), 0);
+            if (!r.isEmpty()) svc = new android.content.ComponentName(pkg, r.get(0).serviceInfo.name);
+        } catch (Exception ignored) {
+        }
+        if (svc != null) {
+            if (browser != null) try { browser.disconnect(); } catch (Exception ignored) { }
+            browser = new android.media.browse.MediaBrowser(this, svc,
+                    new android.media.browse.MediaBrowser.ConnectionCallback() {
+                        @Override public void onConnected() {
+                            try {
+                                new MediaController(MainActivity.this, browser.getSessionToken())
+                                        .getTransportControls().play();
+                            } catch (Exception ignored) {
+                            }
+                        }
+                    }, null);
+            try { browser.connect(); } catch (Exception ignored) { }
+        }
+        // Yedek: uygulamanın medya tuşu alıcısına doğrudan "çal"
+        for (int action : new int[]{KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP}) {
+            sendBroadcast(new Intent(Intent.ACTION_MEDIA_BUTTON).setPackage(pkg)
+                    .putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(action, KeyEvent.KEYCODE_MEDIA_PLAY)));
+        }
         playBtn.postDelayed(() -> {
-            if (musicActive()) return;
-            mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY);
-            playBtn.postDelayed(() -> {
-                if (!musicActive()) wakeMusicApp();
-            }, 1500);
-        }, 1200);
+            if (musicActive()) { pickController(); return; }
+            // Son çare: uygulamayı aç, oturumu görününce çaldır
+            pendingAutoPlay = true;
+            Apps.openMusic(this, p);
+            playBtn.postDelayed(() -> pendingAutoPlay = false, 15000);
+        }, 2500);
+    }
+
+    /** Uygulama açılınca oturumu gelirse bekleyen "çal"ı gönder. */
+    private void autoPlayIfPending() {
+        if (!pendingAutoPlay || ctrl == null) return;
+        if (!Apps.musicPkg(p.music()).equals(ctrl.getPackageName())) return;
+        pendingAutoPlay = false;
+        ctrl.getTransportControls().play();
     }
 
     private boolean musicActive() {
@@ -677,20 +724,6 @@ public class MainActivity extends Activity {
         return am != null && am.isMusicActive();
     }
 
-    /** Seçili müzik uygulamasına (Spotify / YT Music) doğrudan oynat tuşu gönder. */
-    private void wakeMusicApp() {
-        String pkg = Apps.musicPkg(p.music());
-        for (int action : new int[]{KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP}) {
-            Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON).setPackage(pkg)
-                    .putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(action, KeyEvent.KEYCODE_MEDIA_PLAY));
-            sendBroadcast(i);
-        }
-        playBtn.postDelayed(() -> {
-            if (!musicActive()) Toast.makeText(this, Apps.musicName(p.music())
-                    + " başlatılamadı. Albüm kapağına dokunup aç.", Toast.LENGTH_SHORT).show();
-            renderMusic();
-        }, 2000);
-    }
 
     private void renderMusic() {
         MediaMetadata m = ctrl == null ? null : ctrl.getMetadata();
@@ -949,6 +982,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         if (status != null) status.destroy();
+        if (browser != null) try { browser.disconnect(); } catch (Exception ignored) { }
     }
 
     @Override
