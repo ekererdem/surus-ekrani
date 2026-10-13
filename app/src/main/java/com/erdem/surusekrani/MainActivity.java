@@ -412,6 +412,16 @@ public class MainActivity extends Activity {
         b.setVisibility(View.VISIBLE);
         String first = name.trim().isEmpty() ? num : name.trim().split("\\s+")[0];
         b.setText(first);
+        // Küçük telefon simgesi ismin üstünde (hızlı rota düğmeleriyle aynı düzen)
+        float dd = getResources().getDisplayMetrics().density;
+        android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
+        int psz = Math.round(22 * dd);
+        ph.setBounds(0, 0, psz, psz);
+        ph.setTint(getColor(R.color.teal));
+        b.setCompoundDrawables(null, ph, null, null);
+        b.setCompoundDrawablePadding(Math.round(3 * dd));
+        b.setTextSize(15);
+        b.setPadding(Math.round(4 * dd), Math.round(6 * dd), Math.round(4 * dd), Math.round(6 * dd));
         b.setContentDescription(name + " ara");
         b.setOnClickListener(v -> call(num));
         b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });
