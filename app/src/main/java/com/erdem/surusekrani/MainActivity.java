@@ -324,7 +324,13 @@ public class MainActivity extends Activity {
     private java.util.List<View> buildPlaceButtons() {
         int n = Places.count(this);
         float d = getResources().getDisplayMetrics().density;
-        for (int i = 1; i <= n; i++) {
+        // Saate göre sırala: sabah İş, akşam Ev öne geçer
+        int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+        String first = hour >= 5 && hour < 12 ? "work" : hour >= 15 ? "home" : "";
+        java.util.List<Integer> order = new java.util.ArrayList<>();
+        for (int i = 1; i <= n; i++) if (Places.icon(this, i).equals(first)) order.add(i);
+        for (int i = 1; i <= n; i++) if (!order.contains(i)) order.add(i);
+        for (int i : order) {
             String coord = Places.coord(this, i), name = Places.name(this, i);
             TextView b = new TextView(this, null, 0, R.style.QuickText);
             b.setTextSize(13);

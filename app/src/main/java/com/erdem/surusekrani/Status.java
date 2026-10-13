@@ -39,6 +39,9 @@ final class Status {
     private long lastSpeedAt;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private long lastWeather;
+    private boolean btConnected, charging, warnedCharge;
+    private int battPct = 100;
+    private Boolean night;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -56,6 +59,7 @@ final class Status {
     private final Runnable weatherTick = new Runnable() {
         @Override public void run() {
             loadWeather();
+            applyNight();
             weatherTemp.postDelayed(this, 60 * 1000L);
         }
     };
@@ -73,7 +77,8 @@ final class Status {
 
         // Son bilinen hava durumunu hemen göster (3 saatten eskiyse gösterme).
         if (System.currentTimeMillis() - sp.getLong("wAt", 0) < 3 * 3600 * 1000L) {
-            showWeather(sp.getInt("wT", 0), sp.getInt("wC", 0), sp.getBoolean("wD", true));
+            showWeather(sp.getInt("wT", 0), sp.getInt("wC", 0), sp.getBoolean("wD", true),
+                    sp.getBoolean("wR", false));
         }
     }
 
@@ -191,6 +196,9 @@ final class Status {
         boolean charging = status == BatteryManager.BATTERY_STATUS_CHARGING
                 || status == BatteryManager.BATTERY_STATUS_FULL;
         int pct = Math.round(level * 100f / scale);
+        this.charging = charging;
+        battPct = pct;
+        checkCharge();
 
         battText.setText((charging ? "⚡%" : "%") + pct);
         if (battIcon.getTag() == null) {
@@ -202,6 +210,36 @@ final class Status {
         int color = a.getColor(charging ? R.color.teal : pct <= 15 ? R.color.low : R.color.muted);
         battIcon.setImageTintList(ColorStateList.valueOf(color));
         battText.setTextColor(color);
+    }
+
+    /** Araba (Bluetooth) bağlıyken telefon şarj olmuyor ve pil düşükse bir kez uyar. */
+    private void checkCharge() {
+        if (!btConnected || charging) { warnedCharge = false; return; }
+        if (battPct <= 30 && !warnedCharge) {
+            warnedCharge = true;
+            android.widget.Toast.makeText(a, "🔌 Telefon şarj olmuyor, pil %" + battPct
+                    + ". Kabloyu kontrol et.", android.widget.Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // ---------- Gece modu ----------
+
+    /** Güneş batınca ekranı kıs ve renkleri yumuşat; gündüz eski haline dön. */
+    private void applyNight() {
+        boolean n;
+        if (System.currentTimeMillis() - sp.getLong("wAt", 0) < 3 * 3600 * 1000L) {
+            n = !sp.getBoolean("wD", true);
+        } else {
+            int h = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+            n = h >= 20 || h < 6;
+        }
+        if (night != null && night == n) return;
+        night = n;
+        android.view.WindowManager.LayoutParams lp = a.getWindow().getAttributes();
+        lp.screenBrightness = n ? 0.2f : android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+        a.getWindow().setAttributes(lp);
+        View root = a.findViewById(android.R.id.content);
+        if (root != null) root.setAlpha(n ? 0.8f : 1f);
     }
 
     // ---------- Bluetooth ----------
@@ -221,6 +259,8 @@ final class Status {
             }
         } catch (SecurityException ignored) {
         }
+        btConnected = connected;
+        checkCharge();
         btIcon.setVisibility(on ? View.VISIBLE : View.GONE);
         btIcon.setImageTintList(ColorStateList.valueOf(a.getColor(connected ? R.color.teal : R.color.muted)));
         btIcon.setAlpha(connected ? 1f : 0.55f);
@@ -249,29 +289,52 @@ final class Status {
         lastWeather = System.currentTimeMillis();
         String url = String.format(Locale.US,
                 "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
-                        + "&current=temperature_2m,weather_code,is_day&timezone=auto",
+                        + "&current=temperature_2m,weather_code,is_day"
+                        + "&hourly=precipitation_probability,precipitation&forecast_hours=3&timezone=auto",
                 l.getLatitude(), l.getLongitude());
         io.execute(() -> {
             try {
-                JSONObject cur = new JSONObject(Route.get(url)).getJSONObject("current");
+                JSONObject all = new JSONObject(Route.get(url));
+                JSONObject cur = all.getJSONObject("current");
                 int t = (int) Math.round(cur.getDouble("temperature_2m"));
                 int code = cur.getInt("weather_code");
                 boolean day = cur.optInt("is_day", 1) == 1;
-                sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day)
+                // Önümüzdeki 3 saatte yağmur bekleniyor mu (ya da şu an yağıyor mu)
+                boolean rain = isWet(code);
+                JSONObject hr = all.optJSONObject("hourly");
+                if (hr != null) {
+                    org.json.JSONArray pp = hr.optJSONArray("precipitation_probability");
+                    org.json.JSONArray pr = hr.optJSONArray("precipitation");
+                    for (int i = 0; pp != null && i < pp.length(); i++)
+                        if (pp.optInt(i, 0) >= 50) rain = true;
+                    for (int i = 0; pr != null && i < pr.length(); i++)
+                        if (pr.optDouble(i, 0) >= 0.3) rain = true;
+                }
+                boolean r = rain;
+                sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day).putBoolean("wR", r)
                         .putLong("wAt", System.currentTimeMillis()).apply();
-                a.runOnUiThread(() -> showWeather(t, code, day));
+                a.runOnUiThread(() -> { showWeather(t, code, day, r); night = null; applyNight(); });
             } catch (Exception e) {
                 lastWeather = 0; // bir dakika sonra tekrar dene
             }
         });
     }
 
-    private void showWeather(int temp, int code, boolean day) {
+    private static boolean isWet(int c) {
+        return (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || c >= 95;
+    }
+
+    private void showWeather(int temp, int code, boolean day, boolean rain) {
         weatherTemp.setText(icon(code, day) + " " + temp + "°");
         TextView tile = a.findViewById(R.id.weatherTile);
         if (tile != null) {
             tile.setText(icon(code, day) + " " + temp + "°");
-            tile.setContentDescription("Hava " + temp + " derece, " + describe(code));
+            // Yağmur geliyorsa düğme maviye döner
+            int col = a.getColor(R.color.rain);
+            tile.setBackgroundTintList(rain ? ColorStateList.valueOf(col) : null);
+            tile.setTextColor(a.getColor(rain ? R.color.rain : R.color.fg));
+            tile.setContentDescription("Hava " + temp + " derece, " + describe(code)
+                    + (rain ? ", yağmur bekleniyor" : ""));
         }
         weatherDesc.setText(describe(code));
     }
