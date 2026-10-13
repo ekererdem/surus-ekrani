@@ -388,7 +388,8 @@ public class MainActivity extends Activity {
     }
 
     private static int weightOf(View v) {
-        return v.getId() == R.id.statusTile ? 2 : 1;
+        int id = v.getId();
+        return id == R.id.statusTile || id == R.id.call1Btn || id == R.id.call2Btn ? 2 : 1;
     }
 
     /** Simge boyutunu düğmenin küçük kenarına göre sınırla. */
@@ -459,12 +460,12 @@ public class MainActivity extends Activity {
         // Küçük telefon simgesi ismin üstünde (hızlı rota düğmeleriyle aynı düzen)
         float dd = getResources().getDisplayMetrics().density;
         android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
-        int psz = Math.round(16 * dd);
+        int psz = Math.round(22 * dd);
         ph.setBounds(0, 0, psz, psz);
         ph.setTint(getColor(R.color.teal));
         b.setCompoundDrawablesRelative(ph, null, null, null);
-        b.setCompoundDrawablePadding(Math.round(4 * dd));
-        b.setTextSize(14);
+        b.setCompoundDrawablePadding(Math.round(6 * dd));
+        b.setTextSize(17);
         b.setPadding(Math.round(6 * dd), 0, Math.round(6 * dd), 0);
         b.setContentDescription(name + " ara");
         b.setOnClickListener(v -> call(num));
