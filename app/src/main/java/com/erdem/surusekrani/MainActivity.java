@@ -360,7 +360,7 @@ public class MainActivity extends Activity {
         int gap = Math.round(8 * d);
         int h = (g.getHeight() - gap) / 2;
         int cols = Math.max(visibleCount(r1), visibleCount(r2));
-        int w = Math.max(Math.round(64 * d), Math.round(h * 1.7f));
+        int w = Math.round(65 * d); // sabit genişlik (yükseklikten bağımsız)
         if (cols > 0) w = Math.min(w, (g.getWidth() - (cols - 1) * gap) / cols); // ekrana sığsın
         if (g.getPaddingLeft() != 0) g.setPadding(0, 0, 0, 0);
         for (ViewGroup r : new ViewGroup[]{r1, r2}) {

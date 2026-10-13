@@ -3,7 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/iconsGrid"
     android:layout_width="match_parent"
-    android:layout_height="84dp"
+    android:layout_height="104dp"
     android:orientation="vertical">
 
     <LinearLayout
