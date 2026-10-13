@@ -3,7 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/iconsGrid"
     android:layout_width="match_parent"
-    android:layout_height="140dp"
+    android:layout_height="84dp"
     android:orientation="vertical">
 
     <LinearLayout
@@ -12,6 +12,15 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/weatherTile"
+            style="@style/QuickText"
+            android:textSize="17sp"
+            android:clickable="false"
+            android:focusable="false"
+            android:contentDescription="Hava durumu"
+            android:text="–" />
 
         <ImageButton
             android:id="@+id/assistBtn"

@@ -287,7 +287,7 @@ public class MainActivity extends Activity {
     // ---------- Hızlı düğmeler (iki sıra) ----------
 
     private static final int[] QUICK = {
-            R.id.assistBtn, R.id.call1Btn, R.id.call2Btn, R.id.parkBtn, R.id.settingsBtn};
+            R.id.weatherTile, R.id.assistBtn, R.id.call1Btn, R.id.call2Btn, R.id.parkBtn, R.id.settingsBtn};
     private final java.util.List<View> placeViews = new java.util.ArrayList<>();
 
     /** Görünen düğmeleri iki sıraya eşit dağıtır (üst sıra bir fazla alabilir). */
@@ -329,15 +329,15 @@ public class MainActivity extends Activity {
             String coord = Places.coord(this, i), name = Places.name(this, i);
             TextView b = new TextView(this, null, 0, R.style.QuickText);
             b.setTextSize(13);
-            b.setTextColor(getColor(R.color.muted));
+            b.setTextColor(getColor(R.color.fg));
             b.setText(name);
             android.graphics.drawable.Drawable ic = getDrawable(Places.iconRes(Places.icon(this, i))).mutate();
-            int sz = Math.round(30 * d);
+            int sz = Math.round(18 * d);
             ic.setBounds(0, 0, sz, sz);
             ic.setTint(getColor(R.color.amber));
-            b.setCompoundDrawables(null, ic, null, null);
-            b.setCompoundDrawablePadding(Math.round(2 * d));
-            b.setPadding(Math.round(4 * d), Math.round(6 * d), Math.round(4 * d), Math.round(6 * d));
+            b.setCompoundDrawablesRelative(ic, null, null, null);
+            b.setCompoundDrawablePadding(Math.round(4 * d));
+            b.setPadding(Math.round(6 * d), 0, Math.round(6 * d), 0);
             b.setContentDescription(name + " için rota başlat");
             b.setOnClickListener(v -> goTo(coord));
             b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });
@@ -349,7 +349,7 @@ public class MainActivity extends Activity {
     /** Simge boyutunu düğmenin küçük kenarına göre sınırla. */
     private void fitQuickIcons() {
         float d = getResources().getDisplayMetrics().density;
-        int max = Math.round(34 * d), min = Math.round(10 * d);
+        int max = Math.round(24 * d), min = Math.round(6 * d);
         for (int id : QUICK) {
             View c = findViewById(id);
             if (!(c instanceof ImageButton) || c.getWidth() == 0) continue;
@@ -414,13 +414,13 @@ public class MainActivity extends Activity {
         // Küçük telefon simgesi ismin üstünde (hızlı rota düğmeleriyle aynı düzen)
         float dd = getResources().getDisplayMetrics().density;
         android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
-        int psz = Math.round(22 * dd);
+        int psz = Math.round(16 * dd);
         ph.setBounds(0, 0, psz, psz);
         ph.setTint(getColor(R.color.teal));
-        b.setCompoundDrawables(null, ph, null, null);
-        b.setCompoundDrawablePadding(Math.round(3 * dd));
-        b.setTextSize(15);
-        b.setPadding(Math.round(4 * dd), Math.round(6 * dd), Math.round(4 * dd), Math.round(6 * dd));
+        b.setCompoundDrawablesRelative(ph, null, null, null);
+        b.setCompoundDrawablePadding(Math.round(4 * dd));
+        b.setTextSize(14);
+        b.setPadding(Math.round(6 * dd), 0, Math.round(6 * dd), 0);
         b.setContentDescription(name + " ara");
         b.setOnClickListener(v -> call(num));
         b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });

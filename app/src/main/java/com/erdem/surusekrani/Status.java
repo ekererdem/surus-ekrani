@@ -268,6 +268,11 @@ final class Status {
 
     private void showWeather(int temp, int code, boolean day) {
         weatherTemp.setText(icon(code, day) + " " + temp + "°");
+        TextView tile = a.findViewById(R.id.weatherTile);
+        if (tile != null) {
+            tile.setText(icon(code, day) + " " + temp + "°");
+            tile.setContentDescription("Hava " + temp + " derece, " + describe(code));
+        }
         weatherDesc.setText(describe(code));
     }
 
