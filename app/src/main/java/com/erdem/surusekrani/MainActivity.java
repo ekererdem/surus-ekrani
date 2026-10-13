@@ -302,12 +302,15 @@ public class MainActivity extends Activity {
         placeViews.clear();
         findViewById(R.id.assistBtn).setVisibility(
                 getSharedPreferences("surus", MODE_PRIVATE).getBoolean("assistBtn", true) ? View.VISIBLE : View.GONE);
+        // Görünümleri önce topla: ağaçtan çıkınca findViewById onları bulamaz
+        java.util.Map<Integer, View> views = new java.util.HashMap<>();
         for (int id : QUICK) {
             View v = findViewById(id);
+            views.put(id, v);
             ((ViewGroup) v.getParent()).removeView(v);
         }
-        for (int id : ROW1) addQuick(r1, findViewById(id));
-        for (int id : CALLS) addQuick(r2, findViewById(id));
+        for (int id : ROW1) addQuick(r1, views.get(id));
+        for (int id : CALLS) addQuick(r2, views.get(id));
         for (View v : buildPlaceButtons()) addQuick(r2, v);
         findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
     }
