@@ -355,15 +355,7 @@ public class MainActivity extends Activity {
         String ago = mins < 1 ? "az önce" : mins < 60 ? mins + " dk önce"
                 : mins < 1440 ? (mins / 60) + " saat önce" : (mins / 1440) + " gün önce";
         Toast.makeText(this, "Park yeri " + ago + " kaydedildi", Toast.LENGTH_SHORT).show();
-        Intent i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(
-                "https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + c));
-        i.setPackage(Apps.MAPS);
-        try {
-            startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        } catch (Exception e) {
-            i.setPackage(null);
-            startActivity(i);
-        }
+        Apps.openWalk(this, p, c);
     }
 
     // ---------- Hızlı arama ----------

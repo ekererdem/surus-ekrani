@@ -77,6 +77,23 @@ final class Apps {
         start(a, i, pkg);
     }
 
+    /** Park yerine rota: seçili navigasyon uygulamasında, mümkünse yürüyüş modunda. */
+    static void openWalk(Activity a, Prefs p, String coord) {
+        String key = p.nav();
+        String pkg = navPkg(key);
+        Uri u;
+        if ("yandex".equals(key)) {
+            u = Uri.parse("yandexmaps://maps.yandex.ru/?rtext=~" + coord + "&rtt=pd");
+        } else if ("waze".equals(key)) {
+            // Waze'de yürüyüş modu yok; araç rotası açılır
+            u = Uri.parse("https://waze.com/ul?ll=" + coord + "&navigate=yes");
+        } else {
+            u = Uri.parse("https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + coord);
+        }
+        Intent i = new Intent(Intent.ACTION_VIEW, u).setPackage(pkg);
+        start(a, i, pkg);
+    }
+
     static void openMusic(Activity a, Prefs p) {
         String pkg = musicPkg(p.music());
         Intent i = a.getPackageManager().getLaunchIntentForPackage(pkg);
