@@ -156,8 +156,8 @@ public class MainActivity extends Activity {
                 v.post(() -> { squareQuick(); fitQuickIcons(); }));
         findViewById(R.id.parkBtn).setOnClickListener(v -> showPark());
         findViewById(R.id.parkBtn).setOnLongClickListener(v -> {
-            Toast.makeText(this, Park.saveHere(this) ? "Park yeri kaydedildi" : "Konum bulunamadı",
-                    Toast.LENGTH_SHORT).show();
+            if (Park.saveHere(this)) parkNoteDialog();
+            else Toast.makeText(this, "Konum bulunamadı", Toast.LENGTH_SHORT).show();
             return true;
         });
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
@@ -441,8 +441,101 @@ public class MainActivity extends Activity {
         long mins = (System.currentTimeMillis() - Park.savedAt(this)) / 60000;
         String ago = mins < 1 ? "az önce" : mins < 60 ? mins + " dk önce"
                 : mins < 1440 ? (mins / 60) + " saat önce" : (mins / 1440) + " gün önce";
-        Toast.makeText(this, "Park yeri " + ago + " kaydedildi", Toast.LENGTH_SHORT).show();
-        Apps.openWalk(this, p, c);
+        String note = Park.note(this), photo = Park.photo(this);
+        if (note.isEmpty() && photo.isEmpty()) {
+            Toast.makeText(this, "Park yeri " + ago + " kaydedildi", Toast.LENGTH_SHORT).show();
+            Apps.openWalk(this, p, c);
+            return;
+        }
+        // Not ya da fotoğraf varsa önce onları göster
+        float d = getResources().getDisplayMetrics().density;
+        android.widget.LinearLayout box = new android.widget.LinearLayout(this);
+        box.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int pad = Math.round(20 * d);
+        box.setPadding(pad, Math.round(8 * d), pad, 0);
+        if (!note.isEmpty()) {
+            TextView t = new TextView(this);
+            t.setText(note);
+            t.setTextSize(22);
+            t.setTextColor(getColor(R.color.fg));
+            box.addView(t);
+        }
+        if (!photo.isEmpty()) {
+            ImageView iv = new ImageView(this);
+            iv.setAdjustViewBounds(true);
+            iv.setMaxHeight(Math.round(260 * d));
+            try {
+                iv.setImageURI(android.net.Uri.parse(photo));
+                android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                lp.topMargin = Math.round(10 * d);
+                box.addView(iv, lp);
+            } catch (Exception ignored) {
+            }
+        }
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Park yeri (" + ago + ")")
+                .setView(box)
+                .setPositiveButton("Yol tarifi", (x, y) -> Apps.openWalk(this, p, c))
+                .setNegativeButton("Kapat", null)
+                .show();
+    }
+
+    // ---------- Park notu ve fotoğrafı ----------
+
+    private static final int REQ_PHOTO = 31;
+    private android.net.Uri pendingPhoto;
+
+    private void parkNoteDialog() {
+        float d = getResources().getDisplayMetrics().density;
+        android.widget.EditText et = new android.widget.EditText(this);
+        et.setHint("Not (ör. B2 katı, 47 numara)");
+        et.setSingleLine(true);
+        android.widget.FrameLayout fl = new android.widget.FrameLayout(this);
+        int pad = Math.round(20 * d);
+        fl.setPadding(pad, Math.round(8 * d), pad, 0);
+        fl.addView(et);
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Park yeri kaydedildi")
+                .setView(fl)
+                .setPositiveButton("Kaydet", (x, y) -> Park.setNote(this, et.getText().toString().trim()))
+                .setNeutralButton("📷 Fotoğraf", (x, y) -> {
+                    Park.setNote(this, et.getText().toString().trim());
+                    takeParkPhoto();
+                })
+                .setNegativeButton("Geç", null)
+                .show();
+    }
+
+    private void takeParkPhoto() {
+        try {
+            android.content.ContentValues cv = new android.content.ContentValues();
+            cv.put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, "park_" + System.currentTimeMillis() + ".jpg");
+            cv.put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            cv.put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/SurusEkrani");
+            pendingPhoto = getContentResolver().insert(
+                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
+            if (pendingPhoto == null) throw new IllegalStateException();
+            sOwnScreen = true;
+            startActivityForResult(new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+                    .putExtra(android.provider.MediaStore.EXTRA_OUTPUT, pendingPhoto)
+                    .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION), REQ_PHOTO);
+        } catch (Exception e) {
+            Toast.makeText(this, "Kamera açılamadı", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req != REQ_PHOTO || pendingPhoto == null) return;
+        if (res == RESULT_OK) {
+            Park.setPhoto(this, pendingPhoto.toString());
+            Toast.makeText(this, "Fotoğraf park yerine eklendi", Toast.LENGTH_SHORT).show();
+        } else {
+            try { getContentResolver().delete(pendingPhoto, null, null); } catch (Exception ignored) { }
+        }
+        pendingPhoto = null;
     }
 
     // ---------- Hızlı arama ----------
@@ -474,8 +567,71 @@ public class MainActivity extends Activity {
         b.setTextSize(17);
         b.setPadding(Math.round(6 * dd), 0, Math.round(6 * dd), 0);
         b.setContentDescription(name + " ara");
-        b.setOnClickListener(v -> call(num));
-        b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });
+        b.setOnClickListener(v -> confirmCall(first, num));
+        b.setOnLongClickListener(v -> { sendLocation(num); return true; });
+    }
+
+    /** Yanlışlıkla aramayı önlemek için 3 saniyelik geri sayım; dokununca iptal. */
+    private void confirmCall(String name, String num) {
+        final int[] left = {3};
+        android.app.AlertDialog dlg = new android.app.AlertDialog.Builder(this)
+                .setTitle("📞 " + name + " aranıyor…")
+                .setMessage("3")
+                .setPositiveButton("Şimdi ara", null)
+                .setNegativeButton("İptal", null)
+                .create();
+        Runnable tick = new Runnable() {
+            @Override public void run() {
+                if (!dlg.isShowing()) return;
+                left[0]--;
+                if (left[0] <= 0) {
+                    dlg.dismiss();
+                    call(num);
+                } else {
+                    dlg.setMessage(String.valueOf(left[0]));
+                    musicArt.postDelayed(this, 1000);
+                }
+            }
+        };
+        dlg.setOnShowListener(x -> {
+            TextView msg = dlg.findViewById(android.R.id.message);
+            if (msg != null) {
+                msg.setTextSize(44);
+                msg.setGravity(android.view.Gravity.CENTER);
+            }
+            dlg.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener(b -> {
+                dlg.dismiss();
+                call(num);
+            });
+        });
+        dlg.setOnDismissListener(x -> musicArt.removeCallbacks(tick));
+        dlg.show();
+        musicArt.postDelayed(tick, 1000);
+    }
+
+    /** Hızlı arama tuşuna basılı tutunca: WhatsApp ile anlık konumu gönder. */
+    private void sendLocation(String num) {
+        String c = Park.current(this);
+        if (c == null) {
+            Toast.makeText(this, "Konum bulunamadı", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String text = "Yoldayım. Konumum: https://maps.google.com/?q=" + c;
+        String d = num.replaceAll("[^0-9]", "");
+        if (d.startsWith("00")) d = d.substring(2);
+        else if (d.startsWith("0")) d = "90" + d.substring(1);
+        else if (d.length() == 10 && d.startsWith("5")) d = "90" + d;
+        android.net.Uri u = android.net.Uri.parse("https://wa.me/" + d + "?text=" + android.net.Uri.encode(text));
+        for (String pkg : new String[]{"com.whatsapp", "com.whatsapp.w4b", null}) {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW, u).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                if (pkg != null) i.setPackage(pkg);
+                startActivity(i);
+                return;
+            } catch (android.content.ActivityNotFoundException ignored) {
+            }
+        }
+        Toast.makeText(this, "WhatsApp bulunamadı", Toast.LENGTH_SHORT).show();
     }
 
     private void call(String num) {
@@ -535,14 +691,45 @@ public class MainActivity extends Activity {
             musicArt.setScaleType(ImageView.ScaleType.CENTER_CROP);
             musicArt.setImageTintList(null);
             musicArt.setImageBitmap(art);
+            tintMusic(art);
         } else {
             showArtPlaceholder();
+            tintMusic(null);
         }
 
         PlaybackState s = ctrl.getPlaybackState();
         boolean playing = s != null && s.getState() == PlaybackState.STATE_PLAYING;
         playBtn.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
         updateProgress();
+    }
+
+    private Bitmap lastTintArt;
+
+    /** Müzik kutusunu albüm kapağının baskın rengiyle hafifçe renklendir. */
+    private void tintMusic(Bitmap art) {
+        View tile = findViewById(R.id.musicTile);
+        if (tile == null || art == lastTintArt) return;
+        lastTintArt = art;
+        if (art == null) { tile.setBackgroundTintList(null); return; }
+        try {
+            Bitmap s = Bitmap.createScaledBitmap(art, 12, 12, true);
+            long r = 0, g = 0, b = 0; int n = 0;
+            for (int y = 0; y < 12; y++) for (int x = 0; x < 12; x++) {
+                int px = s.getPixel(x, y);
+                int pr = (px >> 16) & 255, pg = (px >> 8) & 255, pb = px & 255;
+                int mx = Math.max(pr, Math.max(pg, pb)), mn = Math.min(pr, Math.min(pg, pb));
+                int w = 1 + (mx - mn) / 16; // renkli pikseller daha çok sayılsın
+                r += pr * w; g += pg * w; b += pb * w; n += w;
+            }
+            int base = getColor(R.color.panel2);
+            float k = 0.28f; // albüm renginin payı: hafif
+            int cr = Math.round(((base >> 16) & 255) * (1 - k) + (r / n) * k);
+            int cg = Math.round(((base >> 8) & 255) * (1 - k) + (g / n) * k);
+            int cb = Math.round((base & 255) * (1 - k) + (b / n) * k);
+            tile.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.rgb(cr, cg, cb)));
+        } catch (Exception e) {
+            tile.setBackgroundTintList(null);
+        }
     }
 
     private void showArtPlaceholder() {

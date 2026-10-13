@@ -28,6 +28,21 @@ final class Park {
 
     /** Park yerini kaydeder: en yeni konum hangisiyse (sistem ya da uygulamanın son kaydı). */
     static boolean saveHere(Context c) {
+        String coord = current(c);
+        if (coord == null) return false;
+        // Yeni park yeri: eski not ve fotoğraf geçersiz
+        sp(c).edit().putString("parkCoord", coord).putLong("parkAt", System.currentTimeMillis())
+                .remove("parkNote").remove("parkPhoto").apply();
+        return true;
+    }
+
+    static String note(Context c) { return sp(c).getString("parkNote", ""); }
+    static String photo(Context c) { return sp(c).getString("parkPhoto", ""); }
+    static void setNote(Context c, String n) { sp(c).edit().putString("parkNote", n).apply(); }
+    static void setPhoto(Context c, String uri) { sp(c).edit().putString("parkPhoto", uri).apply(); }
+
+    /** En yeni bilinen konum "enlem,boylam" ya da null. */
+    static String current(Context c) {
         String coord = null;
         long at = 0;
         if (c.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -50,9 +65,7 @@ final class Park {
             coord = sp(c).getString("lastLoc", null);
             at = mine;
         }
-        if (coord == null) return false;
-        sp(c).edit().putString("parkCoord", coord).putLong("parkAt", System.currentTimeMillis()).apply();
-        return true;
+        return coord;
     }
 
     static String coord(Context c) {
