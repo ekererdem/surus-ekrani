@@ -650,16 +650,46 @@ public class MainActivity extends Activity {
     }
 
     private void togglePlay() {
-        if (ctrl == null) {
-            mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
+        PlaybackState s = ctrl == null ? null : ctrl.getPlaybackState();
+        AudioManager am = getSystemService(AudioManager.class);
+        boolean playing = (s != null && s.getState() == PlaybackState.STATE_PLAYING)
+                || (ctrl == null && am != null && am.isMusicActive());
+        if (playing) {
+            if (ctrl != null) ctrl.getTransportControls().pause();
+            else mediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE);
             return;
         }
-        PlaybackState s = ctrl.getPlaybackState();
-        if (s != null && s.getState() == PlaybackState.STATE_PLAYING) {
-            ctrl.getTransportControls().pause();
-        } else {
-            ctrl.getTransportControls().play();
+        // Başlat: önce bilinen oturum, olmazsa medya tuşu, o da olmazsa
+        // müzik uygulamasına doğrudan "çal" (kapalı olsa bile uyandırır).
+        if (ctrl != null) ctrl.getTransportControls().play();
+        else mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY);
+        playBtn.postDelayed(() -> {
+            if (musicActive()) return;
+            mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY);
+            playBtn.postDelayed(() -> {
+                if (!musicActive()) wakeMusicApp();
+            }, 1500);
+        }, 1200);
+    }
+
+    private boolean musicActive() {
+        AudioManager am = getSystemService(AudioManager.class);
+        return am != null && am.isMusicActive();
+    }
+
+    /** Seçili müzik uygulamasına (Spotify / YT Music) doğrudan oynat tuşu gönder. */
+    private void wakeMusicApp() {
+        String pkg = Apps.musicPkg(p.music());
+        for (int action : new int[]{KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP}) {
+            Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON).setPackage(pkg)
+                    .putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(action, KeyEvent.KEYCODE_MEDIA_PLAY));
+            sendBroadcast(i);
         }
+        playBtn.postDelayed(() -> {
+            if (!musicActive()) Toast.makeText(this, Apps.musicName(p.music())
+                    + " başlatılamadı. Albüm kapağına dokunup aç.", Toast.LENGTH_SHORT).show();
+            renderMusic();
+        }, 2000);
     }
 
     private void renderMusic() {
