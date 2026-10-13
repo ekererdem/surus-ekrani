@@ -323,7 +323,7 @@ public class MainActivity extends Activity {
             row.addView(vis.get(i), lp);
         }
         for (View v : hidden) r2.addView(v); // görünmez, yer kaplamaz
-        fitQuickIcons();
+        findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
     }
 
     /** Ayarlar'da eklenen hızlı rotalar için düğmeler: simge + kısa ad. */
@@ -351,19 +351,33 @@ public class MainActivity extends Activity {
         return placeViews;
     }
 
-    /** Düğmeleri sağdan soldan daraltıp kareye yaklaştır: genişlik ≈ yüksekliğin 2 katı. */
+    /** Düğmelere sabit, kareye yakın genişlik ver; sıralar ortalanır (az düğmeli sıra uzamaz). */
     private void squareQuick() {
         View g = findViewById(R.id.iconsGrid);
         ViewGroup r1 = findViewById(R.id.iconsRow1), r2 = findViewById(R.id.iconsRow2);
         float d = getResources().getDisplayMetrics().density;
-        int cols = Math.max(visibleCount(r1), visibleCount(r2));
-        if (g.getWidth() == 0 || cols == 0) return;
+        if (g.getWidth() == 0) return;
         int gap = Math.round(8 * d);
         int h = (g.getHeight() - gap) / 2;
-        int w = Math.max(Math.round(72 * d), h * 2);
-        // durum kutusu iki düğme + arası boşluk kadar
-        int pad = Math.max(0, (g.getWidth() - cols * w - (cols - 1) * gap) / 2);
-        if (g.getPaddingLeft() != pad) g.setPadding(pad, 0, pad, 0);
+        int cols = Math.max(visibleCount(r1), visibleCount(r2));
+        int w = Math.max(Math.round(64 * d), Math.round(h * 1.7f));
+        if (cols > 0) w = Math.min(w, (g.getWidth() - (cols - 1) * gap) / cols); // ekrana sığsın
+        if (g.getPaddingLeft() != 0) g.setPadding(0, 0, 0, 0);
+        for (ViewGroup r : new ViewGroup[]{r1, r2}) {
+            ((android.widget.LinearLayout) r).setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+            for (int i = 0; i < r.getChildCount(); i++) {
+                View c = r.getChildAt(i);
+                if (c.getVisibility() == View.GONE) continue;
+                int k = weightOf(c), cw = w * k + gap * (k - 1);
+                android.widget.LinearLayout.LayoutParams lp =
+                        (android.widget.LinearLayout.LayoutParams) c.getLayoutParams();
+                if (lp.width != cw || lp.weight != 0) {
+                    lp.width = cw;
+                    lp.weight = 0;
+                    c.setLayoutParams(lp);
+                }
+            }
+        }
     }
 
     private static int visibleCount(ViewGroup r) {
