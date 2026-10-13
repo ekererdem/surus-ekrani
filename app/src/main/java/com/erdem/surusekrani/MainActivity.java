@@ -287,7 +287,7 @@ public class MainActivity extends Activity {
     // ---------- Hızlı düğmeler (iki sıra) ----------
 
     private static final int[] QUICK = {
-            R.id.weatherTile, R.id.assistBtn, R.id.call1Btn, R.id.call2Btn, R.id.parkBtn, R.id.settingsBtn};
+            R.id.weatherTile, R.id.statusTile, R.id.assistBtn, R.id.call1Btn, R.id.call2Btn, R.id.parkBtn, R.id.settingsBtn};
     private final java.util.List<View> placeViews = new java.util.ArrayList<>();
 
     /** Görünen düğmeleri iki sıraya eşit dağıtır (üst sıra bir fazla alabilir). */
@@ -308,12 +308,17 @@ public class MainActivity extends Activity {
             }
             (v.getVisibility() == View.GONE ? hidden : vis).add(v);
         }
-        int top = (vis.size() + 1) / 2;
+        // Sıraları ağırlığa göre dengele (durum kutusu iki düğme sayılır)
+        int total = 0;
+        for (View v : vis) total += weightOf(v);
+        int half = (total + 1) / 2, acc = 0;
         int gap = Math.round(8 * getResources().getDisplayMetrics().density);
         for (int i = 0; i < vis.size(); i++) {
-            ViewGroup row = i < top ? r1 : r2;
+            int wgt = weightOf(vis.get(i));
+            ViewGroup row = acc < half ? r1 : r2;
+            acc += wgt;
             android.widget.LinearLayout.LayoutParams lp =
-                    new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+                    new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, wgt);
             if (row.getChildCount() > 0) lp.setMarginStart(gap);
             row.addView(vis.get(i), lp);
         }
@@ -356,14 +361,20 @@ public class MainActivity extends Activity {
         int gap = Math.round(8 * d);
         int h = (g.getHeight() - gap) / 2;
         int w = Math.max(Math.round(72 * d), h * 2);
+        // durum kutusu iki düğme + arası boşluk kadar
         int pad = Math.max(0, (g.getWidth() - cols * w - (cols - 1) * gap) / 2);
         if (g.getPaddingLeft() != pad) g.setPadding(pad, 0, pad, 0);
     }
 
     private static int visibleCount(ViewGroup r) {
         int n = 0;
-        for (int i = 0; i < r.getChildCount(); i++) if (r.getChildAt(i).getVisibility() != View.GONE) n++;
+        for (int i = 0; i < r.getChildCount(); i++)
+            if (r.getChildAt(i).getVisibility() != View.GONE) n += weightOf(r.getChildAt(i));
         return n;
+    }
+
+    private static int weightOf(View v) {
+        return v.getId() == R.id.statusTile ? 2 : 1;
     }
 
     /** Simge boyutunu düğmenin küçük kenarına göre sınırla. */
