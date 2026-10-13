@@ -29,8 +29,7 @@ public class SettingsActivity extends Activity {
     private static final int REQ_BT = 1;
     private static final int REQ_NOTIF = 2;
     private static final int PICK_CALL = 21; // 21..25
-    private static final int[] CALL_PICKS = {
-            R.id.call1Pick, R.id.call2Pick, R.id.call3Pick, R.id.call4Pick, R.id.call5Pick};
+
 
     private Prefs p;
 
@@ -56,10 +55,6 @@ public class SettingsActivity extends Activity {
         scale.setOnCheckedChangeListener((g, id) -> p.edit().putFloat("scale",
                 id == R.id.rbScaleXS ? 0.7f : id == R.id.rbScaleS ? 0.85f : id == R.id.rbScaleL ? 1.15f : 1f).apply());
 
-        RadioGroup units = findViewById(R.id.radioUnits);
-        units.check("km".equals(p.units()) ? R.id.rbKm : R.id.rbMiles);
-        units.setOnCheckedChangeListener((g, id) ->
-                p.edit().putString("units", id == R.id.rbKm ? "km" : "mi").apply());
 
         Places.migrate(this);
         setupCalls();
@@ -79,6 +74,28 @@ public class SettingsActivity extends Activity {
         Switch autoPlay = findViewById(R.id.swAutoPlay);
         autoPlay.setChecked(p.autoPlay());
         autoPlay.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("autoPlay", on).apply());
+
+        // Arabaya bağlanınca müzik sesi
+        Switch carVol = findViewById(R.id.swCarVol);
+        View volRow = findViewById(R.id.carVolRow);
+        android.widget.SeekBar volSeek = findViewById(R.id.carVolSeek);
+        TextView volText = findViewById(R.id.carVolText);
+        carVol.setChecked(p.carVolOn());
+        volRow.setVisibility(p.carVolOn() ? View.VISIBLE : View.GONE);
+        volSeek.setProgress(p.carVol());
+        volText.setText("%" + p.carVol());
+        carVol.setOnCheckedChangeListener((b, on) -> {
+            p.edit().putBoolean("carVolOn", on).apply();
+            volRow.setVisibility(on ? View.VISIBLE : View.GONE);
+        });
+        volSeek.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(android.widget.SeekBar sb, int v, boolean user) {
+                volText.setText("%" + v);
+                if (user) p.edit().putInt("carVol", v).apply();
+            }
+            @Override public void onStartTrackingTouch(android.widget.SeekBar sb) {}
+            @Override public void onStopTrackingTouch(android.widget.SeekBar sb) {}
+        });
 
         Switch launcher = findViewById(R.id.swLauncher);
         launcher.setChecked(isLauncherEnabled());
@@ -299,37 +316,82 @@ public class SettingsActivity extends Activity {
 
     // ---------- Hızlı arama ----------
 
-    private void setupCalls() {
-        for (int i = 0; i < CALL_PICKS.length; i++)
-            bindPick(CALL_PICKS[i], "call" + (i + 1), i + 1, PICK_CALL + i);
+    private static final int MAX_CALLS = 5;
+
+    private android.content.SharedPreferences calls() {
+        return getSharedPreferences("surus", MODE_PRIVATE);
     }
 
-    private void bindPick(int id, String key, int no, int req) {
-        android.widget.Button b = findViewById(id);
-        android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
-        String name = sp.getString(key + "Name", "");
-        String num = sp.getString(key + "Num", "");
-        b.setText(num.isEmpty() ? no + ". kişiyi seç" : no + ". " + (name.isEmpty() ? num : name) + "  ·  " + num);
-        b.setOnClickListener(v -> {
-            try {
-                startActivityForResult(new Intent(Intent.ACTION_PICK,
-                        android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI), req);
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(this, "Rehber açılamadı", Toast.LENGTH_SHORT).show();
-            }
-        });
-        b.setOnLongClickListener(v -> {
-            sp.edit().remove(key + "Name").remove(key + "Num").apply();
-            setupCalls();
-            Toast.makeText(this, "Kaldırıldı", Toast.LENGTH_SHORT).show();
-            return true;
-        });
+    /** Boş kalan yerleri kaydır: 1..n dolu olsun. */
+    private int compactCalls() {
+        android.content.SharedPreferences sp = calls();
+        java.util.List<String[]> l = new java.util.ArrayList<>();
+        for (int i = 1; i <= MAX_CALLS; i++) {
+            String num = sp.getString("call" + i + "Num", "");
+            if (!num.isEmpty()) l.add(new String[]{sp.getString("call" + i + "Name", ""), num});
+        }
+        android.content.SharedPreferences.Editor e = sp.edit();
+        for (int i = 1; i <= MAX_CALLS; i++) {
+            if (i <= l.size()) e.putString("call" + i + "Name", l.get(i - 1)[0]).putString("call" + i + "Num", l.get(i - 1)[1]);
+            else e.remove("call" + i + "Name").remove("call" + i + "Num");
+        }
+        e.apply();
+        return l.size();
+    }
+
+    private void setupCalls() {
+        android.widget.LinearLayout list = findViewById(R.id.callsList);
+        list.removeAllViews();
+        int n = compactCalls();
+        android.content.SharedPreferences sp = calls();
+        for (int i = 1; i <= n; i++) {
+            final int slot = i;
+            String name = sp.getString("call" + i + "Name", ""), num = sp.getString("call" + i + "Num", "");
+            android.widget.Button b = placeButton();
+            b.setText((name.isEmpty() ? num : name) + "  ·  " + num);
+            setIconOn(b, R.drawable.ic_phone, R.color.teal);
+            b.setOnClickListener(v -> editCall(slot));
+            list.addView(b);
+        }
+        if (n < MAX_CALLS) {
+            android.widget.Button add = placeButton();
+            add.setText("Hızlı arama ekle");
+            setIconOn(add, R.drawable.ic_plus, R.color.muted);
+            add.setOnClickListener(v -> pickContact(n + 1));
+            list.addView(add);
+        }
+    }
+
+    private void pickContact(int slot) {
+        try {
+            startActivityForResult(new Intent(Intent.ACTION_PICK,
+                    android.provider.ContactsContract.CommonDataKinds.Phone.CONTENT_URI), PICK_CALL + slot - 1);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Rehber açılamadı", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void editCall(int slot) {
+        android.content.SharedPreferences sp = calls();
+        String name = sp.getString("call" + slot + "Name", "");
+        new AlertDialog.Builder(this)
+                .setTitle(name.isEmpty() ? sp.getString("call" + slot + "Num", "") : name)
+                .setItems(new String[]{"Başka kişi seç", "Sil"}, (d, w) -> {
+                    if (w == 0) pickContact(slot);
+                    else {
+                        sp.edit().remove("call" + slot + "Name").remove("call" + slot + "Num").apply();
+                        setupCalls();
+                        Toast.makeText(this, "Silindi", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Vazgeç", null)
+                .show();
     }
 
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
-        if (req < PICK_CALL || req >= PICK_CALL + CALL_PICKS.length
+        if (req < PICK_CALL || req >= PICK_CALL + MAX_CALLS
                 || res != RESULT_OK || data == null || data.getData() == null) return;
         String key = "call" + (req - PICK_CALL + 1);
         String[] cols = {android.provider.ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,

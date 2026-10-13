@@ -51,26 +51,15 @@
             <RadioButton android:id="@+id/rbScaleL" style="@style/Option" android:text="Büyük" />
         </RadioGroup>
 
-        <TextView style="@style/SectionTitle" android:text="Mesafe birimi" />
-        <RadioGroup android:id="@+id/radioUnits" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/rbMiles" style="@style/Option" android:text="Mil / fit" />
-            <RadioButton android:id="@+id/rbKm" style="@style/Option" android:text="Kilometre / metre" />
-        </RadioGroup>
-
         <!-- Adresler -->
         <TextView style="@style/SectionTitle" android:text="Hızlı arama (en fazla 5)" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Seçtiğin kişiler ana ekranda düğme olur; dokununca doğrudan aranır. Değiştirmek için tekrar seç, kaldırmak için basılı tut." />
-        <Button android:id="@+id/call1Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
-            android:layout_marginTop="10dp" />
-        <Button android:id="@+id/call2Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
-            android:layout_marginTop="10dp" />
-        <Button android:id="@+id/call3Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
-            android:layout_marginTop="10dp" />
-        <Button android:id="@+id/call4Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
-            android:layout_marginTop="10dp" />
-        <Button android:id="@+id/call5Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
-            android:layout_marginTop="10dp" />
+            android:text="Eklediğin kişiler ana ekranda düğme olur; dokununca 3 saniye sonra aranır, basılı tutunca WhatsApp ile konumun gider. Bir kişiye dokunarak değiştirebilir ya da silebilirsin." />
+        <LinearLayout
+            android:id="@+id/callsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
 
         <TextView style="@style/SectionTitle" android:text="Hızlı rotalar (en fazla 5)" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
@@ -91,6 +80,31 @@
             android:text="Bağlanınca otomatik aç" />
         <Switch android:id="@+id/swAutoPlay" style="@style/Toggle"
             android:text="Bağlanınca müziği devam ettir" />
+        <Switch android:id="@+id/swCarVol" style="@style/Toggle"
+            android:text="Bağlanınca müzik sesini ayarla" />
+        <LinearLayout
+            android:id="@+id/carVolRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <SeekBar
+                android:id="@+id/carVolSeek"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:max="100"
+                android:progressTint="@color/amber"
+                android:progressBackgroundTint="@color/line"
+                android:thumbTint="@color/amber" />
+            <TextView
+                android:id="@+id/carVolText"
+                android:layout_width="56dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textSize="17sp"
+                android:textColor="@color/fg" />
+        </LinearLayout>
 
         <!-- İzinler -->
         <TextView style="@style/SectionTitle" android:text="İzinler" />
@@ -129,6 +143,6 @@
 
         <Button android:id="@+id/backBtn" style="@style/OutlineBtn" android:layout_width="match_parent"
             android:layout_marginTop="32dp" android:background="@drawable/tile_amber"
-            android:textColor="@color/amber_ink" android:text="Kaydet ve dön" />
+            android:textColor="@color/amber_ink" android:text="Kaydet" />
     </LinearLayout>
 </ScrollView>

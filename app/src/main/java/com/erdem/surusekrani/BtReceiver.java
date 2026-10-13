@@ -39,6 +39,7 @@ public class BtReceiver extends BroadcastReceiver {
             Park.saveHere(c);
             return;
         }
+        if (p.carVolOn()) setCarVolume(c, p.carVol());
         if (!p.autoOpen()) return;
 
         Intent open = new Intent(c, MainActivity.class)
@@ -53,6 +54,25 @@ public class BtReceiver extends BroadcastReceiver {
             c.startActivity(open);
         } catch (Exception ignored) {
         }
+    }
+
+    /** Müzik sesini seçilen seviyeye getir; araba bağlantısı oturunca bir kez daha. */
+    private void setCarVolume(Context c, int pct) {
+        android.media.AudioManager am = c.getSystemService(android.media.AudioManager.class);
+        if (am == null) return;
+        Runnable set = () -> {
+            try {
+                int max = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC);
+                am.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, Math.round(max * pct / 100f), 0);
+            } catch (Exception ignored) {
+            }
+        };
+        set.run();
+        PendingResult pr = goAsync();
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            set.run();
+            pr.finish();
+        }, 4000);
     }
 
     private static void postFallback(Context c, Intent open) {

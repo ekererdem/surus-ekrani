@@ -21,7 +21,9 @@ final class Prefs {
     String carAddr() { return sp.getString("carAddr", ""); }
     String carName() { return sp.getString("carName", ""); }
     boolean autoOpen() { return sp.getBoolean("autoOpen", true); }
-    String units() { return sp.getString("units", "km"); }
+    String units() { return "km"; }
+    boolean carVolOn() { return sp.getBoolean("carVolOn", false); }
+    int carVol() { return sp.getInt("carVol", 60); }
     boolean autoSplit() { return sp.getBoolean("autoSplit", true); }
     String plate() { return sp.getString("plate", ""); }
     String fav3Name() { return sp.getString("fav3Name", ""); }
