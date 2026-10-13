@@ -153,7 +153,7 @@ public class MainActivity extends Activity {
         findViewById(R.id.assistBtn).setOnClickListener(v -> openAssistant());
         // Düğmeler uzayınca simgeler dev olmasın: simge en fazla 34dp
         findViewById(R.id.iconsGrid).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
-                v.post(this::fitQuickIcons));
+                v.post(() -> { squareQuick(); fitQuickIcons(); }));
         findViewById(R.id.parkBtn).setOnClickListener(v -> showPark());
         findViewById(R.id.parkBtn).setOnLongClickListener(v -> {
             Toast.makeText(this, Park.saveHere(this) ? "Park yeri kaydedildi" : "Konum bulunamadı",
@@ -344,6 +344,26 @@ public class MainActivity extends Activity {
             placeViews.add(b);
         }
         return placeViews;
+    }
+
+    /** Düğmeleri sağdan soldan daraltıp kareye yaklaştır: genişlik ≈ yüksekliğin 2 katı. */
+    private void squareQuick() {
+        View g = findViewById(R.id.iconsGrid);
+        ViewGroup r1 = findViewById(R.id.iconsRow1), r2 = findViewById(R.id.iconsRow2);
+        float d = getResources().getDisplayMetrics().density;
+        int cols = Math.max(visibleCount(r1), visibleCount(r2));
+        if (g.getWidth() == 0 || cols == 0) return;
+        int gap = Math.round(8 * d);
+        int h = (g.getHeight() - gap) / 2;
+        int w = Math.max(Math.round(72 * d), h * 2);
+        int pad = Math.max(0, (g.getWidth() - cols * w - (cols - 1) * gap) / 2);
+        if (g.getPaddingLeft() != pad) g.setPadding(pad, 0, pad, 0);
+    }
+
+    private static int visibleCount(ViewGroup r) {
+        int n = 0;
+        for (int i = 0; i < r.getChildCount(); i++) if (r.getChildAt(i).getVisibility() != View.GONE) n++;
+        return n;
     }
 
     /** Simge boyutunu düğmenin küçük kenarına göre sınırla. */
