@@ -207,19 +207,43 @@ final class Status {
         }
         // Az doluyken de bir çizgi görünsün
         battIcon.getDrawable().setLevel(Math.max(pct, 6) * 100);
-        int color = a.getColor(charging ? R.color.teal : pct <= 15 ? R.color.low : R.color.muted);
+        int color = a.getColor(charging ? R.color.teal : pct <= 15 || warnedCharge ? R.color.low : R.color.muted);
         battIcon.setImageTintList(ColorStateList.valueOf(color));
         battText.setTextColor(color);
     }
 
-    /** Araba (Bluetooth) bağlıyken telefon şarj olmuyor ve pil düşükse bir kez uyar. */
+    private android.animation.ObjectAnimator blinkIcon, blinkText;
+
+    /** Araba (Bluetooth) bağlıyken telefon şarj olmuyor ve pil düşükse pil simgesi kırmızı yanıp söner. */
     private void checkCharge() {
-        if (!btConnected || charging) { warnedCharge = false; return; }
-        if (battPct <= 30 && !warnedCharge) {
-            warnedCharge = true;
-            android.widget.Toast.makeText(a, "🔌 Telefon şarj olmuyor, pil %" + battPct
-                    + ". Kabloyu kontrol et.", android.widget.Toast.LENGTH_LONG).show();
+        boolean warn = btConnected && !charging && battPct <= 30;
+        if (warn == warnedCharge) return;
+        warnedCharge = warn;
+        if (warn) {
+            int red = a.getColor(R.color.low);
+            battIcon.setImageTintList(ColorStateList.valueOf(red));
+            battText.setTextColor(red);
+            blinkIcon = blink(battIcon);
+            blinkText = blink(battText);
+        } else {
+            if (blinkIcon != null) blinkIcon.cancel();
+            if (blinkText != null) blinkText.cancel();
+            blinkIcon = blinkText = null;
+            battIcon.setAlpha(1f);
+            battText.setAlpha(1f);
+            int c = a.getColor(charging ? R.color.teal : battPct <= 15 ? R.color.low : R.color.muted);
+            battIcon.setImageTintList(ColorStateList.valueOf(c));
+            battText.setTextColor(c);
         }
+    }
+
+    private static android.animation.ObjectAnimator blink(View v) {
+        android.animation.ObjectAnimator an = android.animation.ObjectAnimator.ofFloat(v, "alpha", 1f, 0.15f);
+        an.setDuration(600);
+        an.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+        an.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        an.start();
+        return an;
     }
 
     // ---------- Gece modu ----------
