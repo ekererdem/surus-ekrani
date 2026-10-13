@@ -33,6 +33,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="sensorLandscape"
             android:exported="true"
             android:launchMode="singleTask"
             android:showWhenLocked="true"
@@ -56,11 +57,15 @@
             </intent-filter>
         </activity-alias>
 
-        <activity android:name=".SettingsActivity" android:exported="false" />
-        <activity android:name=".AppsActivity" android:exported="false" />
-        <activity android:name=".MapPickActivity" android:exported="false" />
+        <activity android:name=".SettingsActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+        <activity android:name=".AppsActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+        <activity android:name=".MapPickActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
         <activity
             android:name=".NavActivity"
+            android:screenOrientation="sensorLandscape"
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
             android:windowSoftInputMode="adjustNothing|stateHidden" />

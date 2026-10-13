@@ -32,7 +32,6 @@ public class SettingsActivity extends Activity {
     private static final int PICK_CALL2 = 22;
 
     private Prefs p;
-    private EditText home;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +40,9 @@ public class SettingsActivity extends Activity {
         p = new Prefs(this);
 
         RadioGroup nav = findViewById(R.id.radioNav);
-        nav.check("waze".equals(p.nav()) ? R.id.rbWaze : "yandex".equals(p.nav()) ? R.id.rbYandex : R.id.rbMaps);
+        nav.check("yandex".equals(p.nav()) ? R.id.rbYandex : R.id.rbMaps);
         nav.setOnCheckedChangeListener((g, id) ->
-                p.edit().putString("nav", id == R.id.rbWaze ? "waze" : id == R.id.rbYandex ? "yandex" : "gmaps").apply());
+                p.edit().putString("nav", id == R.id.rbYandex ? "yandex" : "gmaps").apply());
 
         RadioGroup music = findViewById(R.id.radioMusic);
         music.check("ytm".equals(p.music()) ? R.id.rbYtm : R.id.rbSpotify);
@@ -61,10 +60,12 @@ public class SettingsActivity extends Activity {
         units.setOnCheckedChangeListener((g, id) ->
                 p.edit().putString("units", id == R.id.rbKm ? "km" : "mi").apply());
 
-        home = findViewById(R.id.editHome);
-        home.setText(p.home());
-        setupHome();
+        Places.migrate(this);
         setupCalls();
+
+        Switch assist = findViewById(R.id.swAssist);
+        assist.setChecked(getSharedPreferences("surus", MODE_PRIVATE).getBoolean("assistBtn", true));
+        assist.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("assistBtn", on).apply());
 
         Switch autoOpen = findViewById(R.id.swAutoOpen);
         autoOpen.setChecked(p.autoOpen());
@@ -106,59 +107,150 @@ public class SettingsActivity extends Activity {
     protected void onResume() {
         super.onResume();
         refreshStatus();
-        savedHomeLabel = p.home();
-        home.setText(savedHomeLabel);
-        renderHomeStatus();
+        Places.cleanup(this);
+        renderPlaces();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        String typed = home.getText().toString().trim();
-        android.content.SharedPreferences.Editor e = p.edit()
-                .putString("home", typed);
-        // Yazı elle değiştirildiyse kayıtlı tam konum artık geçersiz.
-        if (!typed.equals(savedHomeLabel)) e.remove("homeCoord");
-        e.apply();
-    }
+    // ---------- Hızlı rotalar ----------
 
-    // ---------- Ev adresi ----------
-
-    private String savedHomeLabel = "";
     private final java.util.concurrent.ExecutorService io =
             java.util.concurrent.Executors.newSingleThreadExecutor();
 
-    private void setupHome() {
-        savedHomeLabel = p.home();
-        findViewById(R.id.homeSearchBtn).setOnClickListener(v -> openPicker());
-        findViewById(R.id.homeHereBtn).setOnClickListener(v -> homeFromHere());
-        home.setOnClickListener(v -> openPicker());
-        renderHomeStatus();
-    }
-
-    private void renderHomeStatus() {
-        TextView t = findViewById(R.id.homeStatus);
-        String coord = getSharedPreferences("surus", MODE_PRIVATE).getString("homeCoord", "");
-        if (!coord.isEmpty()) {
-            t.setText("Kaydedildi ✓ Ev tuşu tam bu konuma rota başlatır.");
-            t.setTextColor(getColor(R.color.teal));
-        } else if (!p.home().isEmpty()) {
-            t.setText("Tam konum kayıtlı değil. Haritada işaretle'ye basıp evini seç.");
-            t.setTextColor(getColor(R.color.muted));
-        } else {
-            t.setText("");
+    private void renderPlaces() {
+        android.widget.LinearLayout list = findViewById(R.id.placesList);
+        list.removeAllViews();
+        int n = Places.count(this);
+        for (int i = 1; i <= n; i++) {
+            final int slot = i;
+            android.widget.Button b = placeButton();
+            String label = Places.label(this, i);
+            b.setText(Places.name(this, i) + (label.isEmpty() ? "" : "  ·  " + shortLabel(label)));
+            setIconOn(b, Places.iconRes(Places.icon(this, i)), R.color.amber);
+            b.setOnClickListener(v -> editPlace(slot));
+            list.addView(b);
+        }
+        if (n < Places.MAX) {
+            android.widget.Button add = placeButton();
+            add.setText("Hızlı rota ekle");
+            setIconOn(add, R.drawable.ic_plus, R.color.muted);
+            add.setOnClickListener(v -> addPlace(n + 1));
+            list.addView(add);
         }
     }
 
-    private void saveHome(String label, double lat, double lon) {
-        savedHomeLabel = label;
-        home.setText(label);
-        p.edit()
-                .putString("home", label)
-                .putString("homeCoord", String.format(java.util.Locale.US, "%.6f,%.6f", lat, lon))
-                .apply();
-        renderHomeStatus();
-        Toast.makeText(this, "Ev adresi kaydedildi", Toast.LENGTH_SHORT).show();
+    private android.widget.Button placeButton() {
+        android.widget.Button b = new android.widget.Button(this, null, 0, R.style.OutlineBtn);
+        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, Math.round(60 * getResources().getDisplayMetrics().density));
+        lp.topMargin = Math.round(10 * getResources().getDisplayMetrics().density);
+        b.setLayoutParams(lp);
+        b.setBackgroundResource(R.drawable.btn_outline);
+        b.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START);
+        int pad = Math.round(16 * getResources().getDisplayMetrics().density);
+        b.setPadding(pad, 0, pad, 0);
+        b.setSingleLine(true);
+        b.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        return b;
+    }
+
+    private void setIconOn(TextView b, int res, int color) {
+        android.graphics.drawable.Drawable d = getDrawable(res).mutate();
+        int sz = Math.round(26 * getResources().getDisplayMetrics().density);
+        d.setBounds(0, 0, sz, sz);
+        d.setTint(getColor(color));
+        b.setCompoundDrawablesRelative(d, null, null, null);
+        b.setCompoundDrawablePadding(Math.round(14 * getResources().getDisplayMetrics().density));
+    }
+
+    private static String shortLabel(String l) {
+        return l.length() > 40 ? l.substring(0, 40) + "…" : l;
+    }
+
+    /** Yeni rota: önce simge, sonra ad, sonra haritada konum. */
+    private void addPlace(int slot) {
+        chooseIcon(-1, key -> {
+            String def = Places.ICON_NAMES[Places.iconIndex(key)];
+            askName(def, name -> {
+                Places.setIcon(this, slot, key);
+                Places.setName(this, slot, name);
+                chooseLocation(slot);
+            });
+        });
+    }
+
+    private void editPlace(int slot) {
+        String[] opts = {"Konumunu değiştir", "Adını değiştir", "Simgesini değiştir", "Sil"};
+        new AlertDialog.Builder(this)
+                .setTitle(Places.name(this, slot))
+                .setItems(opts, (d, w) -> {
+                    if (w == 0) chooseLocation(slot);
+                    else if (w == 1) askName(Places.name(this, slot), name -> {
+                        Places.setName(this, slot, name);
+                        renderPlaces();
+                    });
+                    else if (w == 2) chooseIcon(Places.iconIndex(Places.icon(this, slot)), key -> {
+                        Places.setIcon(this, slot, key);
+                        renderPlaces();
+                    });
+                    else {
+                        Places.remove(this, slot);
+                        renderPlaces();
+                        Toast.makeText(this, "Silindi", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Vazgeç", null)
+                .show();
+    }
+
+    private void chooseIcon(int current, java.util.function.Consumer<String> done) {
+        String[] emoji = {"🏠", "💼", "🎓", "🛒", "❤️", "⭐", "🏋️", "📍"};
+        String[] items = new String[Places.ICON_NAMES.length];
+        for (int k = 0; k < items.length; k++) items[k] = emoji[k] + "   " + Places.ICON_NAMES[k];
+        new AlertDialog.Builder(this)
+                .setTitle("Simge seç")
+                .setSingleChoiceItems(items, current, (d, w) -> {
+                    d.dismiss();
+                    done.accept(Places.ICON_KEYS[w]);
+                })
+                .setNegativeButton("Vazgeç", null)
+                .show();
+    }
+
+    private void askName(String def, java.util.function.Consumer<String> done) {
+        EditText e = new EditText(this);
+        e.setText(def);
+        e.setSelectAllOnFocus(true);
+        e.setSingleLine(true);
+        e.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        int pad = Math.round(20 * getResources().getDisplayMetrics().density);
+        android.widget.FrameLayout box = new android.widget.FrameLayout(this);
+        box.setPadding(pad, pad / 2, pad, 0);
+        box.addView(e);
+        new AlertDialog.Builder(this)
+                .setTitle("Rotanın adı")
+                .setView(box)
+                .setPositiveButton("Tamam", (d, w) -> {
+                    String v = e.getText().toString().trim();
+                    done.accept(v.isEmpty() ? def : v);
+                })
+                .setNegativeButton("Vazgeç", null)
+                .show();
+        e.requestFocus();
+    }
+
+    /** Konumu haritada işaretle ya da bulunduğun yeri kullan. */
+    private void chooseLocation(int slot) {
+        new AlertDialog.Builder(this)
+                .setTitle("Konum")
+                .setItems(new String[]{"Haritada işaretle", "Şu anki konumum"}, (d, w) -> {
+                    if (w == 0) {
+                        startActivity(new Intent(this, MapPickActivity.class).putExtra(MapPickActivity.EXTRA_SLOT, slot));
+                    } else {
+                        placeFromHere(slot);
+                    }
+                })
+                .setOnCancelListener(d -> { Places.cleanup(this); renderPlaces(); })
+                .show();
     }
 
     private android.location.Location lastLocation() {
@@ -177,27 +269,30 @@ public class SettingsActivity extends Activity {
         }
     }
 
-    private void homeFromHere() {
+    private void placeFromHere(int slot) {
         android.location.Location l = lastLocation();
         if (l == null) {
-            Toast.makeText(this, "Konum bulunamadı. Konumu açıp ana ekranda haritanın yüklenmesini bekle, sonra tekrar dene.",
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Konum bulunamadı. Haritada işaretle'yi kullan.", Toast.LENGTH_LONG).show();
+            Places.cleanup(this);
+            renderPlaces();
             return;
         }
         double lat = l.getLatitude(), lon = l.getLongitude();
-        Toast.makeText(this, "Adres bulunuyor…", Toast.LENGTH_SHORT).show();
         io.execute(() -> {
-            String label = null;
+            String label = "";
             try {
                 List<android.location.Address> r = new android.location.Geocoder(this, new java.util.Locale("tr", "TR"))
                         .getFromLocation(lat, lon, 1);
-                if (r != null && !r.isEmpty() && r.get(0).getAddressLine(0) != null) {
-                    label = r.get(0).getAddressLine(0);
-                }
+                if (r != null && !r.isEmpty() && r.get(0).getAddressLine(0) != null) label = r.get(0).getAddressLine(0);
             } catch (Exception ignored) {
             }
-            String finalLabel = label != null ? label : "Ev (kayıtlı konum)";
-            runOnUiThread(() -> saveHome(finalLabel, lat, lon));
+            String c = String.format(java.util.Locale.US, "%.6f,%.6f", lat, lon);
+            String fl = label;
+            runOnUiThread(() -> {
+                Places.setLocation(this, slot, c, fl);
+                renderPlaces();
+                Toast.makeText(this, "Kaydedildi", Toast.LENGTH_SHORT).show();
+            });
         });
     }
 
@@ -248,10 +343,6 @@ public class SettingsActivity extends Activity {
             Toast.makeText(this, "Kişi okunamadı", Toast.LENGTH_SHORT).show();
         }
         setupCalls();
-    }
-
-    private void openPicker() {
-        startActivity(new Intent(this, MapPickActivity.class));
     }
 
     @Override

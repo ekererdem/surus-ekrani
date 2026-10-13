@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hızlı düğmeler iki sıra halinde. Görünen düğmeler koddan iki sıraya eşit dağıtılır. -->
+<!-- Hızlı düğmeler iki sıra halinde (hızlı rotalar koddan eklenir). Görünen düğmeler koddan iki sıraya eşit dağıtılır. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/iconsGrid"
     android:layout_width="match_parent"
@@ -45,13 +45,6 @@
             android:src="@drawable/ic_car"
             android:tint="@color/fg"
             android:contentDescription="Arabam nerede" />
-
-        <ImageButton
-            android:id="@+id/homeBtn"
-            style="@style/QuickIcon"
-            android:src="@drawable/ic_home"
-            android:tint="@color/amber"
-            android:contentDescription="Eve rota başlat" />
 
         <ImageButton
             android:id="@+id/settingsBtn"

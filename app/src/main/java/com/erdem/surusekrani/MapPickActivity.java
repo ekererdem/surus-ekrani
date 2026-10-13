@@ -30,6 +30,8 @@ import java.util.concurrent.Executors;
 
 /** Haritayı kaydırarak ev konumunu işaretleme ekranı. */
 public class MapPickActivity extends Activity {
+    static final String EXTRA_SLOT = "slot";
+    private int slot;
     private MapView map;
     private MyLocationNewOverlay myLoc;
     private SharedPreferences sp;
@@ -46,6 +48,12 @@ public class MapPickActivity extends Activity {
         cfg.setOsmdroidTileCache(new File(base, "tiles"));
         setContentView(R.layout.activity_map_pick);
         sp = getSharedPreferences("surus", MODE_PRIVATE);
+        slot = getIntent().getIntExtra(EXTRA_SLOT, 0);
+        if (slot > 0) {
+            String nm = Places.name(this, slot);
+            ((android.widget.Button) findViewById(R.id.pickSave)).setText(
+                    nm.isEmpty() ? "Burayı kaydet" : "Burayı \"" + nm + "\" olarak kaydet");
+        }
 
         map = findViewById(R.id.pickMap);
         map.setTileSource(TileSourceFactory.MAPNIK);
@@ -62,7 +70,7 @@ public class MapPickActivity extends Activity {
         // Başlangıç: kayıtlı ev > mevcut konum > Ankara
         GeoPoint start = null;
         double zoom = 17.5;
-        String coord = sp.getString("homeCoord", "");
+        String coord = slot > 0 ? Places.coord(this, slot) : sp.getString("homeCoord", "");
         if (!coord.isEmpty()) {
             try {
                 String[] p = coord.split(",");
@@ -124,13 +132,15 @@ public class MapPickActivity extends Activity {
                 }
             } catch (Exception ignored) {
             }
-            String finalLabel = label != null ? label : "Ev (haritada işaretlendi)";
-            sp.edit()
-                    .putString("home", finalLabel)
-                    .putString("homeCoord", String.format(Locale.US, "%.6f,%.6f", lat, lon))
-                    .apply();
+            String finalLabel = label != null ? label : "Haritada işaretlenen yer";
+            String c2 = String.format(Locale.US, "%.6f,%.6f", lat, lon);
+            if (slot > 0) {
+                Places.setLocation(this, slot, c2, finalLabel);
+            } else {
+                sp.edit().putString("home", finalLabel).putString("homeCoord", c2).apply();
+            }
             runOnUiThread(() -> {
-                Toast.makeText(this, "Ev kaydedildi", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Kaydedildi", Toast.LENGTH_SHORT).show();
                 finish();
             });
         });

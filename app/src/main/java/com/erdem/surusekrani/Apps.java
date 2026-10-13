@@ -21,7 +21,6 @@ final class Apps {
     static final String YANDEX = "ru.yandex.yandexmaps";
 
     static String navName(String key) {
-        if ("waze".equals(key)) return "Waze";
         if ("yandex".equals(key)) return "Yandex Haritalar";
         return "Google Maps";
     }
@@ -29,7 +28,6 @@ final class Apps {
     static String musicPkg(String key) { return "ytm".equals(key) ? YTM : SPOTIFY; }
 
     static String navPkg(String key) {
-        if ("waze".equals(key)) return WAZE;
         if ("yandex".equals(key)) return YANDEX;
         return MAPS;
     }
@@ -43,9 +41,7 @@ final class Apps {
         }
         String d = dest.trim();
         Intent i;
-        if ("waze".equals(key)) {
-            i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://waze.com/ul?navigate=yes&q=" + Uri.encode(d)));
-        } else if ("yandex".equals(key)) {
+        if ("yandex".equals(key)) {
             java.util.regex.Matcher m = java.util.regex.Pattern
                     .compile("^\\s*(-?\\d+(?:\\.\\d+)?)\\s*,\\s*(-?\\d+(?:\\.\\d+)?)\\s*$").matcher(d);
             // Yandex Haritalar: rtext=~hedef → bulunduğun yerden hedefe araç rotası
@@ -84,9 +80,6 @@ final class Apps {
         Uri u;
         if ("yandex".equals(key)) {
             u = Uri.parse("yandexmaps://maps.yandex.ru/?rtext=~" + coord + "&rtt=pd");
-        } else if ("waze".equals(key)) {
-            // Waze'de yürüyüş modu yok; araç rotası açılır
-            u = Uri.parse("https://waze.com/ul?ll=" + coord + "&navigate=yes");
         } else {
             u = Uri.parse("https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + coord);
         }

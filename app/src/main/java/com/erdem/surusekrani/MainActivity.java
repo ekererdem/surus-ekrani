@@ -97,6 +97,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         p = new Prefs(this);
+        Places.migrate(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setupOsm();
         compact = isInMultiWindowMode();
@@ -149,7 +150,6 @@ public class MainActivity extends Activity {
         musicArt.setClipToOutline(true);
         musicArt.setOnClickListener(v -> Apps.openMusic(this, p));
 
-        findViewById(R.id.homeBtn).setOnClickListener(v -> goTo(p.homeTarget()));
         findViewById(R.id.assistBtn).setOnClickListener(v -> openAssistant());
         // Düğmeler uzayınca simgeler dev olmasın: simge en fazla 34dp
         findViewById(R.id.iconsGrid).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
@@ -287,16 +287,25 @@ public class MainActivity extends Activity {
     // ---------- Hızlı düğmeler (iki sıra) ----------
 
     private static final int[] QUICK = {
-            R.id.assistBtn, R.id.call1Btn, R.id.call2Btn, R.id.parkBtn, R.id.homeBtn, R.id.settingsBtn};
+            R.id.assistBtn, R.id.call1Btn, R.id.call2Btn, R.id.parkBtn, R.id.settingsBtn};
+    private final java.util.List<View> placeViews = new java.util.ArrayList<>();
 
     /** Görünen düğmeleri iki sıraya eşit dağıtır (üst sıra bir fazla alabilir). */
     private void arrangeQuick() {
         ViewGroup r1 = findViewById(R.id.iconsRow1), r2 = findViewById(R.id.iconsRow2);
         java.util.List<View> vis = new java.util.ArrayList<>();
         java.util.List<View> hidden = new java.util.ArrayList<>();
+        // Eski rota düğmelerini kaldır, güncel listeyi yeniden kur
+        for (View v : placeViews) if (v.getParent() != null) ((ViewGroup) v.getParent()).removeView(v);
+        placeViews.clear();
+        findViewById(R.id.assistBtn).setVisibility(
+                getSharedPreferences("surus", MODE_PRIVATE).getBoolean("assistBtn", true) ? View.VISIBLE : View.GONE);
         for (int id : QUICK) {
             View v = findViewById(id);
             ((ViewGroup) v.getParent()).removeView(v);
+            if (id == R.id.settingsBtn) {
+                vis.addAll(buildPlaceButtons()); // rotalar ayarlardan hemen önce
+            }
             (v.getVisibility() == View.GONE ? hidden : vis).add(v);
         }
         int top = (vis.size() + 1) / 2;
@@ -310,6 +319,31 @@ public class MainActivity extends Activity {
         }
         for (View v : hidden) r2.addView(v); // görünmez, yer kaplamaz
         fitQuickIcons();
+    }
+
+    /** Ayarlar'da eklenen hızlı rotalar için düğmeler: simge + kısa ad. */
+    private java.util.List<View> buildPlaceButtons() {
+        int n = Places.count(this);
+        float d = getResources().getDisplayMetrics().density;
+        for (int i = 1; i <= n; i++) {
+            String coord = Places.coord(this, i), name = Places.name(this, i);
+            TextView b = new TextView(this, null, 0, R.style.QuickText);
+            b.setTextSize(13);
+            b.setTextColor(getColor(R.color.muted));
+            b.setText(name);
+            android.graphics.drawable.Drawable ic = getDrawable(Places.iconRes(Places.icon(this, i))).mutate();
+            int sz = Math.round(30 * d);
+            ic.setBounds(0, 0, sz, sz);
+            ic.setTint(getColor(R.color.amber));
+            b.setCompoundDrawables(null, ic, null, null);
+            b.setCompoundDrawablePadding(Math.round(2 * d));
+            b.setPadding(Math.round(4 * d), Math.round(6 * d), Math.round(4 * d), Math.round(6 * d));
+            b.setContentDescription(name + " için rota başlat");
+            b.setOnClickListener(v -> goTo(coord));
+            b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });
+            placeViews.add(b);
+        }
+        return placeViews;
     }
 
     /** Simge boyutunu düğmenin küçük kenarına göre sınırla. */

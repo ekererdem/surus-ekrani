@@ -11,7 +11,10 @@ final class Prefs {
         sp = c.getSharedPreferences("surus", Context.MODE_PRIVATE);
     }
 
-    String nav() { return sp.getString("nav", "gmaps"); }
+    String nav() {
+        String n = sp.getString("nav", "gmaps");
+        return "waze".equals(n) ? "gmaps" : n; // Waze seçeneği kaldırıldı
+    }
     String music() { return sp.getString("music", "spotify"); }
     String home() { return sp.getString("home", ""); }
     String work() { return sp.getString("work", ""); }

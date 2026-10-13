@@ -46,7 +46,7 @@
             android:layout_marginStart="6dp"
             android:textSize="16sp"
             android:textColor="@color/fg"
-            android:text="Haritayı kaydırıp iğneyi evinin üstüne getir. İki parmakla yakınlaştırabilirsin." />
+            android:text="Haritayı kaydırıp iğneyi gideceğin yerin üstüne getir. İki parmakla yakınlaştırabilirsin." />
     </LinearLayout>
 
     <LinearLayout
@@ -74,6 +74,6 @@
             android:background="@drawable/tile_amber"
             android:textColor="@color/amber_ink"
             android:elevation="4dp"
-            android:text="Burayı ev yap" />
+            android:text="Burayı kaydet" />
     </LinearLayout>
 </FrameLayout>

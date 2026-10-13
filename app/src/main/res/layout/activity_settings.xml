@@ -27,9 +27,11 @@
         <TextView style="@style/SectionTitle" android:text="Harici navigasyon uygulaması" />
         <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
             <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
-            <RadioButton android:id="@+id/rbWaze" style="@style/Option" android:text="Waze" />
             <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
         </RadioGroup>
+        <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
+        <Switch android:id="@+id/swAssist" style="@style/Toggle"
+            android:text="Sesli asistan (mikrofon) düğmesi" />
         <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="6dp"
             android:text="Açılınca haritayı yan yana başlat" />
         <TextView style="@style/Note"
@@ -64,25 +66,14 @@
         <Button android:id="@+id/call2Pick" style="@style/OutlineBtn" android:layout_width="match_parent"
             android:layout_marginTop="10dp" />
 
-        <TextView style="@style/SectionTitle" android:text="Ev adresi" />
+        <TextView style="@style/SectionTitle" android:text="Hızlı rotalar (en fazla 5)" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Haritada işaretle'ye bas, haritayı kaydırıp iğneyi evinin üstüne getir. Evdeysen 'Şu anki konumum' da olur." />
-        <EditText android:id="@+id/editHome" style="@style/Field" android:focusable="false"
-            android:cursorVisible="false" android:inputType="none" android:hint="Henüz ev kaydedilmedi" />
+            android:text="Eklediğin yerler ana ekranda simgeleriyle düğme olur; dokununca o yere rota başlar. Bir rotaya dokunarak adını, simgesini, konumunu değiştirebilir ya da silebilirsin." />
         <LinearLayout
+            android:id="@+id/placesList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal">
-            <Button android:id="@+id/homeSearchBtn" style="@style/OutlineBtn"
-                android:layout_width="0dp" android:layout_weight="1.3"
-                android:background="@drawable/tile_amber" android:textColor="@color/amber_ink"
-                android:text="Haritada işaretle" />
-            <Button android:id="@+id/homeHereBtn" style="@style/OutlineBtn"
-                android:layout_width="0dp" android:layout_weight="1" android:layout_marginStart="10dp"
-                android:text="Şu anki konumum" />
-        </LinearLayout>
-        <TextView android:id="@+id/homeStatus" style="@style/Note" />
+            android:orientation="vertical" />
 
         <!-- Araba -->
         <TextView style="@style/SectionTitle" android:text="Araba Bluetooth'u" />
