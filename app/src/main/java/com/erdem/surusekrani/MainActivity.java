@@ -145,12 +145,8 @@ public class MainActivity extends Activity {
         // Düğmeler uzayınca simgeler dev olmasın: simge en fazla 34dp
         findViewById(R.id.iconsGrid).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
                 v.post(() -> { squareQuick(); fitQuickIcons(); }));
-        // Arabadayken (Bluetooth bağlı) ya da kayıt yokken: o anki konumu kaydet.
-        // Arabadan uzaktayken: arabaya yol tarifi. Basılı tut: her zaman kaydet.
-        findViewById(R.id.parkBtn).setOnClickListener(v -> {
-            if (status.carConnected() || Park.coord(this).isEmpty()) saveParkNow();
-            else showPark();
-        });
+        // Bas: kayıtlı park yerine rota. Basılı tut: o anki konumu kaydet.
+        findViewById(R.id.parkBtn).setOnClickListener(v -> showPark());
         findViewById(R.id.parkBtn).setOnLongClickListener(v -> { saveParkNow(); return true; });
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
                 openOwn(new Intent(this, SettingsActivity.class)));
@@ -389,7 +385,7 @@ public class MainActivity extends Activity {
     private void showPark() {
         String c = Park.coord(this);
         if (c.isEmpty()) {
-            Toast.makeText(this, "Henüz park yeri yok. Arabadan inmeden bu düğmeye bas.",
+            Toast.makeText(this, "Henüz park yeri yok. Kaydetmek için bu düğmeye basılı tut.",
                     Toast.LENGTH_LONG).show();
             return;
         }
