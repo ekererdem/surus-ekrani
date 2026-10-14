@@ -755,6 +755,56 @@ public class MainActivity extends Activity {
         }
     };
 
+    // ---------- Müzik kutusunda kaydırarak şarkı değiştirme ----------
+
+    private android.view.GestureDetector swipe;
+    private boolean swipeHandled, swipeTracking;
+
+    /** Müzik kutusu üzerindeki dokunuşları izle: yatay hızlı kaydırma = önceki/sonraki şarkı. */
+    @Override
+    public boolean dispatchTouchEvent(android.view.MotionEvent ev) {
+        View tile = findViewById(R.id.musicTile);
+        if (tile != null && seek != null) {
+            if (swipe == null) {
+                float dp = getResources().getDisplayMetrics().density;
+                swipe = new android.view.GestureDetector(this, new android.view.GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onFling(android.view.MotionEvent a, android.view.MotionEvent b, float vx, float vy) {
+                        if (a == null) return false;
+                        float dx = b.getX() - a.getX(), dy = b.getY() - a.getY();
+                        if (Math.abs(dx) < 60 * dp || Math.abs(dx) < Math.abs(dy) * 1.5f) return false;
+                        swipeHandled = true;
+                        View t = findViewById(R.id.musicTile);
+                        t.animate().translationX(dx > 0 ? 40 * dp : -40 * dp).setDuration(90)
+                                .withEndAction(() -> t.animate().translationX(0).setDuration(140).start()).start();
+                        // Sola kaydır = sonraki, sağa kaydır = önceki (tuşların kendi işlevi çalışır)
+                        findViewById(dx < 0 ? R.id.nextBtn : R.id.prevBtn).performClick();
+                        return true;
+                    }
+                });
+            }
+            android.graphics.Rect r = new android.graphics.Rect(), sr = new android.graphics.Rect();
+            int x = (int) ev.getRawX(), y = (int) ev.getRawY();
+            boolean onTile = tile.getGlobalVisibleRect(r) && r.contains(x, y);
+            boolean onSeek = seek.getGlobalVisibleRect(sr) && sr.contains(x, y);
+            if (ev.getActionMasked() == android.view.MotionEvent.ACTION_DOWN) {
+                swipeHandled = false;
+                swipeTracking = onTile && !onSeek; // ilerleme çubuğunda kaydırma şarkıyı sarar, karışmasın
+            }
+            if (swipeTracking) swipe.onTouchEvent(ev);
+            if (swipeHandled && ev.getActionMasked() == android.view.MotionEvent.ACTION_UP) {
+                // Kaydırma tuşa dokunma sayılmasın
+                android.view.MotionEvent c = android.view.MotionEvent.obtain(ev);
+                c.setAction(android.view.MotionEvent.ACTION_CANCEL);
+                super.dispatchTouchEvent(c);
+                c.recycle();
+                swipeHandled = false;
+                return true;
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
     // ---------- Yaşam döngüsü ----------
 
     @Override
