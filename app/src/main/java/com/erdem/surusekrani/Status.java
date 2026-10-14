@@ -81,7 +81,7 @@ final class Status {
         // Son bilinen hava durumunu hemen göster (3 saatten eskiyse gösterme).
         if (System.currentTimeMillis() - sp.getLong("wAt", 0) < 3 * 3600 * 1000L) {
             showWeather(sp.getInt("wT", 0), sp.getInt("wC", 0), sp.getBoolean("wD", true),
-                    sp.getBoolean("wR", false));
+                    sp.getString("wH", ""));
         }
     }
 
@@ -317,7 +317,7 @@ final class Status {
         String url = String.format(Locale.US,
                 "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
                         + "&current=temperature_2m,weather_code,is_day"
-                        + "&hourly=precipitation_probability,precipitation&forecast_hours=3&timezone=auto",
+                        + "&hourly=weather_code,precipitation_probability,precipitation&forecast_hours=3&timezone=auto",
                 l.getLatitude(), l.getLongitude());
         io.execute(() -> {
             try {
@@ -326,42 +326,72 @@ final class Status {
                 int t = (int) Math.round(cur.getDouble("temperature_2m"));
                 int code = cur.getInt("weather_code");
                 boolean day = cur.optInt("is_day", 1) == 1;
-                // Önümüzdeki 3 saatte yağmur bekleniyor mu (ya da şu an yağıyor mu)
-                boolean rain = isWet(code);
+                // Şu an ve önümüzdeki 3 saatte en kötü durum: fırtına > kar > yağmur > sis
+                int sev = severity(code);
                 JSONObject hr = all.optJSONObject("hourly");
                 if (hr != null) {
+                    org.json.JSONArray wc = hr.optJSONArray("weather_code");
                     org.json.JSONArray pp = hr.optJSONArray("precipitation_probability");
                     org.json.JSONArray pr = hr.optJSONArray("precipitation");
-                    for (int i = 0; pp != null && i < pp.length(); i++)
-                        if (pp.optInt(i, 0) >= 50) rain = true;
-                    for (int i = 0; pr != null && i < pr.length(); i++)
-                        if (pr.optDouble(i, 0) >= 0.3) rain = true;
+                    for (int i = 0; wc != null && i < wc.length(); i++)
+                        sev = Math.max(sev, severity(wc.optInt(i, 0)));
+                    boolean wet = false;
+                    for (int i = 0; pp != null && i < pp.length(); i++) if (pp.optInt(i, 0) >= 50) wet = true;
+                    for (int i = 0; pr != null && i < pr.length(); i++) if (pr.optDouble(i, 0) >= 0.3) wet = true;
+                    if (wet) sev = Math.max(sev, t <= 1 ? 3 : 2);
                 }
-                boolean r = rain;
-                sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day).putBoolean("wR", r)
+                String hz = HAZARDS[sev];
+                sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day).putString("wH", hz)
                         .putLong("wAt", System.currentTimeMillis()).apply();
-                a.runOnUiThread(() -> { showWeather(t, code, day, r); night = null; applyNight(); });
+                a.runOnUiThread(() -> { showWeather(t, code, day, hz); night = null; applyNight(); });
             } catch (Exception e) {
                 lastWeather = 0; // bir dakika sonra tekrar dene
             }
         });
     }
 
-    private static boolean isWet(int c) {
-        return (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || c >= 95;
+    private static final String[] HAZARDS = {"", "fog", "rain", "snow", "storm"};
+
+    /** 0 yok, 1 sis, 2 yağmur, 3 kar, 4 fırtına */
+    private static int severity(int c) {
+        if (c >= 95) return 4;
+        if ((c >= 71 && c <= 77) || c == 85 || c == 86) return 3;
+        if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82)) return 2;
+        if (c == 45 || c == 48) return 1;
+        return 0;
     }
 
-    private void showWeather(int temp, int code, boolean day, boolean rain) {
+    private void showWeather(int temp, int code, boolean day, String hazard) {
         weatherTemp.setText(icon(code, day) + " " + temp + "°");
         TextView tile = a.findViewById(R.id.weatherTile);
         if (tile != null) {
             tile.setText(icon(code, day) + " " + temp + "°");
-            // Yağmur geliyorsa düğme maviye döner
-            int col = a.getColor(R.color.rain);
-            tile.setBackgroundTintList(rain ? ColorStateList.valueOf(col) : null);
-            tile.setTextColor(a.getColor(rain ? R.color.rain : R.color.fg));
+            tile.setBackgroundTintList(null);
+            tile.setTextColor(a.getColor(R.color.fg));
+            // Yağmur/kar/sis/fırtına bekleniyorsa yanında küçük kırmızı simge
+            int res = "storm".equals(hazard) ? R.drawable.ic_w_storm
+                    : "snow".equals(hazard) ? R.drawable.ic_w_snow
+                    : "rain".equals(hazard) ? R.drawable.ic_w_rain
+                    : "fog".equals(hazard) ? R.drawable.ic_w_fog : 0;
+            if (res != 0) {
+                // Yazıyı daraltmasın diye düğmenin sağ üst köşesinde rozet olarak çizilir
+                float dp = a.getResources().getDisplayMetrics().density;
+                android.graphics.drawable.Drawable d = a.getDrawable(res).mutate();
+                d.setTint(a.getColor(R.color.low));
+                android.graphics.drawable.LayerDrawable badge =
+                        new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{d});
+                badge.setLayerGravity(0, android.view.Gravity.TOP | android.view.Gravity.END);
+                badge.setLayerSize(0, Math.round(15 * dp), Math.round(15 * dp));
+                badge.setLayerInsetTop(0, Math.round(3 * dp));
+                badge.setLayerInsetEnd(0, Math.round(4 * dp));
+                tile.setForeground(badge);
+            } else {
+                tile.setForeground(null);
+            }
+            String what = "storm".equals(hazard) ? "fırtına" : "snow".equals(hazard) ? "kar"
+                    : "rain".equals(hazard) ? "yağmur" : "fog".equals(hazard) ? "sis" : "";
             tile.setContentDescription("Hava " + temp + " derece, " + describe(code)
-                    + (rain ? ", yağmur bekleniyor" : ""));
+                    + (what.isEmpty() ? "" : ", " + what + " bekleniyor"));
         }
         weatherDesc.setText(describe(code));
     }
