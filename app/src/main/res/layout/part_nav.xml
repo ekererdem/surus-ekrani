@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Navigasyon kutusu: canlı harita, altta yön bilgisi -->
+<!-- Navigasyon kutusu: yön bilgisi (harita yandaki Yandex/Google'da) -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/navFrame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/map_frame">
-
-    <org.osmdroid.views.MapView
-        android:id="@+id/map"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="match_parent"

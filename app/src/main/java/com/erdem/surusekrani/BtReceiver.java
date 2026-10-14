@@ -34,11 +34,8 @@ public class BtReceiver extends BroadcastReceiver {
         }
         if (d == null || !p.carAddr().equalsIgnoreCase(d.getAddress())) return;
 
-        // Arabadan ayrılınca park yerini kaydet
-        if (disconnected) {
-            Park.saveHere(c);
-            return;
-        }
+        // Park yeri artık sadece düğmeye basınca kaydedilir
+        if (disconnected) return;
         if (p.carVolOn()) setCarVolume(c, p.carVol());
         if (!p.autoOpen()) return;
 

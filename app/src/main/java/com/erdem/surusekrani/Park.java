@@ -36,6 +36,42 @@ final class Park {
         return true;
     }
 
+    /** Düğmeye basınca: GPS'ten o anki konumu bir kez al (en fazla 10 sn), olmazsa son bilineni kullan. */
+    static void saveNow(android.app.Activity a, java.util.function.Consumer<Boolean> done) {
+        LocationManager lm = a.getSystemService(LocationManager.class);
+        if (lm == null || a.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            done.accept(saveHere(a));
+            return;
+        }
+        android.os.CancellationSignal cancel = new android.os.CancellationSignal();
+        boolean[] finished = {false};
+        android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+        Runnable fallback = () -> {
+            if (finished[0]) return;
+            finished[0] = true;
+            cancel.cancel();
+            done.accept(saveHere(a));
+        };
+        h.postDelayed(fallback, 10000);
+        try {
+            lm.getCurrentLocation(LocationManager.GPS_PROVIDER, cancel, a.getMainExecutor(), l -> {
+                if (finished[0]) return;
+                finished[0] = true;
+                h.removeCallbacks(fallback);
+                if (l == null) { done.accept(saveHere(a)); return; }
+                sp(a).edit().putString("parkCoord",
+                                String.format(Locale.US, "%.6f,%.6f", l.getLatitude(), l.getLongitude()))
+                        .putLong("parkAt", System.currentTimeMillis())
+                        .remove("parkNote").remove("parkPhoto").apply();
+                done.accept(true);
+            });
+        } catch (Exception e) {
+            h.removeCallbacks(fallback);
+            fallback.run();
+        }
+    }
+
     static String note(Context c) { return sp(c).getString("parkNote", ""); }
     static String photo(Context c) { return sp(c).getString("parkPhoto", ""); }
     static void setNote(Context c, String n) { sp(c).edit().putString("parkNote", n).apply(); }

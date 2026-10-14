@@ -29,15 +29,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.osmdroid.config.Configuration;
-import org.osmdroid.config.IConfigurationProvider;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.CustomZoomButtonsController;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.TilesOverlay;
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.io.File;
 import java.util.Collections;
@@ -69,8 +60,6 @@ public class MainActivity extends Activity {
     }
 
     // Harita
-    private MapView map;
-    private MyLocationNewOverlay myLoc;
     private ImageView navIcon;
     private TextView navTitle, navSub;
 
@@ -86,7 +75,11 @@ public class MainActivity extends Activity {
 
     private final MediaController.Callback mediaCb = new MediaController.Callback() {
         @Override public void onMetadataChanged(MediaMetadata m) { renderMusic(); }
-        @Override public void onPlaybackStateChanged(PlaybackState s) { renderMusic(); }
+        @Override public void onPlaybackStateChanged(PlaybackState s) {
+            renderMusic();
+            seek.removeCallbacks(progressTick);
+            seek.post(progressTick);
+        }
         @Override public void onSessionDestroyed() { pickController(); }
     };
 
@@ -99,7 +92,6 @@ public class MainActivity extends Activity {
         p = new Prefs(this);
         Places.migrate(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setupOsm();
         compact = isInMultiWindowMode();
         setContentView(compact ? R.layout.activity_main_compact : R.layout.activity_main);
         if (compact) ((TextView) findViewById(R.id.clock)).setTextSize(38);
@@ -116,7 +108,6 @@ public class MainActivity extends Activity {
         seek = findViewById(R.id.musicSeek);
 
         findViewById(R.id.navFrame).setClipToOutline(true);
-        setupMap();
 
         // İlerleme çubuğu sürüklenince şarkıda o noktaya atlar.
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -154,12 +145,13 @@ public class MainActivity extends Activity {
         // Düğmeler uzayınca simgeler dev olmasın: simge en fazla 34dp
         findViewById(R.id.iconsGrid).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
                 v.post(() -> { squareQuick(); fitQuickIcons(); }));
-        findViewById(R.id.parkBtn).setOnClickListener(v -> showPark());
-        findViewById(R.id.parkBtn).setOnLongClickListener(v -> {
-            if (Park.saveHere(this)) parkNoteDialog();
-            else Toast.makeText(this, "Konum bulunamadı", Toast.LENGTH_SHORT).show();
-            return true;
+        // Arabadayken (Bluetooth bağlı) ya da kayıt yokken: o anki konumu kaydet.
+        // Arabadan uzaktayken: arabaya yol tarifi. Basılı tut: her zaman kaydet.
+        findViewById(R.id.parkBtn).setOnClickListener(v -> {
+            if (status.carConnected() || Park.coord(this).isEmpty()) saveParkNow();
+            else showPark();
         });
+        findViewById(R.id.parkBtn).setOnLongClickListener(v -> { saveParkNow(); return true; });
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
                 openOwn(new Intent(this, SettingsActivity.class)));
 
@@ -179,47 +171,9 @@ public class MainActivity extends Activity {
 
     // ---------- Harita ----------
 
-    private void setupOsm() {
-        IConfigurationProvider cfg = Configuration.getInstance();
-        cfg.load(this, getSharedPreferences("osm", MODE_PRIVATE));
-        cfg.setUserAgentValue(getPackageName());
-        File base = new File(getCacheDir(), "osm");
-        cfg.setOsmdroidBasePath(base);
-        cfg.setOsmdroidTileCache(new File(base, "tiles"));
-    }
-
-    private void setupMap() {
-        map = findViewById(R.id.map);
-        map.setTileSource(TileSourceFactory.MAPNIK);
-        map.setMultiTouchControls(false);
-        map.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
-        map.setTilesScaledToDpi(true);
-        map.getMapOverlay().setColorFilter(TilesOverlay.INVERT_COLORS);
-        map.getController().setZoom(16.0);
-        map.getController().setCenter(new GeoPoint(31.0, -99.0));
-
-        GpsMyLocationProvider provider = new GpsMyLocationProvider(this);
-        provider.addLocationSource(LocationManager.NETWORK_PROVIDER);
-        myLoc = new MyLocationNewOverlay(provider, map);
-        map.getOverlays().add(myLoc);
-    }
-
     private boolean hasLocation() {
         return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void startLocation() {
-        if (!hasLocation()) return;
-        myLoc.enableMyLocation();
-        myLoc.enableFollowLocation();
-        try {
-            LocationManager lm = getSystemService(LocationManager.class);
-            Location l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (l == null) l = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            if (l != null) map.getController().setCenter(new GeoPoint(l.getLatitude(), l.getLongitude()));
-        } catch (SecurityException | IllegalArgumentException ignored) {
-        }
     }
 
     private void renderNav() {
@@ -435,8 +389,8 @@ public class MainActivity extends Activity {
     private void showPark() {
         String c = Park.coord(this);
         if (c.isEmpty()) {
-            Toast.makeText(this, "Henüz park yeri yok. Arabadan inince kendiliğinden kaydedilir; "
-                    + "elle kaydetmek için bu düğmeye basılı tut.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Henüz park yeri yok. Arabadan inmeden bu düğmeye bas.",
+                    Toast.LENGTH_LONG).show();
             return;
         }
         long mins = (System.currentTimeMillis() - Park.savedAt(this)) / 60000;
@@ -480,6 +434,14 @@ public class MainActivity extends Activity {
                 .setPositiveButton("Yol tarifi", (x, y) -> Apps.openWalk(this, p, c))
                 .setNegativeButton("Kapat", null)
                 .show();
+    }
+
+    private void saveParkNow() {
+        Toast.makeText(this, "Konum alınıyor…", Toast.LENGTH_SHORT).show();
+        Park.saveNow(this, ok -> {
+            if (ok) parkNoteDialog();
+            else Toast.makeText(this, "Konum bulunamadı", Toast.LENGTH_SHORT).show();
+        });
     }
 
     // ---------- Park notu ve fotoğrafı ----------
@@ -841,7 +803,9 @@ public class MainActivity extends Activity {
     private final Runnable progressTick = new Runnable() {
         @Override public void run() {
             updateProgress();
-            seek.postDelayed(this, 500);
+            // Sadece müzik çalarken saniyede bir güncelle
+            PlaybackState st = ctrl == null ? null : ctrl.getPlaybackState();
+            if (st != null && st.getState() == PlaybackState.STATE_PLAYING) seek.postDelayed(this, 1000);
         }
     };
 
@@ -929,14 +893,12 @@ public class MainActivity extends Activity {
         NotificationManager nm = getSystemService(NotificationManager.class);
         if (nm != null) nm.cancel(BtReceiver.NOTIF_ID);
 
-        map.onResume();
         seek.removeCallbacks(progressTick);
         seek.post(progressTick);
         status.resume();
         Shortcuts.render(this);
         renderCalls();
         arrangeQuick();
-        startLocation();
 
         NavState.listener = this::renderNav;
         renderNav();
@@ -961,8 +923,6 @@ public class MainActivity extends Activity {
         playBtn.removeCallbacks(autoSplitRun);
         status.pause();
         seek.removeCallbacks(progressTick);
-        map.onPause();
-        myLoc.disableMyLocation();
         NavState.listener = null;
         try {
             msm.removeOnActiveSessionsChangedListener(sessionsListener);
@@ -980,7 +940,6 @@ public class MainActivity extends Activity {
             return;
         }
         if (code == REQ_LOC) {
-            startLocation();
             status.pause();
             status.resume();
         }

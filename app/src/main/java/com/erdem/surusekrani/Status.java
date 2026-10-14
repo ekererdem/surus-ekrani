@@ -51,10 +51,13 @@ final class Status {
             } else {
                 renderBt();
                 // Profil bağlantısı ACL'den biraz sonra tamamlanır.
-                btIcon.postDelayed(Status.this::renderBt, 2000);
+                btIcon.removeCallbacks(btRefresh);
+                btIcon.postDelayed(btRefresh, 2000);
             }
         }
     };
+
+    private final Runnable btRefresh = this::renderBt;
 
     private final Runnable weatherTick = new Runnable() {
         @Override public void run() {
@@ -82,8 +85,9 @@ final class Status {
         }
     }
 
+    boolean carConnected() { return btConnected; }
+
     void resume() {
-        startSpeed();
         IntentFilter f = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         f.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         f.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
@@ -102,10 +106,9 @@ final class Status {
     }
 
     void pause() {
-        stopSpeed();
         weatherTemp.removeCallbacks(weatherTick);
         signalIcon.removeCallbacks(signalTick);
-        btIcon.removeCallbacks(this::renderBt);
+        btIcon.removeCallbacks(btRefresh);
         try {
             a.unregisterReceiver(receiver);
         } catch (IllegalArgumentException ignored) {
