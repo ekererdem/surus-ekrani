@@ -392,13 +392,13 @@ public class MainActivity extends Activity {
         long mins = (System.currentTimeMillis() - Park.savedAt(this)) / 60000;
         String ago = mins < 1 ? "az önce" : mins < 60 ? mins + " dk önce"
                 : mins < 1440 ? (mins / 60) + " saat önce" : (mins / 1440) + " gün önce";
-        String note = Park.note(this), photo = Park.photo(this);
-        if (note.isEmpty() && photo.isEmpty()) {
+        String note = Park.note(this);
+        if (note.isEmpty()) {
             Toast.makeText(this, "Park yeri " + ago + " kaydedildi", Toast.LENGTH_SHORT).show();
             Apps.openWalk(this, p, c);
             return;
         }
-        // Not ya da fotoğraf varsa önce onları göster
+        // Not varsa önce onu göster
         float d = getResources().getDisplayMetrics().density;
         android.widget.LinearLayout box = new android.widget.LinearLayout(this);
         box.setOrientation(android.widget.LinearLayout.VERTICAL);
@@ -410,19 +410,6 @@ public class MainActivity extends Activity {
             t.setTextSize(22);
             t.setTextColor(getColor(R.color.fg));
             box.addView(t);
-        }
-        if (!photo.isEmpty()) {
-            ImageView iv = new ImageView(this);
-            iv.setAdjustViewBounds(true);
-            iv.setMaxHeight(Math.round(260 * d));
-            try {
-                iv.setImageURI(android.net.Uri.parse(photo));
-                android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                lp.topMargin = Math.round(10 * d);
-                box.addView(iv, lp);
-            } catch (Exception ignored) {
-            }
         }
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Park yeri (" + ago + ")")
@@ -442,8 +429,6 @@ public class MainActivity extends Activity {
 
     // ---------- Park notu ve fotoğrafı ----------
 
-    private static final int REQ_PHOTO = 31;
-    private android.net.Uri pendingPhoto;
 
     private void parkNoteDialog() {
         float d = getResources().getDisplayMetrics().density;
@@ -458,43 +443,8 @@ public class MainActivity extends Activity {
                 .setTitle("Park yeri kaydedildi")
                 .setView(fl)
                 .setPositiveButton("Kaydet", (x, y) -> Park.setNote(this, et.getText().toString().trim()))
-                .setNeutralButton("📷 Fotoğraf", (x, y) -> {
-                    Park.setNote(this, et.getText().toString().trim());
-                    takeParkPhoto();
-                })
                 .setNegativeButton("Geç", null)
                 .show();
-    }
-
-    private void takeParkPhoto() {
-        try {
-            android.content.ContentValues cv = new android.content.ContentValues();
-            cv.put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, "park_" + System.currentTimeMillis() + ".jpg");
-            cv.put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-            cv.put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/SurusEkrani");
-            pendingPhoto = getContentResolver().insert(
-                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
-            if (pendingPhoto == null) throw new IllegalStateException();
-            sOwnScreen = true;
-            startActivityForResult(new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
-                    .putExtra(android.provider.MediaStore.EXTRA_OUTPUT, pendingPhoto)
-                    .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION), REQ_PHOTO);
-        } catch (Exception e) {
-            Toast.makeText(this, "Kamera açılamadı", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int req, int res, Intent data) {
-        super.onActivityResult(req, res, data);
-        if (req != REQ_PHOTO || pendingPhoto == null) return;
-        if (res == RESULT_OK) {
-            Park.setPhoto(this, pendingPhoto.toString());
-            Toast.makeText(this, "Fotoğraf park yerine eklendi", Toast.LENGTH_SHORT).show();
-        } else {
-            try { getContentResolver().delete(pendingPhoto, null, null); } catch (Exception ignored) { }
-        }
-        pendingPhoto = null;
     }
 
     // ---------- Hızlı arama ----------
