@@ -31,7 +31,7 @@ jobs:
             adb logcat -c
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 15
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
-            adb shell uiautomator dump /sdcard/u.xml ; adb pull /sdcard/u.xml ui.xml || true
+            sleep 5 ; adb shell uiautomator dump /sdcard/u.xml > dump.txt 2>&1 ; adb shell cat /sdcard/u.xml > ui.xml 2>&1 || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb logcat -d -b crash > crash.txt || true
             adb logcat -d '*:E' | grep -A40 -i 'FATAL\|AndroidRuntime' > err.txt || true
@@ -44,6 +44,7 @@ jobs:
       - name: Düğme yerleri
         if: always()
         run: |
+          echo "::notice::dump: $(cat dump.txt 2>/dev/null | tr '\n' ' ') size: $(wc -c < ui.xml 2>/dev/null)"
           [ -f ui.xml ] || exit 0
           python3 - <<'PY'
           import re
