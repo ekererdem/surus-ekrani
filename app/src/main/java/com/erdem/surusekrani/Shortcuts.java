@@ -13,52 +13,40 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/** Müzik çaların altında, Uygulamalar listesindeki ilk uygulamaların kısayolu (sayısı Ayarlar'dan). */
+/** Müzik çaların altında, Ayarlar'dan seçilen uygulamaların kısayolu (en fazla 5). */
 final class Shortcuts {
-    /** Ayarlar'dan seçilen kısayol sayısı (3-5). */
-    static int max(Context c) {
-        return c.getSharedPreferences("surus", Context.MODE_PRIVATE).getInt("appCount", 4);
-    }
-
-    private Shortcuts() {}
+    static final int MAX = 5;
 
     static void render(Activity a) {
         LinearLayout row = a.findViewById(R.id.shortcutRow);
         if (row == null) return;
         row.removeAllViews();
         PackageManager pm = a.getPackageManager();
-        final int MAX = max(a);
 
+        // Seçilen uygulamalar (en fazla 5); kaç tane seçildiyse o kadar kutu
+        java.util.List<ComponentName> apps = new java.util.ArrayList<>();
+        java.util.List<ActivityInfo> infos = new java.util.ArrayList<>();
         String saved = a.getSharedPreferences("surus", Context.MODE_PRIVATE).getString("favApps", "");
-        int count = 0;
         if (!saved.isEmpty()) {
             for (String k : saved.split("\\|")) {
-                if (count >= MAX) break;
+                if (apps.size() >= MAX) break;
                 int slash = k.indexOf('/');
                 if (slash <= 0) continue;
                 ComponentName cn = new ComponentName(k.substring(0, slash), k.substring(slash + 1));
-                ActivityInfo info;
                 try {
-                    info = pm.getActivityInfo(cn, 0);
-                } catch (PackageManager.NameNotFoundException e) {
-                    continue; // kaldırılmış uygulama
+                    infos.add(pm.getActivityInfo(cn, 0));
+                    apps.add(cn);
+                } catch (PackageManager.NameNotFoundException ignored) {
+                    // kaldırılmış uygulama
                 }
-                View tile = tile(a, row, count);
-                ((ImageView) tile.findViewWithTag("icon")).setImageDrawable(info.loadIcon(pm));
-                ((TextView) tile.findViewWithTag("label")).setText(info.loadLabel(pm));
-                tile.setContentDescription(info.loadLabel(pm));
-                tile.setOnClickListener(v -> a.startActivity(new Intent(Intent.ACTION_MAIN)
-                        .addCategory(Intent.CATEGORY_LAUNCHER)
-                        .setComponent(cn)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)));
-                tile.setOnLongClickListener(v -> { openEditor(a); return true; });
-                count++;
             }
         }
-
-        // Boş yer varsa "Ekle" kutusu
-        if (count < MAX) {
-            View tile = tile(a, row, count);
+        // Kutular hep aynı boyutta (5'li düzenin bir kutusu), ortada durur
+        int n = Math.max(1, apps.size());
+        float side = (MAX - n) / 2f;
+        if (side > 0) row.addView(new View(a), new LinearLayout.LayoutParams(0, 1, side));
+        if (apps.isEmpty()) {
+            View tile = tile(a, row, 0);
             ImageView icon = tile.findViewWithTag("icon");
             icon.setImageResource(R.drawable.ic_plus);
             icon.setImageTintList(android.content.res.ColorStateList.valueOf(a.getColor(R.color.muted)));
@@ -67,14 +55,24 @@ final class Shortcuts {
             ((TextView) tile.findViewWithTag("label")).setText("Ekle");
             tile.setContentDescription("Kısayol ekle");
             tile.setOnClickListener(v -> openEditor(a));
-            count++;
         }
-        // Satırı eşit kutularla doldur
-        for (; count < MAX; count++) {
-            View spacer = new View(a);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, 1, 1f);
+        for (int i = 0; i < apps.size(); i++) {
+            ComponentName cn = apps.get(i);
+            ActivityInfo info = infos.get(i);
+            View tile = tile(a, row, i);
+            ((ImageView) tile.findViewWithTag("icon")).setImageDrawable(info.loadIcon(pm));
+            ((TextView) tile.findViewWithTag("label")).setText(info.loadLabel(pm));
+            tile.setContentDescription(info.loadLabel(pm));
+            tile.setOnClickListener(v -> a.startActivity(new Intent(Intent.ACTION_MAIN)
+                    .addCategory(Intent.CATEGORY_LAUNCHER)
+                    .setComponent(cn)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)));
+            tile.setOnLongClickListener(v -> { openEditor(a); return true; });
+        }
+        if (side > 0) {
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, 1, side);
             lp.setMarginStart(dp(a, 8));
-            row.addView(spacer, lp);
+            row.addView(new View(a), lp);
         }
     }
 

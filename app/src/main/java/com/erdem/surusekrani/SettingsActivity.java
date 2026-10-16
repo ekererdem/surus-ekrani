@@ -56,11 +56,7 @@ public class SettingsActivity extends Activity {
         } catch (Exception ignored) {
         }
 
-        RadioGroup apps = findViewById(R.id.radioApps);
-        int ac = Shortcuts.max(this);
-        apps.check(ac <= 3 ? R.id.rbApps3 : ac >= 5 ? R.id.rbApps5 : R.id.rbApps4);
-        apps.setOnCheckedChangeListener((g, id) -> p.edit().putInt("appCount",
-                id == R.id.rbApps3 ? 3 : id == R.id.rbApps5 ? 5 : 4).apply());
+
 
         // Ekran ölçeği: %70 – %120, 5'er adım
         android.widget.SeekBar scaleSeek = findViewById(R.id.scaleSeek);
@@ -140,6 +136,7 @@ public class SettingsActivity extends Activity {
     protected void onResume() {
         super.onResume();
         refreshStatus();
+        renderApps();
         Places.cleanup(this);
         renderPlaces();
     }
@@ -331,6 +328,55 @@ public class SettingsActivity extends Activity {
                 Toast.makeText(this, "Kaydedildi", Toast.LENGTH_SHORT).show();
             });
         });
+    }
+
+    // ---------- Uygulama kısayolları ----------
+
+    private void renderApps() {
+        android.widget.LinearLayout list = findViewById(R.id.appsList);
+        list.removeAllViews();
+        android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
+        String saved = sp.getString("favApps", "");
+        java.util.List<String> keys = new java.util.ArrayList<>();
+        PackageManager pm = getPackageManager();
+        if (!saved.isEmpty()) for (String k : saved.split("\\|")) {
+            int slash = k.indexOf('/');
+            if (slash <= 0) continue;
+            try {
+                android.content.pm.ActivityInfo info = pm.getActivityInfo(
+                        new ComponentName(k.substring(0, slash), k.substring(slash + 1)), 0);
+                if (keys.size() >= Shortcuts.MAX) break;
+                keys.add(k);
+                android.widget.Button b = placeButton();
+                b.setText(info.loadLabel(pm));
+                android.graphics.drawable.Drawable d = info.loadIcon(pm);
+                int sz = Math.round(26 * getResources().getDisplayMetrics().density);
+                d.setBounds(0, 0, sz, sz);
+                b.setCompoundDrawablesRelative(d, null, null, null);
+                b.setCompoundDrawablePadding(Math.round(14 * getResources().getDisplayMetrics().density));
+                b.setOnClickListener(v -> new AlertDialog.Builder(this)
+                        .setTitle(info.loadLabel(pm))
+                        .setItems(new String[]{"Ana ekrandan çıkar"}, (dd, w) -> {
+                            java.util.List<String> all = new java.util.ArrayList<>(
+                                    java.util.Arrays.asList(sp.getString("favApps", "").split("\\|")));
+                            all.remove(k);
+                            sp.edit().putString("favApps", android.text.TextUtils.join("|", all)).apply();
+                            renderApps();
+                        })
+                        .setNegativeButton("Vazgeç", null)
+                        .show());
+                list.addView(b);
+            } catch (PackageManager.NameNotFoundException ignored) {
+            }
+        }
+        if (keys.size() < Shortcuts.MAX) {
+            android.widget.Button add = placeButton();
+            add.setText("Uygulama ekle");
+            setIconOn(add, R.drawable.ic_plus, R.color.muted);
+            add.setOnClickListener(v -> startActivity(new Intent(this, AppsActivity.class)
+                    .putExtra(AppsActivity.EXTRA_EDIT, true)));
+            list.addView(add);
+        }
     }
 
     // ---------- Ana ekran düğme düzeni ----------

@@ -80,7 +80,11 @@ public class AppsActivity extends Activity {
             String k = shown.get(pos);
             if (editing) {
                 if (favs.contains(k)) favs.remove(k);
-                else favs.add(k);
+                else if (visibleFavs().size() >= Shortcuts.MAX) {
+                    android.widget.Toast.makeText(this, "En fazla " + Shortcuts.MAX + " uygulama seçebilirsin",
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                } else favs.add(k);
                 save();
                 adapter.notifyDataSetChanged();
             } else {
@@ -108,7 +112,7 @@ public class AppsActivity extends Activity {
         if (editing) {
             for (ResolveInfo r : all) shown.add(key(r));
             title.setText("Uygulama seç");
-            hint.setText("Görünmesini istediklerine dokun, tekrar dokunursan çıkar. İlk seçtiğin dört uygulama ana ekranda müzik çaların altında da görünür.");
+            hint.setText("Ana ekranda müzik çaların altında görünmesini istediğin uygulamalara dokun (en fazla 5). Tekrar dokunursan çıkar.");
             hint.setVisibility(View.VISIBLE);
             editBtn.setText("Tamam");
         } else {
