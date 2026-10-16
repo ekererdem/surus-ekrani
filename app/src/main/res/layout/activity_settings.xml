@@ -143,6 +143,13 @@
                 android:textColor="@color/fg" />
         </LinearLayout>
 
+        <!-- Sürüş yardımı -->
+        <TextView style="@style/SectionTitle" android:text="Sürüş yardımı" />
+        <Switch android:id="@+id/swFrontCar" style="@style/Toggle"
+            android:text="Öndeki araç kalktı uyarısı" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Trafikte ya da kırmızı ışıkta durunca telefonun arka kamerası öndeki aracı izler; araç hareket edince kısa bir sesle uyarır. Kamera sadece dururken açılır, hareket edince kapanır. Telefonun arka kamerası yolu görmeli." />
+
         <!-- İzinler -->
         <TextView style="@style/SectionTitle" android:text="İzinler" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"

@@ -43,6 +43,7 @@ public class MainActivity extends Activity {
     private Prefs p;
     private boolean compact;
     private Status status;
+    private FrontCarWatcher frontCar;
     private float appliedScale = 1f;
 
     /** Ayarlar'daki "Ekran ölçeği"ni uygular: tüm ekranı küçültür ya da büyütür. */
@@ -96,6 +97,7 @@ public class MainActivity extends Activity {
         setContentView(compact ? R.layout.activity_main_compact : R.layout.activity_main);
         if (compact) ((TextView) findViewById(R.id.clock)).setTextSize(38);
         status = new Status(this);
+        frontCar = new FrontCarWatcher(this);
 
         navIcon = findViewById(R.id.navIcon);
         navTitle = findViewById(R.id.navTitle);
@@ -1092,6 +1094,7 @@ public class MainActivity extends Activity {
         seek.removeCallbacks(progressTick);
         seek.post(progressTick);
         status.resume();
+        frontCar.start();
         Shortcuts.render(this);
         renderCalls();
         arrangeQuick();
@@ -1123,6 +1126,7 @@ public class MainActivity extends Activity {
         super.onPause();
         playBtn.removeCallbacks(autoSplitRun);
         status.pause();
+        frontCar.stop();
         seek.removeCallbacks(progressTick);
         NavState.listener = null;
         Notifs.listener = null;
