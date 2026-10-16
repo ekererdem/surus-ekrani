@@ -20,9 +20,10 @@ import java.util.Map;
  */
 final class Notifs {
     interface Listener { void onNotifsChanged(); }
+    interface Banner { void show(Item it); }
 
     static final class Item {
-        String key, pkg, who, app;
+        String key, pkg, who, app, text;
         int count;
         long when;
         boolean missedCall;
@@ -31,6 +32,7 @@ final class Notifs {
     }
 
     static Listener listener;
+    static Banner banner;
     private static final Map<String, Item> ITEMS = new LinkedHashMap<>();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
@@ -61,6 +63,12 @@ final class Notifs {
         it.count = msgs != null && msgs.length > 0 ? msgs.length : Math.max(1, n.number);
         it.when = sbn.getPostTime();
         it.missedCall = Notification.CATEGORY_MISSED_CALL.equals(n.category);
+        // Son mesajın metni (alttaki kısa bilgi şeridi için)
+        CharSequence txt = null;
+        if (msgs != null && msgs.length > 0 && msgs[msgs.length - 1] instanceof android.os.Bundle)
+            txt = ((android.os.Bundle) msgs[msgs.length - 1]).getCharSequence("text");
+        if (txt == null) txt = n.extras.getCharSequence(Notification.EXTRA_TEXT);
+        it.text = txt == null ? "" : txt.toString().trim();
         it.open = n.contentIntent;
         try {
             android.content.pm.PackageManager pm = c.getPackageManager();
@@ -70,10 +78,13 @@ final class Notifs {
         } catch (Exception e) {
             it.app = "";
         }
+        // Yeni gelen (birkaç saniye içinde gönderilmiş) bildirimde alt şeridi göster
+        boolean fresh = System.currentTimeMillis() - it.when < 15000;
         MAIN.post(() -> {
             ITEMS.remove(it.key);
             ITEMS.put(it.key, it); // en yeni en sonda
             if (listener != null) listener.onNotifsChanged();
+            if (fresh && banner != null) banner.show(it);
         });
     }
 

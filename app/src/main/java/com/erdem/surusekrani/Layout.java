@@ -43,7 +43,9 @@ final class Layout {
         switch (key) {
             case "weather": return "Solda şu anki hava, sağda 1 saat sonrası. Yoğun yağmur, kar, sis ya da fırtına "
                     + "bekleniyorsa sağ taraf kırmızı çerçeveli olur. Hızlı rotayla yola çıkınca sağda varış yerinin havası görünür.";
-            case "notif": return "WhatsApp, SMS ve cevapsız aramalar: kimden ve kaç tane. Dokun: açar. Basılı tut: gizler.";
+            case "notif": return "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj gelince ekranın altında birkaç saniye "
+                    + "mesajın kendisi görünür; kutuda 5 dakika kimden geldiği yazar, sonra sadece uygulama simgesi kalır. "
+                    + "Dokun: açar. Basılı tut: gizler.";
             case "status": return "Şebeke çekimi, Bluetooth ve pil. Arabaya bağlıyken şarj olmuyor ve pil %30'un "
                     + "altındaysa pil kırmızı yanıp söner.";
             case "assist": return "Telefonun sesli asistanını açar.";

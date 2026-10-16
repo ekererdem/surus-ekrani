@@ -34,7 +34,8 @@ jobs:
             adb shell "mkdir -p /data/data/com.erdem.surusekrani/shared_prefs && echo '<?xml version=\"1.0\" encoding=\"utf-8\"?><map><boolean name=\"autoSplit\" value=\"false\" /><string name=\"call1Name\">Ahmet</string><string name=\"call1Num\">05551112233</string><string name=\"place1Name\">Ev</string><string name=\"place1Coord\">39.9,32.8</string><string name=\"place1Icon\">home</string></map>' > /data/data/com.erdem.surusekrani/shared_prefs/surus.xml"
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 15
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
-            sleep 5 ; adb shell uiautomator dump /sdcard/u.xml > dump.txt 2>&1 ; adb shell cat /sdcard/u.xml > ui.xml 2>&1 || true
+            adb shell cmd notification post -c msg -t Annem testtag 'Nerdesiniz ne zaman geleceksiniz' || true ; sleep 2
+            sleep 1 ; adb shell uiautomator dump /sdcard/u.xml > dump.txt 2>&1 ; adb shell cat /sdcard/u.xml > ui.xml 2>&1 || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb shell uiautomator dump /sdcard/u2.xml ; adb shell cat /sdcard/u2.xml > ui2.xml || true
             adb logcat -d -b crash > crash.txt || true

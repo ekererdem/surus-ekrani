@@ -370,8 +370,8 @@ public class MainActivity extends Activity {
 
     private static int weightOf(View v) {
         int id = v.getId();
-        if (id == R.id.notifTile) return 3;
-        if (id == R.id.statusTile || id == R.id.weatherTile) return 2;
+        if (id == R.id.statusTile) return 3; // simgeler ve yüzde tam sığsın
+        if (id == R.id.notifTile || id == R.id.weatherTile) return 2;
         return 1;
     }
 
@@ -787,6 +787,102 @@ public class MainActivity extends Activity {
 
     // ---------- Bildirim kutusu ----------
 
+    /** Dokun: bildirimi aç (WhatsApp sohbeti, arama geçmişi). Basılı tut: bu ekrandan gizle. */
+    private void setNotifClicks(View tile, Notifs.Item it) {
+        tile.setOnClickListener(v -> { openNotif(it); Notifs.hide(it.key); });
+        tile.setOnLongClickListener(v -> { Notifs.hide(it.key); return true; });
+    }
+
+    private void openNotif(Notifs.Item it) {
+        try {
+            if (it.open != null) {
+                if (android.os.Build.VERSION.SDK_INT >= 34) {
+                    android.app.ActivityOptions o = android.app.ActivityOptions.makeBasic();
+                    o.setPendingIntentBackgroundActivityStartMode(
+                            android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+                    it.open.send(this, 0, null, null, null, null, o.toBundle());
+                } else {
+                    it.open.send();
+                }
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Açılamadı", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private View bannerView;
+
+    /** Yeni bildirimde ekranın altında birkaç saniyelik bilgi şeridi: "WhatsApp · Annem — mesaj…" */
+    private void showBanner(Notifs.Item it) {
+        ViewGroup content = findViewById(android.R.id.content);
+        if (content == null) return;
+        float d = getResources().getDisplayMetrics().density;
+        if (bannerView != null) content.removeView(bannerView);
+        android.widget.LinearLayout b = new android.widget.LinearLayout(this);
+        b.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        b.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        b.setBackgroundResource(R.drawable.tile_dark);
+        b.setElevation(12 * d);
+        int pad = Math.round(14 * d);
+        b.setPadding(pad, Math.round(10 * d), pad, Math.round(10 * d));
+        if (it.icon != null) {
+            ImageView ic = new ImageView(this);
+            ic.setImageDrawable(it.icon);
+            b.addView(ic, new android.widget.LinearLayout.LayoutParams(Math.round(32 * d), Math.round(32 * d)));
+        }
+        TextView t = new TextView(this);
+        String head = it.app + " · " + it.who;
+        String body = it.missedCall ? "Cevapsız arama" : it.text;
+        android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(head);
+        sb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, head.length(), 0);
+        if (body != null && !body.isEmpty()) {
+            int st = sb.length() + 1;
+            sb.append("\n").append(body);
+            sb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, sb.length(), 0);
+        }
+        t.setText(sb);
+        t.setTextSize(16);
+        t.setTextColor(getColor(R.color.fg));
+        t.setMaxLines(3);
+        t.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        android.widget.LinearLayout.LayoutParams tlp = new android.widget.LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        tlp.setMarginStart(Math.round(12 * d));
+        b.addView(t, tlp);
+        android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.BOTTOM);
+        int m = Math.round(16 * d);
+        lp.setMargins(m, m, m, m);
+        b.setOnClickListener(v -> { hideBanner(); openNotif(it); Notifs.hide(it.key); });
+        content.addView(b, lp);
+        bannerView = b;
+        b.setAlpha(0f);
+        b.setTranslationY(40 * d);
+        b.animate().alpha(1f).translationY(0).setDuration(200).start();
+        b.removeCallbacks(bannerHide);
+        b.postDelayed(bannerHide, 7000);
+    }
+
+    private final Runnable bannerHide = this::hideBanner;
+
+    private void hideBanner() {
+        View b = bannerView;
+        if (b == null) return;
+        bannerView = null;
+        b.animate().alpha(0f).setDuration(250).withEndAction(() -> {
+            if (b.getParent() != null) ((ViewGroup) b.getParent()).removeView(b);
+        }).start();
+    }
+
+    /** Bildirim kutusunu dakikada bir yenile (5 dk sonra sadece simgeye dönsün). */
+    private final Runnable notifTick = new Runnable() {
+        @Override public void run() {
+            renderNotifs();
+            playBtn.postDelayed(this, 30 * 1000L);
+        }
+    };
+
     private void renderNotifs() {
         ImageView icon = findViewById(R.id.notifIcon);
         TextView text = findViewById(R.id.notifText);
@@ -795,6 +891,9 @@ public class MainActivity extends Activity {
         List<Notifs.Item> l = Notifs.list();
         if (l.isEmpty()) {
             icon.setVisibility(View.GONE); // boşken simge yok, sadece ortalı yazı
+            ((android.widget.LinearLayout) tile).setGravity(android.view.Gravity.CENTER_VERTICAL);
+            text.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
             text.setGravity(android.view.Gravity.CENTER);
             ((android.widget.LinearLayout.LayoutParams) text.getLayoutParams()).setMarginStart(0);
             text.setText(hasListenerAccess() ? "Bildirim yok" : "Bildirim erişimi kapalı");
@@ -805,6 +904,29 @@ public class MainActivity extends Activity {
             return;
         }
         Notifs.Item it = l.get(0);
+        // 5 dakikadan eskiyse sadece uygulama simgesi (ve kaç bildirim olduğu) kalır
+        if (System.currentTimeMillis() - it.when > 5 * 60 * 1000L) {
+            icon.setVisibility(it.icon != null ? View.VISIBLE : View.GONE);
+            if (it.icon != null) { icon.setImageDrawable(it.icon); icon.setImageTintList(null); }
+            ((android.widget.LinearLayout.LayoutParams) text.getLayoutParams()).setMarginStart(
+                    Math.round(6 * getResources().getDisplayMetrics().density));
+            text.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START);
+            text.setText(l.size() > 1 ? "+" + (l.size() - 1) : "");
+            text.setTextColor(getColor(R.color.muted));
+            // simge ortada dursun
+            ((android.widget.LinearLayout) tile).setGravity(android.view.Gravity.CENTER);
+            text.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            setNotifClicks(tile, it);
+            tile.setContentDescription(it.who + ", " + it.app);
+            return;
+        }
+        ((android.widget.LinearLayout) tile).setGravity(android.view.Gravity.CENTER_VERTICAL);
+        if (text.getLayoutParams().width != 0) {
+            android.widget.LinearLayout.LayoutParams tl = new android.widget.LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            text.setLayoutParams(tl);
+        }
         // Sadece mesajın geldiği uygulamanın simgesi (WhatsApp vb.)
         icon.setVisibility(it.icon != null ? View.VISIBLE : View.GONE);
         text.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START);
@@ -826,25 +948,7 @@ public class MainActivity extends Activity {
         text.setText(b);
         text.setTextColor(getColor(R.color.fg));
         tile.setContentDescription(it.who + ", " + it.app + " " + what);
-        // Dokun: bildirimi aç (WhatsApp sohbeti, arama geçmişi). Basılı tut: bu ekrandan gizle.
-        tile.setOnClickListener(v -> {
-            try {
-                if (it.open != null) {
-                    if (android.os.Build.VERSION.SDK_INT >= 34) {
-                        android.app.ActivityOptions o = android.app.ActivityOptions.makeBasic();
-                        o.setPendingIntentBackgroundActivityStartMode(
-                                android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
-                        it.open.send(this, 0, null, null, null, null, o.toBundle());
-                    } else {
-                        it.open.send();
-                    }
-                }
-            } catch (Exception e) {
-                Toast.makeText(this, "Açılamadı", Toast.LENGTH_SHORT).show();
-            }
-            Notifs.hide(it.key);
-        });
-        tile.setOnLongClickListener(v -> { Notifs.hide(it.key); return true; });
+        setNotifClicks(tile, it);
     }
 
     // ---------- Müzik kutusunda kaydırarak şarkı değiştirme ----------
@@ -995,7 +1099,10 @@ public class MainActivity extends Activity {
         NavState.listener = this::renderNav;
         renderNav();
         Notifs.listener = this::renderNotifs;
+        Notifs.banner = this::showBanner;
         renderNotifs();
+        playBtn.removeCallbacks(notifTick);
+        playBtn.postDelayed(notifTick, 30 * 1000L);
 
         if (hasListenerAccess()) {
             try {
@@ -1019,6 +1126,9 @@ public class MainActivity extends Activity {
         seek.removeCallbacks(progressTick);
         NavState.listener = null;
         Notifs.listener = null;
+        Notifs.banner = null;
+        playBtn.removeCallbacks(notifTick);
+        hideBanner();
         try {
             msm.removeOnActiveSessionsChangedListener(sessionsListener);
         } catch (Exception ignored) {
