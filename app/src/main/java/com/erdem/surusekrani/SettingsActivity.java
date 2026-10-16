@@ -348,8 +348,8 @@ public class SettingsActivity extends Activity {
             row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
             row.setGravity(android.view.Gravity.CENTER_VERTICAL);
             android.widget.LinearLayout.LayoutParams rlp = new android.widget.LinearLayout.LayoutParams(
-                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT, Math.round(52 * d));
-            rlp.topMargin = Math.round(6 * d);
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+            rlp.topMargin = Math.round(10 * d);
             row.setLayoutParams(rlp);
 
             android.widget.CheckBox cb = new android.widget.CheckBox(this);
@@ -360,7 +360,17 @@ public class SettingsActivity extends Activity {
             cb.setChecked(e.on);
             if ("settings".equals(e.key)) cb.setEnabled(false); // ayarlar hep açık
             cb.setOnCheckedChangeListener((b, on) -> { e.on = on; Layout.save(this, l); });
-            row.addView(cb, new android.widget.LinearLayout.LayoutParams(0,
+            // Ad + altında küçük açıklama
+            android.widget.LinearLayout col = new android.widget.LinearLayout(this);
+            col.setOrientation(android.widget.LinearLayout.VERTICAL);
+            col.addView(cb);
+            TextView desc = new TextView(this);
+            desc.setText(Layout.desc(e.key));
+            desc.setTextSize(12);
+            desc.setTextColor(getColor(R.color.muted));
+            desc.setPadding(Math.round(32 * d), 0, Math.round(4 * d), 0);
+            col.addView(desc);
+            row.addView(col, new android.widget.LinearLayout.LayoutParams(0,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
             android.widget.TextView rowBtn = smallBtn(e.row == 1 ? "Üst sıra" : "Alt sıra", Math.round(88 * d));

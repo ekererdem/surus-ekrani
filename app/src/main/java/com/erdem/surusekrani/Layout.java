@@ -28,13 +28,30 @@ final class Layout {
         switch (key) {
             case "weather": return "Hava durumu";
             case "notif": return "Bildirimler";
-            case "status": return "Şarj · Bluetooth · çekim";
-            case "assist": return "Mikrofon";
+            case "status": return "Telefon durumu";
+            case "assist": return "Sesli komut";
             case "calls": return "Hızlı aramalar";
             case "places": return "Hızlı rotalar";
             case "park": return "Arabam nerede";
             case "settings": return "Ayarlar";
             default: return key;
+        }
+    }
+
+    /** Ayarlar'da düğme adının altındaki kısa açıklama. */
+    static String desc(String key) {
+        switch (key) {
+            case "weather": return "Solda şu anki hava, sağda 1 saat sonrası. Yoğun yağmur, kar, sis ya da fırtına "
+                    + "bekleniyorsa sağ taraf kırmızı çerçeveli olur. Hızlı rotayla yola çıkınca sağda varış yerinin havası görünür.";
+            case "notif": return "WhatsApp, SMS ve cevapsız aramalar: kimden ve kaç tane. Dokun: açar. Basılı tut: gizler.";
+            case "status": return "Şebeke çekimi, Bluetooth ve pil. Arabaya bağlıyken şarj olmuyor ve pil %30'un "
+                    + "altındaysa pil kırmızı yanıp söner.";
+            case "assist": return "Telefonun sesli asistanını açar.";
+            case "calls": return "Eklediğin kişiler. Dokun: 3 saniye sonra arar. Basılı tut: WhatsApp ile konumunu gönderir.";
+            case "places": return "Eklediğin yerler. Dokun: o yere rota başlatır.";
+            case "park": return "Basılı tut: o anki konumu park yeri olarak kaydeder. Dokun: arabana yürüyüş rotası açar.";
+            case "settings": return "Bu ekranı açar. Kapatılamaz, sadece yeri değişir.";
+            default: return "";
         }
     }
 
