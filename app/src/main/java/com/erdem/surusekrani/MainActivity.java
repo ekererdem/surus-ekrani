@@ -347,7 +347,6 @@ public class MainActivity extends Activity {
     private static int weightOf(View v) {
         int id = v.getId();
         if (id == R.id.statusTile || id == R.id.weatherTile) return 2;
-        for (int c : CALLS) if (c == id) return 2;
         return 1;
     }
 
@@ -464,19 +463,24 @@ public class MainActivity extends Activity {
             return;
         }
         b.setVisibility(View.VISIBLE);
-        String first = name.trim().isEmpty() ? num : name.trim().split("\\s+")[0];
-        b.setText(first);
-        // Küçük telefon simgesi ismin üstünde (hızlı rota düğmeleriyle aynı düzen)
+        // Kısa ad (ör. "Annem"); yoksa rehberdeki adın ilk kelimesi
+        String label = sp.getString(key + "Label", "").trim();
+        String first = !label.isEmpty() ? label : name.trim().isEmpty() ? num : name.trim().split("\\s+")[0];
+        // Üstte küçük gri "ara", altta kişinin adı; telefon simgesi yok
+        android.text.SpannableStringBuilder t = new android.text.SpannableStringBuilder("ara");
+        t.setSpan(new android.text.style.RelativeSizeSpan(0.65f), 0, 3, 0);
+        t.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), 0, 3, 0);
+        t.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.NORMAL), 0, 3, 0);
+        t.append("\n").append(first);
+        b.setText(t);
+        b.setSingleLine(false);
+        b.setMaxLines(2);
+        b.setIncludeFontPadding(false);
+        b.setCompoundDrawablesRelative(null, null, null, null);
+        b.setTextSize(15);
         float dd = getResources().getDisplayMetrics().density;
-        android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
-        int psz = Math.round(22 * dd);
-        ph.setBounds(0, 0, psz, psz);
-        ph.setTint(getColor(R.color.teal));
-        b.setCompoundDrawablesRelative(ph, null, null, null);
-        b.setCompoundDrawablePadding(Math.round(6 * dd));
-        b.setTextSize(17);
-        b.setPadding(Math.round(6 * dd), 0, Math.round(6 * dd), 0);
-        b.setContentDescription(name + " ara");
+        b.setPadding(Math.round(4 * dd), 0, Math.round(4 * dd), 0);
+        b.setContentDescription(first + " ara");
         b.setOnClickListener(v -> confirmCall(first, num));
         b.setOnLongClickListener(v -> { sendLocation(num); return true; });
     }

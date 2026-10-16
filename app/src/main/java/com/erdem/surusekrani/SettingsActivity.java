@@ -248,6 +248,10 @@ public class SettingsActivity extends Activity {
     }
 
     private void askName(String def, java.util.function.Consumer<String> done) {
+        askName("Rotanın adı", def, done);
+    }
+
+    private void askName(String title, String def, java.util.function.Consumer<String> done) {
         EditText e = new EditText(this);
         e.setText(def);
         e.setSelectAllOnFocus(true);
@@ -258,7 +262,7 @@ public class SettingsActivity extends Activity {
         box.setPadding(pad, pad / 2, pad, 0);
         box.addView(e);
         new AlertDialog.Builder(this)
-                .setTitle("Rotanın adı")
+                .setTitle(title)
                 .setView(box)
                 .setPositiveButton("Tamam", (d, w) -> {
                     String v = e.getText().toString().trim();
@@ -341,12 +345,14 @@ public class SettingsActivity extends Activity {
         java.util.List<String[]> l = new java.util.ArrayList<>();
         for (int i = 1; i <= MAX_CALLS; i++) {
             String num = sp.getString("call" + i + "Num", "");
-            if (!num.isEmpty()) l.add(new String[]{sp.getString("call" + i + "Name", ""), num});
+            if (!num.isEmpty()) l.add(new String[]{sp.getString("call" + i + "Name", ""), num,
+                    sp.getString("call" + i + "Label", "")});
         }
         android.content.SharedPreferences.Editor e = sp.edit();
         for (int i = 1; i <= MAX_CALLS; i++) {
-            if (i <= l.size()) e.putString("call" + i + "Name", l.get(i - 1)[0]).putString("call" + i + "Num", l.get(i - 1)[1]);
-            else e.remove("call" + i + "Name").remove("call" + i + "Num");
+            if (i <= l.size()) e.putString("call" + i + "Name", l.get(i - 1)[0]).putString("call" + i + "Num", l.get(i - 1)[1])
+                    .putString("call" + i + "Label", l.get(i - 1)[2]);
+            else e.remove("call" + i + "Name").remove("call" + i + "Num").remove("call" + i + "Label");
         }
         e.apply();
         return l.size();
@@ -360,8 +366,9 @@ public class SettingsActivity extends Activity {
         for (int i = 1; i <= n; i++) {
             final int slot = i;
             String name = sp.getString("call" + i + "Name", ""), num = sp.getString("call" + i + "Num", "");
+            String lbl = sp.getString("call" + i + "Label", "");
             android.widget.Button b = placeButton();
-            b.setText((name.isEmpty() ? num : name) + "  ·  " + num);
+            b.setText((lbl.isEmpty() ? "" : lbl + "  ·  ") + (name.isEmpty() ? num : name));
             setIconOn(b, R.drawable.ic_phone, R.color.teal);
             b.setOnClickListener(v -> editCall(slot));
             list.addView(b);
@@ -384,15 +391,31 @@ public class SettingsActivity extends Activity {
         }
     }
 
+    /** Ana ekranda görünecek kısa ad, ör. "Annem", "Eşim". */
+    private void askCallLabel(int slot) {
+        android.content.SharedPreferences sp = calls();
+        String cur = sp.getString("call" + slot + "Label", "");
+        if (cur.isEmpty()) {
+            String n = sp.getString("call" + slot + "Name", "").trim();
+            cur = n.isEmpty() ? "" : n.split("\\s+")[0];
+        }
+        askName("Ekranda görünecek ad (ör. Annem)", cur, v -> {
+            sp.edit().putString("call" + slot + "Label", v).apply();
+            setupCalls();
+        });
+    }
+
     private void editCall(int slot) {
         android.content.SharedPreferences sp = calls();
         String name = sp.getString("call" + slot + "Name", "");
         new AlertDialog.Builder(this)
                 .setTitle(name.isEmpty() ? sp.getString("call" + slot + "Num", "") : name)
-                .setItems(new String[]{"Başka kişi seç", "Sil"}, (d, w) -> {
-                    if (w == 0) pickContact(slot);
+                .setItems(new String[]{"Ekranda görünen adı değiştir", "Başka kişi seç", "Sil"}, (d, w) -> {
+                    if (w == 0) askCallLabel(slot);
+                    else if (w == 1) pickContact(slot);
                     else {
-                        sp.edit().remove("call" + slot + "Name").remove("call" + slot + "Num").apply();
+                        sp.edit().remove("call" + slot + "Name").remove("call" + slot + "Num")
+                                .remove("call" + slot + "Label").apply();
                         setupCalls();
                         Toast.makeText(this, "Silindi", Toast.LENGTH_SHORT).show();
                     }
@@ -414,7 +437,10 @@ public class SettingsActivity extends Activity {
                 String name = c.getString(0) == null ? "" : c.getString(0);
                 String num = c.getString(1) == null ? "" : c.getString(1).replaceAll("[^0-9+]", "");
                 getSharedPreferences("surus", MODE_PRIVATE).edit()
-                        .putString(key + "Name", name).putString(key + "Num", num).apply();
+                        .putString(key + "Name", name).putString(key + "Num", num)
+                        .remove(key + "Label").apply();
+                int slot = req - PICK_CALL + 1;
+                getWindow().getDecorView().post(() -> askCallLabel(slot));
             }
         } catch (Exception e) {
             Toast.makeText(this, "Kişi okunamadı", Toast.LENGTH_SHORT).show();
