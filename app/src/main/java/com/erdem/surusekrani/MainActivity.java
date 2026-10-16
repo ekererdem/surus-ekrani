@@ -247,12 +247,19 @@ public class MainActivity extends Activity {
             R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
     private final java.util.List<View> placeViews = new java.util.ArrayList<>();
 
+    /** Düğmeleri Ayarlar'daki düzene göre iki sıraya dizer; kapalı olanlar gizli bir kapta bekler. */
     private void arrangeQuick() {
         ViewGroup r1 = findViewById(R.id.iconsRow1), r2 = findViewById(R.id.iconsRow2);
+        ViewGroup grid = findViewById(R.id.iconsGrid);
+        ViewGroup hidden = grid.findViewWithTag("hiddenQuick");
+        if (hidden == null) {
+            hidden = new android.widget.FrameLayout(this);
+            hidden.setTag("hiddenQuick");
+            hidden.setVisibility(View.GONE);
+            grid.addView(hidden, new ViewGroup.LayoutParams(0, 0));
+        }
         for (View v : placeViews) if (v.getParent() != null) ((ViewGroup) v.getParent()).removeView(v);
         placeViews.clear();
-        findViewById(R.id.assistBtn).setVisibility(
-                getSharedPreferences("surus", MODE_PRIVATE).getBoolean("assistBtn", true) ? View.VISIBLE : View.GONE);
         // Görünümleri önce topla: ağaçtan çıkınca findViewById onları bulamaz
         java.util.Map<Integer, View> views = new java.util.HashMap<>();
         for (int id : QUICK) {
@@ -260,12 +267,27 @@ public class MainActivity extends Activity {
             views.put(id, v);
             ((ViewGroup) v.getParent()).removeView(v);
         }
-        for (int id : ROW1) addQuick(r1, views.get(id));
-        addQuick(r2, views.get(R.id.assistBtn));
-        for (int id : CALLS) addQuick(r2, views.get(id));
-        for (View v : buildPlaceButtons()) addQuick(r2, v);
-        addQuick(r2, views.get(R.id.parkBtn));
-        addQuick(r2, views.get(R.id.settingsBtn)); // ayarlar alt sıranın sonunda
+        java.util.Set<Integer> used = new java.util.HashSet<>();
+        for (Layout.Entry e : Layout.load(this)) {
+            if (!e.on) continue;
+            ViewGroup row = e.row == 1 ? r1 : r2;
+            switch (e.key) {
+                case "weather": addQuick(row, views.get(R.id.weatherTile)); used.add(R.id.weatherTile); break;
+                case "notif": addQuick(row, views.get(R.id.notifTile)); used.add(R.id.notifTile); break;
+                case "status": addQuick(row, views.get(R.id.statusTile)); used.add(R.id.statusTile); break;
+                case "assist": addQuick(row, views.get(R.id.assistBtn)); used.add(R.id.assistBtn); break;
+                case "park": addQuick(row, views.get(R.id.parkBtn)); used.add(R.id.parkBtn); break;
+                case "settings": addQuick(row, views.get(R.id.settingsBtn)); used.add(R.id.settingsBtn); break;
+                case "calls":
+                    for (int id : CALLS) { addQuick(row, views.get(id)); used.add(id); }
+                    break;
+                case "places":
+                    for (View v : buildPlaceButtons()) addQuick(row, v);
+                    break;
+            }
+        }
+        // Kapalı düğmeler görünmez kapta kalır (bilgileri güncellenmeye devam eder)
+        for (int id : QUICK) if (!used.contains(id)) hidden.addView(views.get(id));
         findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
     }
 
@@ -772,8 +794,7 @@ public class MainActivity extends Activity {
         if (icon == null || text == null) return;
         List<Notifs.Item> l = Notifs.list();
         if (l.isEmpty()) {
-            icon.setImageResource(R.drawable.ic_bell);
-            icon.setImageTintList(ColorStateList.valueOf(getColor(R.color.muted)));
+            icon.setVisibility(View.GONE); // boşken simge yok, sadece yazı
             text.setText(hasListenerAccess() ? "Bildirim yok" : "Bildirim erişimi kapalı");
             text.setTextColor(getColor(R.color.muted));
             tile.setOnClickListener(null);
@@ -782,6 +803,8 @@ public class MainActivity extends Activity {
             return;
         }
         Notifs.Item it = l.get(0);
+        // Sadece mesajın geldiği uygulamanın simgesi (WhatsApp vb.)
+        icon.setVisibility(it.icon != null ? View.VISIBLE : View.GONE);
         if (it.icon != null) {
             icon.setImageDrawable(it.icon);
             icon.setImageTintList(null);

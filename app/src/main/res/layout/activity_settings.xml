@@ -30,9 +30,16 @@
             <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
         </RadioGroup>
         <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
-        <Switch android:id="@+id/swAssist" style="@style/Toggle"
-            android:text="Sesli asistan (mikrofon) düğmesi" />
-        <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="6dp"
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Kutucukla aç/kapat, Üst/Alt ile satırını seç, oklarla sırasını değiştir." />
+        <LinearLayout
+            android:id="@+id/layoutList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+        <Button android:id="@+id/layoutReset" style="@style/OutlineBtn" android:layout_width="match_parent"
+            android:layout_marginTop="10dp" android:text="Varsayılan düzene dön" />
+        <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="14dp"
             android:text="Açılınca haritayı yan yana başlat" />
         <TextView style="@style/Note"
             android:text="Haritanın ekrandaki payını ortadaki ayırma çizgisini sürükleyerek ayarlayabilirsin." />

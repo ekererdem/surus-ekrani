@@ -72,9 +72,12 @@ public class SettingsActivity extends Activity {
         Places.migrate(this);
         setupCalls();
 
-        Switch assist = findViewById(R.id.swAssist);
-        assist.setChecked(getSharedPreferences("surus", MODE_PRIVATE).getBoolean("assistBtn", true));
-        assist.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("assistBtn", on).apply());
+        renderLayout();
+        findViewById(R.id.layoutReset).setOnClickListener(v -> {
+            Layout.reset(this);
+            renderLayout();
+            Toast.makeText(this, "Varsayılan düzen", Toast.LENGTH_SHORT).show();
+        });
 
         Switch autoOpen = findViewById(R.id.swAutoOpen);
         autoOpen.setChecked(p.autoOpen());
@@ -329,6 +332,76 @@ public class SettingsActivity extends Activity {
                 Toast.makeText(this, "Kaydedildi", Toast.LENGTH_SHORT).show();
             });
         });
+    }
+
+    // ---------- Ana ekran düğme düzeni ----------
+
+    private void renderLayout() {
+        android.widget.LinearLayout list = findViewById(R.id.layoutList);
+        list.removeAllViews();
+        java.util.List<Layout.Entry> l = Layout.load(this);
+        float d = getResources().getDisplayMetrics().density;
+        for (int i = 0; i < l.size(); i++) {
+            final int idx = i;
+            Layout.Entry e = l.get(i);
+            android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+            row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            android.widget.LinearLayout.LayoutParams rlp = new android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT, Math.round(52 * d));
+            rlp.topMargin = Math.round(6 * d);
+            row.setLayoutParams(rlp);
+
+            android.widget.CheckBox cb = new android.widget.CheckBox(this);
+            cb.setText(Layout.name(e.key));
+            cb.setTextSize(16);
+            cb.setTextColor(getColor(R.color.fg));
+            cb.setButtonTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.amber)));
+            cb.setChecked(e.on);
+            if ("settings".equals(e.key)) cb.setEnabled(false); // ayarlar hep açık
+            cb.setOnCheckedChangeListener((b, on) -> { e.on = on; Layout.save(this, l); });
+            row.addView(cb, new android.widget.LinearLayout.LayoutParams(0,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            android.widget.Button rowBtn = smallBtn(e.row == 1 ? "Üst" : "Alt", Math.round(56 * d));
+            rowBtn.setOnClickListener(v -> {
+                e.row = e.row == 1 ? 2 : 1;
+                Layout.save(this, l);
+                renderLayout();
+            });
+            row.addView(rowBtn);
+
+            android.widget.Button up = smallBtn("▲", Math.round(44 * d));
+            up.setEnabled(i > 0);
+            up.setAlpha(i > 0 ? 1f : 0.3f);
+            up.setOnClickListener(v -> { java.util.Collections.swap(l, idx, idx - 1); Layout.save(this, l); renderLayout(); });
+            row.addView(up);
+
+            android.widget.Button down = smallBtn("▼", Math.round(44 * d));
+            down.setEnabled(i < l.size() - 1);
+            down.setAlpha(i < l.size() - 1 ? 1f : 0.3f);
+            down.setOnClickListener(v -> { java.util.Collections.swap(l, idx, idx + 1); Layout.save(this, l); renderLayout(); });
+            row.addView(down);
+
+            list.addView(row);
+        }
+    }
+
+    private android.widget.Button smallBtn(String text, int width) {
+        android.widget.Button b = new android.widget.Button(this, null, 0, R.style.OutlineBtn);
+        float d = getResources().getDisplayMetrics().density;
+        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(width, Math.round(44 * d));
+        lp.setMarginStart(Math.round(6 * d));
+        b.setLayoutParams(lp);
+        b.setBackgroundResource(R.drawable.btn_outline);
+        b.setPadding(0, 0, 0, 0);
+        b.setMinWidth(0);
+        b.setMinimumWidth(0);
+        b.setMinHeight(0);
+        b.setMinimumHeight(0);
+        b.setTextSize(15);
+        b.setText(text);
+        return b;
     }
 
     // ---------- Hızlı arama ----------
