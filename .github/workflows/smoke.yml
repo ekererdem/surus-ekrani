@@ -31,6 +31,7 @@ jobs:
             adb logcat -c
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 15
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
+            adb shell uiautomator dump /sdcard/u.xml ; adb pull /sdcard/u.xml ui.xml || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb logcat -d -b crash > crash.txt || true
             adb logcat -d '*:E' | grep -A40 -i 'FATAL\|AndroidRuntime' > err.txt || true
@@ -40,6 +41,19 @@ jobs:
         run: |
           f=crash.txt; [ -s crash.txt ] || f=err.txt
           if [ -s "$f" ]; then echo "::error::$(grep -v '^-' $f | head -45 | sed ':a;N;$!ba;s/\n/%0A/g')"; else echo "::notice::Çökme yok"; fi
+      - name: Düğme yerleri
+        if: always()
+        run: |
+          [ -f ui.xml ] || exit 0
+          python3 - <<'PY'
+          import re
+          x=open('ui.xml').read()
+          out=[]
+          for m in re.finditer(r'resource-id="com\.erdem\.surusekrani:id/(\w+)"[^>]*?bounds="([^"]+)"', x):
+              if m.group(1) in ('statusTile','weatherTile','parkBtn','assistBtn','settingsBtn','iconsRow1','iconsRow2','call1Btn'):
+                  out.append(m.group(1)+' '+m.group(2))
+          print('::notice::'+' | '.join(out))
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
