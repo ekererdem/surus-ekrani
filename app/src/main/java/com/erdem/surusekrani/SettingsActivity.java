@@ -360,20 +360,12 @@ public class SettingsActivity extends Activity {
             cb.setChecked(e.on);
             if ("settings".equals(e.key)) cb.setEnabled(false); // ayarlar hep açık
             cb.setOnCheckedChangeListener((b, on) -> { e.on = on; Layout.save(this, l); });
-            // Ad + altında küçük açıklama
-            android.widget.LinearLayout col = new android.widget.LinearLayout(this);
-            col.setOrientation(android.widget.LinearLayout.VERTICAL);
-            col.addView(cb);
-            TextView desc = new TextView(this);
-            desc.setText(Layout.desc(e.key));
-            desc.setTextSize(12);
-            desc.setTextColor(getColor(R.color.muted));
-            desc.setPadding(Math.round(32 * d), 0, Math.round(4 * d), 0);
-            col.addView(desc);
-            row.addView(col, new android.widget.LinearLayout.LayoutParams(0,
+            row.addView(cb, new android.widget.LinearLayout.LayoutParams(0,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
-            android.widget.TextView rowBtn = smallBtn(e.row == 1 ? "Üst sıra" : "Alt sıra", Math.round(88 * d));
+            android.widget.TextView rowBtn = smallBtn(e.row == 1 ? "Üst\nsıra" : "Alt\nsıra", Math.round(56 * d));
+            rowBtn.setTextSize(15);
+            rowBtn.setLineSpacing(0, 0.9f);
             rowBtn.setOnClickListener(v -> {
                 e.row = e.row == 1 ? 2 : 1;
                 Layout.save(this, l);
@@ -383,19 +375,26 @@ public class SettingsActivity extends Activity {
             rowBtn.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
             row.addView(rowBtn);
 
-            android.widget.TextView up = smallBtn("▲", Math.round(44 * d));
+            android.widget.TextView up = smallBtn("▲", Math.round(40 * d));
             up.setEnabled(i > 0);
             up.setAlpha(i > 0 ? 1f : 0.3f);
             up.setOnClickListener(v -> { java.util.Collections.swap(l, idx, idx - 1); Layout.save(this, l); renderLayout(); });
             row.addView(up);
 
-            android.widget.TextView down = smallBtn("▼", Math.round(44 * d));
+            android.widget.TextView down = smallBtn("▼", Math.round(40 * d));
             down.setEnabled(i < l.size() - 1);
             down.setAlpha(i < l.size() - 1 ? 1f : 0.3f);
             down.setOnClickListener(v -> { java.util.Collections.swap(l, idx, idx + 1); Layout.save(this, l); renderLayout(); });
             row.addView(down);
 
             list.addView(row);
+            // Açıklama: satırın altında, tüm genişliği kullanır
+            TextView desc = new TextView(this);
+            desc.setText(Layout.desc(e.key));
+            desc.setTextSize(13);
+            desc.setTextColor(getColor(R.color.muted));
+            desc.setPadding(Math.round(4 * d), 0, Math.round(4 * d), Math.round(4 * d));
+            list.addView(desc);
         }
     }
 
