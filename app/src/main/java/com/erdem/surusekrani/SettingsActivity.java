@@ -182,6 +182,13 @@ public class SettingsActivity extends Activity {
     /** Liste satırı: [simge] ad ............ İsim ver   Sil  — satırın kendisine dokunmak bir şey yapmaz. */
     private View itemRow(int iconRes, int iconColor, String text, View.OnClickListener onIcon,
                          View.OnClickListener onRename, View.OnClickListener onDelete) {
+        android.graphics.drawable.Drawable dr = getDrawable(iconRes).mutate();
+        dr.setTint(getColor(iconColor));
+        return itemRow(dr, text, onIcon, "İsim ver", onRename, "Sil", onDelete);
+    }
+
+    private View itemRow(android.graphics.drawable.Drawable icon, String text, View.OnClickListener onIcon,
+                         String aText, View.OnClickListener onA, String bText, View.OnClickListener onB) {
         float d = getResources().getDisplayMetrics().density;
         android.widget.LinearLayout row = new android.widget.LinearLayout(this);
         row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
@@ -194,8 +201,7 @@ public class SettingsActivity extends Activity {
         row.setLayoutParams(lp);
 
         android.widget.ImageView ic = new android.widget.ImageView(this);
-        ic.setImageResource(iconRes);
-        ic.setImageTintList(android.content.res.ColorStateList.valueOf(getColor(iconColor)));
+        ic.setImageDrawable(icon);
         int pad = Math.round(9 * d);
         ic.setPadding(pad, pad, pad, pad);
         if (onIcon != null) {
@@ -209,7 +215,7 @@ public class SettingsActivity extends Activity {
 
         TextView name = new TextView(this);
         name.setText(text);
-        name.setTextSize(17);
+        name.setTextSize(15);
         name.setTextColor(getColor(R.color.fg));
         name.setSingleLine(true);
         name.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -218,16 +224,16 @@ public class SettingsActivity extends Activity {
         nlp.setMarginStart(Math.round(6 * d));
         row.addView(name, nlp);
 
-        TextView rename = smallBtn("İsim ver", Math.round(76 * d));
-        rename.setTextSize(15);
+        TextView rename = smallBtn(aText, Math.round(76 * d));
+        rename.setTextSize(14);
         rename.setTextColor(getColor(R.color.amber));
-        rename.setOnClickListener(onRename);
+        rename.setOnClickListener(onA);
         row.addView(rename);
 
-        TextView del = smallBtn("Sil", Math.round(48 * d));
-        del.setTextSize(15);
+        TextView del = smallBtn(bText, Math.round(56 * d));
+        del.setTextSize(14);
         del.setTextColor(getColor(R.color.low));
-        del.setOnClickListener(onDelete);
+        del.setOnClickListener(onB);
         row.addView(del);
         return row;
     }
@@ -244,6 +250,7 @@ public class SettingsActivity extends Activity {
         b.setPadding(pad, 0, pad, 0);
         b.setSingleLine(true);
         b.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        b.setTextSize(15);
         return b;
     }
 
@@ -411,25 +418,17 @@ public class SettingsActivity extends Activity {
                         new ComponentName(k.substring(0, slash), k.substring(slash + 1)), 0);
                 if (keys.size() >= Shortcuts.MAX) break;
                 keys.add(k);
-                android.widget.Button b = placeButton();
-                b.setText(info.loadLabel(pm));
-                android.graphics.drawable.Drawable d = info.loadIcon(pm);
-                int sz = Math.round(26 * getResources().getDisplayMetrics().density);
-                d.setBounds(0, 0, sz, sz);
-                b.setCompoundDrawablesRelative(d, null, null, null);
-                b.setCompoundDrawablePadding(Math.round(14 * getResources().getDisplayMetrics().density));
-                b.setOnClickListener(v -> new AlertDialog.Builder(this)
-                        .setTitle(info.loadLabel(pm))
-                        .setItems(new String[]{"Ana ekrandan çıkar"}, (dd, w) -> {
+                list.addView(itemRow(info.loadIcon(pm), info.loadLabel(pm).toString(), null,
+                        "Değiştir", v -> startActivity(new Intent(this, AppsActivity.class)
+                                .putExtra(AppsActivity.EXTRA_EDIT, true)
+                                .putExtra(AppsActivity.EXTRA_REPLACE, k)),
+                        "Kaldır", v -> {
                             java.util.List<String> all = new java.util.ArrayList<>(
                                     java.util.Arrays.asList(sp.getString("favApps", "").split("\\|")));
                             all.remove(k);
                             sp.edit().putString("favApps", android.text.TextUtils.join("|", all)).apply();
                             renderApps();
-                        })
-                        .setNegativeButton("Vazgeç", null)
-                        .show());
-                list.addView(b);
+                        }));
             } catch (PackageManager.NameNotFoundException ignored) {
             }
         }
@@ -463,7 +462,7 @@ public class SettingsActivity extends Activity {
 
             android.widget.CheckBox cb = new android.widget.CheckBox(this);
             cb.setText(Layout.name(e.key));
-            cb.setTextSize(16);
+            cb.setTextSize(15);
             cb.setTextColor(getColor(R.color.fg));
             cb.setButtonTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.amber)));
             cb.setChecked(e.on);
@@ -500,7 +499,7 @@ public class SettingsActivity extends Activity {
             // Açıklama: satırın altında, tüm genişliği kullanır
             TextView desc = new TextView(this);
             desc.setText(Layout.desc(e.key));
-            desc.setTextSize(13);
+            desc.setTextSize(12);
             desc.setTextColor(getColor(R.color.muted));
             desc.setPadding(Math.round(4 * d), 0, Math.round(4 * d), Math.round(4 * d));
             list.addView(desc);

@@ -59,7 +59,7 @@
     <style name="SectionTitle">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/amber</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">true</item>
@@ -71,7 +71,7 @@
     <style name="Note">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/muted</item>
         <item name="android:layout_marginTop">6dp</item>
     </style>
@@ -90,8 +90,8 @@
 
     <style name="Option">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">56dp</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/fg</item>
         <item name="android:buttonTint">@color/amber</item>
     </style>
@@ -99,8 +99,8 @@
     <style name="Toggle">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:minHeight">56dp</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/fg</item>
         <item name="android:thumbTint">@color/amber</item>
     </style>

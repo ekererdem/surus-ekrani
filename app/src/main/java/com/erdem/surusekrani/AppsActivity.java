@@ -31,6 +31,8 @@ import java.util.Map;
 public class AppsActivity extends Activity {
     private static final String KEY = "favApps";
     static final String EXTRA_EDIT = "edit";
+    /** Bu uygulamanın yerine seçileni koy (Ayarlar → Değiştir). */
+    static final String EXTRA_REPLACE = "replace";
 
     private PackageManager pm;
     private final List<ResolveInfo> all = new ArrayList<>();
@@ -78,6 +80,18 @@ public class AppsActivity extends Activity {
         });
         grid.setOnItemClickListener((parent, view, pos, id) -> {
             String k = shown.get(pos);
+            String replace = getIntent().getStringExtra(EXTRA_REPLACE);
+            if (editing && replace != null) {
+                int at = favs.indexOf(replace);
+                if (!k.equals(replace)) {
+                    favs.remove(k);
+                    at = favs.indexOf(replace);
+                    if (at >= 0) favs.set(at, k); else favs.add(k);
+                }
+                save();
+                finish();
+                return;
+            }
             if (editing) {
                 if (favs.contains(k)) favs.remove(k);
                 else if (visibleFavs().size() >= Shortcuts.MAX) {
@@ -111,7 +125,7 @@ public class AppsActivity extends Activity {
         shown.clear();
         if (editing) {
             for (ResolveInfo r : all) shown.add(key(r));
-            title.setText("Uygulama seç");
+            title.setText(getIntent().getStringExtra(EXTRA_REPLACE) != null ? "Yerine konacak uygulamayı seç" : "Uygulama seç");
             hint.setText("Ana ekranda müzik çaların altında görünmesini istediğin uygulamalara dokun (en fazla 5). Tekrar dokunursan çıkar.");
             hint.setVisibility(View.VISIBLE);
             editBtn.setText("Tamam");
