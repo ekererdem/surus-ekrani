@@ -43,7 +43,7 @@ public class SettingsActivity extends Activity {
         root.setOnApplyWindowInsetsListener((v, in) -> {
             android.graphics.Insets ins = in.getInsets(android.view.WindowInsets.Type.systemBars()
                     | android.view.WindowInsets.Type.displayCutout());
-            v.setPadding(ins.left / 2, ins.top, ins.right / 2, ins.bottom);
+            v.setPadding(Math.round(ins.left * 0.35f), ins.top, ins.right / 2, ins.bottom); // sol pay %30 daha az
             return in;
         });
         p = new Prefs(this);
