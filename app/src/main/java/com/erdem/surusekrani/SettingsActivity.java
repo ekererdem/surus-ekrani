@@ -363,21 +363,23 @@ public class SettingsActivity extends Activity {
             row.addView(cb, new android.widget.LinearLayout.LayoutParams(0,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
-            android.widget.Button rowBtn = smallBtn(e.row == 1 ? "Üst" : "Alt", Math.round(56 * d));
+            android.widget.TextView rowBtn = smallBtn(e.row == 1 ? "Üst" : "Alt", Math.round(56 * d));
             rowBtn.setOnClickListener(v -> {
                 e.row = e.row == 1 ? 2 : 1;
                 Layout.save(this, l);
                 renderLayout();
             });
+            rowBtn.setTextColor(getColor(R.color.amber));
+            rowBtn.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
             row.addView(rowBtn);
 
-            android.widget.Button up = smallBtn("▲", Math.round(44 * d));
+            android.widget.TextView up = smallBtn("▲", Math.round(44 * d));
             up.setEnabled(i > 0);
             up.setAlpha(i > 0 ? 1f : 0.3f);
             up.setOnClickListener(v -> { java.util.Collections.swap(l, idx, idx - 1); Layout.save(this, l); renderLayout(); });
             row.addView(up);
 
-            android.widget.Button down = smallBtn("▼", Math.round(44 * d));
+            android.widget.TextView down = smallBtn("▼", Math.round(44 * d));
             down.setEnabled(i < l.size() - 1);
             down.setAlpha(i < l.size() - 1 ? 1f : 0.3f);
             down.setOnClickListener(v -> { java.util.Collections.swap(l, idx, idx + 1); Layout.save(this, l); renderLayout(); });
@@ -387,19 +389,22 @@ public class SettingsActivity extends Activity {
         }
     }
 
-    private android.widget.Button smallBtn(String text, int width) {
-        android.widget.Button b = new android.widget.Button(this, null, 0, R.style.OutlineBtn);
+    /** Çerçevesiz, yazısı ortalı küçük tuş (Üst/Alt, ▲, ▼). */
+    private android.widget.TextView smallBtn(String text, int width) {
+        android.widget.TextView b = new android.widget.TextView(this);
         float d = getResources().getDisplayMetrics().density;
         android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(width, Math.round(44 * d));
-        lp.setMarginStart(Math.round(6 * d));
+        lp.setMarginStart(Math.round(4 * d));
         b.setLayoutParams(lp);
-        b.setBackgroundResource(R.drawable.btn_outline);
-        b.setPadding(0, 0, 0, 0);
-        b.setMinWidth(0);
-        b.setMinimumWidth(0);
-        b.setMinHeight(0);
-        b.setMinimumHeight(0);
-        b.setTextSize(15);
+        android.util.TypedValue tv = new android.util.TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true);
+        b.setBackgroundResource(tv.resourceId); // dokununca hafif dalga, çerçeve yok
+        b.setGravity(android.view.Gravity.CENTER);
+        b.setIncludeFontPadding(false);
+        b.setTextSize(17);
+        b.setTextColor(getColor(R.color.fg));
+        b.setClickable(true);
+        b.setFocusable(true);
         b.setText(text);
         return b;
     }

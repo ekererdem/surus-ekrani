@@ -36,6 +36,7 @@ jobs:
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
             sleep 5 ; adb shell uiautomator dump /sdcard/u.xml > dump.txt 2>&1 ; adb shell cat /sdcard/u.xml > ui.xml 2>&1 || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
+            adb shell uiautomator dump /sdcard/u2.xml ; adb shell cat /sdcard/u2.xml > ui2.xml || true
             adb logcat -d -b crash > crash.txt || true
             adb logcat -d '*:E' | grep -A40 -i 'FATAL\|AndroidRuntime' > err.txt || true
             cat crash.txt err.txt
@@ -59,6 +60,17 @@ jobs:
           pk=sorted(set(re.findall(r'package="([^"]+)"', x)))
           txt=re.findall(r'text="([^"]+)"', x)[:15]
           print('::notice::pk='+','.join(pk)+' txt='+'/'.join(txt)+' btn='+' | '.join(out))
+          PY
+      - name: Ayarlar düzeni
+        if: always()
+        run: |
+          [ -f ui2.xml ] || exit 0
+          python3 - <<'PY'
+          import re
+          x=open('ui2.xml').read()
+          cb=re.findall(r'text="([^"]+)"[^>]*class="android.widget.CheckBox"[^>]*checked="(\w+)"', x)
+          rows=[t for t in re.findall(r'text="([^"]+)"', x) if t in ('Üst','Alt')]
+          print('::notice::cb='+str(cb)+' rows='+str(rows))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
