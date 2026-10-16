@@ -53,7 +53,9 @@ jobs:
           for m in re.finditer(r'resource-id="com\.erdem\.surusekrani:id/(\w+)"[^>]*?bounds="([^"]+)"', x):
               if m.group(1) in ('statusTile','weatherTile','parkBtn','assistBtn','settingsBtn','iconsRow1','iconsRow2','call1Btn'):
                   out.append(m.group(1)+' '+m.group(2))
-          print('::notice::'+' | '.join(out))
+          pk=sorted(set(re.findall(r'package="([^"]+)"', x)))
+          txt=re.findall(r'text="([^"]+)"', x)[:15]
+          print('::notice::pk='+','.join(pk)+' txt='+'/'.join(txt)+' btn='+' | '.join(out))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
