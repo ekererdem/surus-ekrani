@@ -38,6 +38,14 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+        // Kenar boşluğu: çentik/kamera payının sadece yarısı kadar bırak, ekranı daha iyi kullan
+        View root = findViewById(R.id.settingsRoot);
+        root.setOnApplyWindowInsetsListener((v, in) -> {
+            android.graphics.Insets ins = in.getInsets(android.view.WindowInsets.Type.systemBars()
+                    | android.view.WindowInsets.Type.displayCutout());
+            v.setPadding(ins.left / 2, ins.top, ins.right / 2, ins.bottom);
+            return in;
+        });
         p = new Prefs(this);
 
         RadioGroup nav = findViewById(R.id.radioNav);
