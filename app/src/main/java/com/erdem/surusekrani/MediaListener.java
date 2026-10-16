@@ -18,7 +18,7 @@ public class MediaListener extends NotificationListenerService {
     public void onListenerConnected() {
         try {
             StatusBarNotification[] all = getActiveNotifications();
-            if (all != null) for (StatusBarNotification s : all) handle(s);
+            if (all != null) for (StatusBarNotification s : all) { handle(s); Notifs.posted(this, s); }
         } catch (Exception ignored) {
         }
     }
@@ -26,11 +26,13 @@ public class MediaListener extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         handle(sbn);
+        Notifs.posted(this, sbn);
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         if (isNav(sbn)) NavState.clear(sbn.getPackageName());
+        Notifs.removed(sbn);
     }
 
     private static boolean isNav(StatusBarNotification sbn) {

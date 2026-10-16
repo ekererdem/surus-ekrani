@@ -237,13 +237,13 @@ public class MainActivity extends Activity {
 
     // ---------- Hızlı düğmeler (iki sıra) ----------
 
-    /** Üst sıra: mikrofon, hava, araba, durum. */
+    /** Üst sıra: hava, bildirimler, durum. Alt sıra: mikrofon, aramalar, rotalar, araba, ayarlar. */
     private static final int[] ROW1 = {
-            R.id.assistBtn, R.id.weatherTile, R.id.parkBtn, R.id.statusTile};
+            R.id.weatherTile, R.id.notifTile, R.id.statusTile};
     /** Alt sıra: hızlı aramalar, sonra hızlı rotalar (koddan eklenir). */
     static final int[] CALLS = {R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
     private static final int[] QUICK = {
-            R.id.statusTile, R.id.weatherTile, R.id.parkBtn, R.id.assistBtn, R.id.settingsBtn,
+            R.id.statusTile, R.id.weatherTile, R.id.notifTile, R.id.parkBtn, R.id.assistBtn, R.id.settingsBtn,
             R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
     private final java.util.List<View> placeViews = new java.util.ArrayList<>();
 
@@ -261,8 +261,10 @@ public class MainActivity extends Activity {
             ((ViewGroup) v.getParent()).removeView(v);
         }
         for (int id : ROW1) addQuick(r1, views.get(id));
+        addQuick(r2, views.get(R.id.assistBtn));
         for (int id : CALLS) addQuick(r2, views.get(id));
         for (View v : buildPlaceButtons()) addQuick(r2, v);
+        addQuick(r2, views.get(R.id.parkBtn));
         addQuick(r2, views.get(R.id.settingsBtn)); // ayarlar alt sıranın sonunda
         findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
     }
@@ -346,6 +348,7 @@ public class MainActivity extends Activity {
 
     private static int weightOf(View v) {
         int id = v.getId();
+        if (id == R.id.notifTile) return 3;
         if (id == R.id.statusTile || id == R.id.weatherTile) return 2;
         return 1;
     }
@@ -760,6 +763,62 @@ public class MainActivity extends Activity {
         }
     };
 
+    // ---------- Bildirim kutusu ----------
+
+    private void renderNotifs() {
+        ImageView icon = findViewById(R.id.notifIcon);
+        TextView text = findViewById(R.id.notifText);
+        View tile = findViewById(R.id.notifTile);
+        if (icon == null || text == null) return;
+        List<Notifs.Item> l = Notifs.list();
+        if (l.isEmpty()) {
+            icon.setImageResource(R.drawable.ic_bell);
+            icon.setImageTintList(ColorStateList.valueOf(getColor(R.color.muted)));
+            text.setText(hasListenerAccess() ? "Bildirim yok" : "Bildirim erişimi kapalı");
+            text.setTextColor(getColor(R.color.muted));
+            tile.setOnClickListener(null);
+            tile.setOnLongClickListener(null);
+            tile.setContentDescription("Bildirim yok");
+            return;
+        }
+        Notifs.Item it = l.get(0);
+        if (it.icon != null) {
+            icon.setImageDrawable(it.icon);
+            icon.setImageTintList(null);
+        }
+        String what = it.missedCall ? "cevapsız arama" : it.count > 1 ? it.count + " mesaj" : "mesaj";
+        String time = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(new java.util.Date(it.when));
+        String sub = it.app + " · " + what + " · " + time + (l.size() > 1 ? "  +" + (l.size() - 1) : "");
+        android.text.SpannableStringBuilder b = new android.text.SpannableStringBuilder(it.who);
+        b.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, it.who.length(), 0);
+        int st = b.length() + 1;
+        b.append("\n").append(sub);
+        b.setSpan(new android.text.style.RelativeSizeSpan(0.75f), st, b.length(), 0);
+        b.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, b.length(), 0);
+        text.setText(b);
+        text.setTextColor(getColor(R.color.fg));
+        tile.setContentDescription(it.who + ", " + it.app + " " + what);
+        // Dokun: bildirimi aç (WhatsApp sohbeti, arama geçmişi). Basılı tut: bu ekrandan gizle.
+        tile.setOnClickListener(v -> {
+            try {
+                if (it.open != null) {
+                    if (android.os.Build.VERSION.SDK_INT >= 34) {
+                        android.app.ActivityOptions o = android.app.ActivityOptions.makeBasic();
+                        o.setPendingIntentBackgroundActivityStartMode(
+                                android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+                        it.open.send(this, 0, null, null, null, null, o.toBundle());
+                    } else {
+                        it.open.send();
+                    }
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Açılamadı", Toast.LENGTH_SHORT).show();
+            }
+            Notifs.hide(it.key);
+        });
+        tile.setOnLongClickListener(v -> { Notifs.hide(it.key); return true; });
+    }
+
     // ---------- Müzik kutusunda kaydırarak şarkı değiştirme ----------
 
     private android.view.GestureDetector swipe;
@@ -907,6 +966,8 @@ public class MainActivity extends Activity {
 
         NavState.listener = this::renderNav;
         renderNav();
+        Notifs.listener = this::renderNotifs;
+        renderNotifs();
 
         if (hasListenerAccess()) {
             try {
@@ -929,6 +990,7 @@ public class MainActivity extends Activity {
         status.pause();
         seek.removeCallbacks(progressTick);
         NavState.listener = null;
+        Notifs.listener = null;
         try {
             msm.removeOnActiveSessionsChangedListener(sessionsListener);
         } catch (Exception ignored) {

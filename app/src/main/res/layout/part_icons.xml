@@ -13,6 +13,39 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
+        <!-- Bildirimler: WhatsApp/SMS mesajları ve cevapsız aramalar (kimden, kaç tane) -->
+        <LinearLayout
+            android:id="@+id/notifTile"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:background="@drawable/btn_outline"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:id="@+id/notifIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_bell"
+                android:tint="@color/muted"
+                android:contentDescription="@null" />
+            <TextView
+                android:id="@+id/notifText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:textSize="15sp"
+                android:textColor="@color/fg" />
+        </LinearLayout>
+
         <!-- Hava: solda şimdi, sağda 1 saat sonra ya da varış yerinde (iki düğme genişliğinde) -->
         <LinearLayout
             android:id="@+id/weatherTile"

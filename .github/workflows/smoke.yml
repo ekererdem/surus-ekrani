@@ -29,6 +29,7 @@ jobs:
           script: |
             adb install -r -g app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
+            adb shell cmd notification allow_listener com.erdem.surusekrani/com.erdem.surusekrani.MediaListener || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 4 ; adb shell am force-stop com.erdem.surusekrani
             adb shell "mkdir -p /data/data/com.erdem.surusekrani/shared_prefs && echo '<?xml version=\"1.0\" encoding=\"utf-8\"?><map><boolean name=\"autoSplit\" value=\"false\" /><string name=\"call1Name\">Ahmet</string><string name=\"call1Num\">05551112233</string><string name=\"place1Name\">Ev</string><string name=\"place1Coord\">39.9,32.8</string><string name=\"place1Icon\">home</string></map>' > /data/data/com.erdem.surusekrani/shared_prefs/surus.xml"
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 15
@@ -53,7 +54,7 @@ jobs:
           x=open('ui.xml').read()
           out=[]
           for m in re.finditer(r'resource-id="com\.erdem\.surusekrani:id/(\w+)"[^>]*?bounds="([^"]+)"', x):
-              if m.group(1) in ('statusTile','weatherTile','parkBtn','assistBtn','settingsBtn','iconsRow1','iconsRow2','call1Btn'):
+              if m.group(1) in ('statusTile','weatherTile','parkBtn','assistBtn','settingsBtn','iconsRow1','iconsRow2','call1Btn','notifTile'):
                   out.append(m.group(1)+' '+m.group(2))
           pk=sorted(set(re.findall(r'package="([^"]+)"', x)))
           txt=re.findall(r'text="([^"]+)"', x)[:15]
