@@ -152,5 +152,7 @@
         <Button android:id="@+id/backBtn" style="@style/OutlineBtn" android:layout_width="match_parent"
             android:layout_marginTop="32dp" android:background="@drawable/tile_amber"
             android:textColor="@color/amber_ink" android:text="Kaydet" />
+        <TextView android:id="@+id/versionText" style="@style/Note" android:gravity="center"
+            android:layout_marginTop="12dp" />
     </LinearLayout>
 </ScrollView>

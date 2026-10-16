@@ -50,6 +50,12 @@ public class SettingsActivity extends Activity {
         music.setOnCheckedChangeListener((g, id) ->
                 p.edit().putString("music", id == R.id.rbYtm ? "ytm" : "spotify").apply());
 
+        try {
+            ((TextView) findViewById(R.id.versionText)).setText("Sürüm " +
+                    getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+        } catch (Exception ignored) {
+        }
+
         RadioGroup apps = findViewById(R.id.radioApps);
         int ac = Shortcuts.max(this);
         apps.check(ac <= 3 ? R.id.rbApps3 : ac >= 5 ? R.id.rbApps5 : R.id.rbApps4);
