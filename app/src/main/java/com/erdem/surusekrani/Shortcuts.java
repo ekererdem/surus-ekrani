@@ -13,9 +13,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/** Müzik çaların altında, Uygulamalar listesindeki ilk dört uygulamanın kısayolu. */
+/** Müzik çaların altında, Uygulamalar listesindeki ilk uygulamaların kısayolu (sayısı Ayarlar'dan). */
 final class Shortcuts {
-    private static final int MAX = 4;
+    /** Ayarlar'dan seçilen kısayol sayısı (3-5). */
+    static int max(Context c) {
+        return c.getSharedPreferences("surus", Context.MODE_PRIVATE).getInt("appCount", 4);
+    }
 
     private Shortcuts() {}
 
@@ -24,6 +27,7 @@ final class Shortcuts {
         if (row == null) return;
         row.removeAllViews();
         PackageManager pm = a.getPackageManager();
+        final int MAX = max(a);
 
         String saved = a.getSharedPreferences("surus", Context.MODE_PRIVATE).getString("favApps", "");
         int count = 0;

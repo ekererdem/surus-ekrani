@@ -13,14 +13,45 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
-        <TextView
+        <!-- Hava: solda şimdi, sağda 2 saat sonra ya da varış yerinde (iki düğme genişliğinde) -->
+        <LinearLayout
             android:id="@+id/weatherTile"
-            style="@style/QuickText"
-            android:textSize="17sp"
-            android:clickable="false"
-            android:focusable="false"
-            android:contentDescription="Hava durumu"
-            android:text="–" />
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:background="@drawable/btn_outline"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:contentDescription="Hava durumu">
+            <TextView
+                android:id="@+id/wNow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:maxLines="2"
+                android:includeFontPadding="false"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/fg"
+                android:text="–" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="26dp"
+                android:background="@color/line" />
+            <TextView
+                android:id="@+id/wLater"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:maxLines="2"
+                android:includeFontPadding="false"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/fg"
+                android:text="–" />
+        </LinearLayout>
 
         <!-- Durum: çekim, Bluetooth, pil (iki düğme genişliğinde) -->
         <LinearLayout

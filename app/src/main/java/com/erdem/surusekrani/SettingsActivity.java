@@ -50,6 +50,12 @@ public class SettingsActivity extends Activity {
         music.setOnCheckedChangeListener((g, id) ->
                 p.edit().putString("music", id == R.id.rbYtm ? "ytm" : "spotify").apply());
 
+        RadioGroup apps = findViewById(R.id.radioApps);
+        int ac = Shortcuts.max(this);
+        apps.check(ac <= 3 ? R.id.rbApps3 : ac >= 5 ? R.id.rbApps5 : R.id.rbApps4);
+        apps.setOnCheckedChangeListener((g, id) -> p.edit().putInt("appCount",
+                id == R.id.rbApps3 ? 3 : id == R.id.rbApps5 ? 5 : 4).apply());
+
         RadioGroup scale = findViewById(R.id.radioScale);
         float sc = getSharedPreferences("surus", MODE_PRIVATE).getFloat("scale", 1f);
         scale.check(sc <= 0.71f ? R.id.rbScaleXS : sc <= 0.86f ? R.id.rbScaleS : sc >= 1.1f ? R.id.rbScaleL : R.id.rbScaleM);

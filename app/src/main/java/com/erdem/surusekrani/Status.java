@@ -309,16 +309,25 @@ final class Status {
         }
     }
 
+    /** Yeni rota başlayınca hemen yenile. */
+    void refreshWeather() {
+        lastWeather = 0;
+        loadWeather();
+    }
+
     private void loadWeather() {
         if (System.currentTimeMillis() - lastWeather < WEATHER_EVERY) return;
         Location l = lastLocation();
         if (l == null) return;
         lastWeather = System.currentTimeMillis();
+        double lat = l.getLatitude(), lon = l.getLongitude();
         String url = String.format(Locale.US,
                 "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
                         + "&current=temperature_2m,weather_code,is_day"
-                        + "&hourly=weather_code,precipitation_probability,precipitation&forecast_hours=3&timezone=auto",
-                l.getLatitude(), l.getLongitude());
+                        + "&hourly=temperature_2m,weather_code,is_day,precipitation_probability,precipitation"
+                        + "&forecast_hours=4&timeformat=unixtime&timezone=auto",
+                lat, lon);
+        String dest = activeDest(lat, lon);
         io.execute(() -> {
             try {
                 JSONObject all = new JSONObject(Route.get(url));
@@ -326,7 +335,7 @@ final class Status {
                 int t = (int) Math.round(cur.getDouble("temperature_2m"));
                 int code = cur.getInt("weather_code");
                 boolean day = cur.optInt("is_day", 1) == 1;
-                // Şu an ve önümüzdeki 3 saatte en kötü durum: fırtına > kar > yağmur > sis
+                // Şu an ve önümüzdeki saatlerde en kötü durum: fırtına > kar > yağmur > sis
                 int sev = severity(code);
                 JSONObject hr = all.optJSONObject("hourly");
                 if (hr != null) {
@@ -340,14 +349,93 @@ final class Status {
                     for (int i = 0; pr != null && i < pr.length(); i++) if (pr.optDouble(i, 0) >= 0.3) wet = true;
                     if (wet) sev = Math.max(sev, t <= 1 ? 3 : 2);
                 }
+                // Sağ bölüm: 2 saat sonrası (burada) ya da rota varsa varış yerinde varış saati
+                long target = System.currentTimeMillis() / 1000 + 2 * 3600;
+                String label = null;
+                int[] later = null;
+                if (dest != null) {
+                    try {
+                        String[] d = dest.split(",");
+                        double dl = Double.parseDouble(d[0].trim()), dn = Double.parseDouble(d[1].trim());
+                        long arrive = System.currentTimeMillis() / 1000 + driveSeconds(lat, lon, dl, dn);
+                        int hours = (int) Math.min(48, (arrive - System.currentTimeMillis() / 1000) / 3600 + 2);
+                        JSONObject dw = new JSONObject(Route.get(String.format(Locale.US,
+                                "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
+                                        + "&hourly=temperature_2m,weather_code,is_day&forecast_hours=%d"
+                                        + "&timeformat=unixtime&timezone=auto", dl, dn, Math.max(2, hours))));
+                        later = pick(dw.getJSONObject("hourly"), arrive);
+                        if (later != null) label = "Varış " + hhmm(arrive);
+                    } catch (Exception ignored) {
+                        later = null;
+                    }
+                }
+                if (later == null && hr != null) {
+                    later = pick(hr, target);
+                    label = hhmm(target);
+                }
                 String hz = HAZARDS[sev];
-                sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day).putString("wH", hz)
-                        .putLong("wAt", System.currentTimeMillis()).apply();
+                SharedPreferences.Editor e = sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day)
+                        .putString("wH", hz).putLong("wAt", System.currentTimeMillis());
+                if (later != null) e.putInt("lT", later[0]).putInt("lC", later[1])
+                        .putBoolean("lD", later[2] == 1).putString("lL", label);
+                e.apply();
                 a.runOnUiThread(() -> { showWeather(t, code, day, hz); night = null; applyNight(); });
             } catch (Exception e) {
                 lastWeather = 0; // bir dakika sonra tekrar dene
             }
         });
+    }
+
+    /** Uygulamadan başlatılan rotanın hedefi; vardıysan ya da 12 saat geçtiyse yok sayılır. */
+    private String activeDest(double lat, double lon) {
+        String d = sp.getString("destCoord", "");
+        if (d.isEmpty()) return null;
+        if (System.currentTimeMillis() - sp.getLong("destAt", 0) > 12 * 3600 * 1000L) {
+            sp.edit().remove("destCoord").apply();
+            return null;
+        }
+        try {
+            String[] p = d.split(",");
+            float[] r = new float[1];
+            Location.distanceBetween(lat, lon, Double.parseDouble(p[0].trim()), Double.parseDouble(p[1].trim()), r);
+            if (r[0] < 1000) { // vardın
+                sp.edit().remove("destCoord").apply();
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return d;
+    }
+
+    /** Sürüş süresi (sn): OSRM, olmazsa kuş uçuşu mesafe / 70 km/s. */
+    private static long driveSeconds(double la, double lo, double lb, double lob) {
+        try {
+            JSONObject r = new JSONObject(Route.get(String.format(Locale.US,
+                    "https://router.project-osrm.org/route/v1/driving/%.6f,%.6f;%.6f,%.6f?overview=false",
+                    lo, la, lob, lb)));
+            return Math.round(r.getJSONArray("routes").getJSONObject(0).getDouble("duration"));
+        } catch (Exception e) {
+            float[] d = new float[1];
+            Location.distanceBetween(la, lo, lb, lob, d);
+            return Math.round(d[0] * 1.3 / (70 / 3.6));
+        }
+    }
+
+    /** Saatlik tahminden hedef zamana en yakın saat: {sıcaklık, kod, gündüz mü}. */
+    private static int[] pick(JSONObject hr, long when) {
+        org.json.JSONArray ti = hr.optJSONArray("time"), te = hr.optJSONArray("temperature_2m"),
+                wc = hr.optJSONArray("weather_code"), dy = hr.optJSONArray("is_day");
+        if (ti == null || te == null || wc == null || ti.length() == 0) return null;
+        int best = 0;
+        for (int i = 1; i < ti.length(); i++)
+            if (Math.abs(ti.optLong(i) - when) < Math.abs(ti.optLong(best) - when)) best = i;
+        return new int[]{(int) Math.round(te.optDouble(best)), wc.optInt(best),
+                dy == null ? 1 : dy.optInt(best, 1)};
+    }
+
+    private static String hhmm(long sec) {
+        return new java.text.SimpleDateFormat("HH:mm", Locale.US).format(new java.util.Date(sec * 1000));
     }
 
     private static final String[] HAZARDS = {"", "fog", "rain", "snow", "storm"};
@@ -363,18 +451,23 @@ final class Status {
 
     private void showWeather(int temp, int code, boolean day, String hazard) {
         weatherTemp.setText(icon(code, day) + " " + temp + "°");
-        TextView tile = a.findViewById(R.id.weatherTile);
-        if (tile != null) {
-            tile.setText(icon(code, day) + " " + temp + "°");
-            tile.setBackgroundTintList(null);
-            tile.setTextColor(a.getColor(R.color.fg));
-            // Yağmur/kar/sis/fırtına bekleniyorsa yanında küçük kırmızı simge
+        View tile = a.findViewById(R.id.weatherTile);
+        TextView now = a.findViewById(R.id.wNow), later = a.findViewById(R.id.wLater);
+        if (tile != null && now != null && later != null) {
+            now.setText(twoLine("Şimdi", icon(code, day) + " " + temp + "°"));
+            String lbl = sp.getString("lL", "");
+            if (!lbl.isEmpty()) {
+                int lt = sp.getInt("lT", 0), lc = sp.getInt("lC", 0);
+                later.setText(twoLine(lbl, icon(lc, sp.getBoolean("lD", true)) + " " + lt + "°"));
+            } else {
+                later.setText("–");
+            }
+            // Yağmur/kar/sis/fırtına bekleniyorsa sağ üst köşede küçük kırmızı rozet
             int res = "storm".equals(hazard) ? R.drawable.ic_w_storm
                     : "snow".equals(hazard) ? R.drawable.ic_w_snow
                     : "rain".equals(hazard) ? R.drawable.ic_w_rain
                     : "fog".equals(hazard) ? R.drawable.ic_w_fog : 0;
             if (res != 0) {
-                // Yazıyı daraltmasın diye düğmenin sağ üst köşesinde rozet olarak çizilir
                 float dp = a.getResources().getDisplayMetrics().density;
                 android.graphics.drawable.Drawable d = a.getDrawable(res).mutate();
                 d.setTint(a.getColor(R.color.low));
@@ -394,6 +487,16 @@ final class Status {
                     + (what.isEmpty() ? "" : ", " + what + " bekleniyor"));
         }
         weatherDesc.setText(describe(code));
+    }
+
+    /** Üstte küçük gri etiket, altta simge + derece. */
+    private CharSequence twoLine(String label, String value) {
+        android.text.SpannableStringBuilder b = new android.text.SpannableStringBuilder(label);
+        b.setSpan(new android.text.style.RelativeSizeSpan(0.7f), 0, label.length(), 0);
+        b.setSpan(new android.text.style.ForegroundColorSpan(a.getColor(R.color.muted)), 0, label.length(), 0);
+        b.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.NORMAL), 0, label.length(), 0);
+        b.append("\n").append(value);
+        return b;
     }
 
     private static String icon(int c, boolean day) {

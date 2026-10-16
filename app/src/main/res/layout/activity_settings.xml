@@ -43,6 +43,14 @@
             <RadioButton android:id="@+id/rbYtm" style="@style/Option" android:text="YouTube Music" />
         </RadioGroup>
 
+        <TextView style="@style/SectionTitle" android:text="Uygulama kısayolları" />
+        <RadioGroup android:id="@+id/radioApps" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton android:id="@+id/rbApps3" style="@style/Option" android:layout_width="0dp" android:layout_weight="1" android:text="3" />
+            <RadioButton android:id="@+id/rbApps4" style="@style/Option" android:layout_width="0dp" android:layout_weight="1" android:text="4" />
+            <RadioButton android:id="@+id/rbApps5" style="@style/Option" android:layout_width="0dp" android:layout_weight="1" android:text="5" />
+        </RadioGroup>
+
         <TextView style="@style/SectionTitle" android:text="Ekran ölçeği" />
         <RadioGroup android:id="@+id/radioScale" android:layout_width="match_parent" android:layout_height="wrap_content">
             <RadioButton android:id="@+id/rbScaleXS" style="@style/Option" android:text="Çok küçük" />

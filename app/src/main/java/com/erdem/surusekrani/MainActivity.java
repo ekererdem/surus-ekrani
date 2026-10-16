@@ -239,7 +239,7 @@ public class MainActivity extends Activity {
 
     /** Üst sıra: durum, hava, araba, mikrofon, ayarlar. */
     private static final int[] ROW1 = {
-            R.id.statusTile, R.id.weatherTile, R.id.parkBtn, R.id.assistBtn, R.id.settingsBtn};
+            R.id.statusTile, R.id.weatherTile, R.id.parkBtn, R.id.assistBtn};
     /** Alt sıra: hızlı aramalar, sonra hızlı rotalar (koddan eklenir). */
     static final int[] CALLS = {R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
     private static final int[] QUICK = {
@@ -263,6 +263,7 @@ public class MainActivity extends Activity {
         for (int id : ROW1) addQuick(r1, views.get(id));
         for (int id : CALLS) addQuick(r2, views.get(id));
         for (View v : buildPlaceButtons()) addQuick(r2, v);
+        addQuick(r2, views.get(R.id.settingsBtn)); // ayarlar alt sıranın sonunda
         findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
     }
 
@@ -345,7 +346,7 @@ public class MainActivity extends Activity {
 
     private static int weightOf(View v) {
         int id = v.getId();
-        if (id == R.id.statusTile) return 2;
+        if (id == R.id.statusTile || id == R.id.weatherTile) return 2;
         for (int c : CALLS) if (c == id) return 2;
         return 1;
     }
@@ -827,6 +828,10 @@ public class MainActivity extends Activity {
             openOwn(new Intent(this, SettingsActivity.class));
         } else {
             Apps.openNavSplit(this, p, addr);
+            // Hava tuşu varış yerinin havasını göstersin
+            getSharedPreferences("surus", MODE_PRIVATE).edit()
+                    .putString("destCoord", addr).putLong("destAt", System.currentTimeMillis()).apply();
+            status.refreshWeather();
         }
     }
 
