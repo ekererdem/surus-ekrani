@@ -363,7 +363,7 @@ public class SettingsActivity extends Activity {
             row.addView(cb, new android.widget.LinearLayout.LayoutParams(0,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
-            android.widget.TextView rowBtn = smallBtn(e.row == 1 ? "Üst" : "Alt", Math.round(56 * d));
+            android.widget.TextView rowBtn = smallBtn(e.row == 1 ? "Üst sıra" : "Alt sıra", Math.round(88 * d));
             rowBtn.setOnClickListener(v -> {
                 e.row = e.row == 1 ? 2 : 1;
                 Layout.save(this, l);

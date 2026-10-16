@@ -69,7 +69,7 @@ jobs:
           import re
           x=open('ui2.xml').read()
           cb=re.findall(r'text="([^"]+)"[^>]*class="android.widget.CheckBox"[^>]*checked="(\w+)"', x)
-          rows=[t for t in re.findall(r'text="([^"]+)"', x) if t in ('Üst','Alt')]
+          rows=[t for t in re.findall(r'text="([^"]+)"', x) if t in ('Üst sıra','Alt sıra')]
           print('::notice::cb='+str(cb)+' rows='+str(rows))
           PY
       - uses: actions/upload-artifact@v4

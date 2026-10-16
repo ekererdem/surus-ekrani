@@ -555,7 +555,7 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Konum bulunamadı", Toast.LENGTH_SHORT).show();
             return;
         }
-        String text = "Yoldayım. Konumum: https://maps.google.com/?q=" + c;
+        String text = "Yoldayım. İşte konumum: https://maps.google.com/?q=" + c;
         String d = num.replaceAll("[^0-9]", "");
         if (d.startsWith("00")) d = d.substring(2);
         else if (d.startsWith("0")) d = "90" + d.substring(1);
