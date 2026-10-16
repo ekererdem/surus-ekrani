@@ -41,10 +41,7 @@ final class Shortcuts {
                 }
             }
         }
-        // Kutular hep aynı boyutta (5'li düzenin bir kutusu), ortada durur
-        int n = Math.max(1, apps.size());
-        float side = (MAX - n) / 2f;
-        if (side > 0) row.addView(new View(a), new LinearLayout.LayoutParams(0, 1, side));
+        // Kutular satırı eşit paylaşır: 2 uygulama = iki yarım, 5 uygulama = beşte bir
         if (apps.isEmpty()) {
             View tile = tile(a, row, 0);
             ImageView icon = tile.findViewWithTag("icon");
@@ -68,11 +65,6 @@ final class Shortcuts {
                     .setComponent(cn)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)));
             tile.setOnLongClickListener(v -> { openEditor(a); return true; });
-        }
-        if (side > 0) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, 1, side);
-            lp.setMarginStart(dp(a, 8));
-            row.addView(new View(a), lp);
         }
     }
 
