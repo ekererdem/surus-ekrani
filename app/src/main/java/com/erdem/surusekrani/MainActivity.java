@@ -237,9 +237,9 @@ public class MainActivity extends Activity {
 
     // ---------- Hızlı düğmeler (iki sıra) ----------
 
-    /** Üst sıra: durum, hava, araba, mikrofon, ayarlar. */
+    /** Üst sıra: mikrofon, hava, araba, durum. */
     private static final int[] ROW1 = {
-            R.id.statusTile, R.id.weatherTile, R.id.parkBtn, R.id.assistBtn};
+            R.id.assistBtn, R.id.weatherTile, R.id.parkBtn, R.id.statusTile};
     /** Alt sıra: hızlı aramalar, sonra hızlı rotalar (koddan eklenir). */
     static final int[] CALLS = {R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
     private static final int[] QUICK = {
