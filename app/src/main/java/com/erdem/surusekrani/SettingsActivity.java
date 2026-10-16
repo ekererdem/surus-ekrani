@@ -62,11 +62,22 @@ public class SettingsActivity extends Activity {
         apps.setOnCheckedChangeListener((g, id) -> p.edit().putInt("appCount",
                 id == R.id.rbApps3 ? 3 : id == R.id.rbApps5 ? 5 : 4).apply());
 
-        RadioGroup scale = findViewById(R.id.radioScale);
+        // Ekran ölçeği: %70 – %120, 5'er adım
+        android.widget.SeekBar scaleSeek = findViewById(R.id.scaleSeek);
+        TextView scaleText = findViewById(R.id.scaleText);
         float sc = getSharedPreferences("surus", MODE_PRIVATE).getFloat("scale", 1f);
-        scale.check(sc <= 0.71f ? R.id.rbScaleXS : sc <= 0.86f ? R.id.rbScaleS : sc >= 1.1f ? R.id.rbScaleL : R.id.rbScaleM);
-        scale.setOnCheckedChangeListener((g, id) -> p.edit().putFloat("scale",
-                id == R.id.rbScaleXS ? 0.7f : id == R.id.rbScaleS ? 0.85f : id == R.id.rbScaleL ? 1.15f : 1f).apply());
+        int prog = Math.max(0, Math.min(10, Math.round((sc - 0.7f) / 0.05f)));
+        scaleSeek.setProgress(prog);
+        scaleText.setText("%" + (70 + prog * 5));
+        scaleSeek.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(android.widget.SeekBar sb, int v, boolean user) {
+                scaleText.setText("%" + (70 + v * 5));
+            }
+            @Override public void onStartTrackingTouch(android.widget.SeekBar sb) {}
+            @Override public void onStopTrackingTouch(android.widget.SeekBar sb) {
+                p.edit().putFloat("scale", 0.7f + sb.getProgress() * 0.05f).apply();
+            }
+        });
 
 
         Places.migrate(this);
@@ -113,23 +124,11 @@ public class SettingsActivity extends Activity {
             @Override public void onStopTrackingTouch(android.widget.SeekBar sb) {}
         });
 
-        Switch launcher = findViewById(R.id.swLauncher);
-        launcher.setChecked(isLauncherEnabled());
-        launcher.setOnCheckedChangeListener((b, on) -> {
-            setLauncherEnabled(on);
-            if (on) {
-                Toast.makeText(this, "Listeden Sürüş Ekranı'nı seç", Toast.LENGTH_LONG).show();
-                safeStart(new Intent(Settings.ACTION_HOME_SETTINGS));
-            }
-        });
-
         findViewById(R.id.carBtn).setOnClickListener(v -> pickCar());
         findViewById(R.id.overlayBtn).setOnClickListener(v -> safeStart(new Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()))));
         findViewById(R.id.notifBtn).setOnClickListener(v -> askNotifications());
         findViewById(R.id.xiaomiBtn).setOnClickListener(v -> openXiaomiPermissions());
-        findViewById(R.id.homeAppBtn).setOnClickListener(v ->
-                safeStart(new Intent(Settings.ACTION_HOME_SETTINGS)));
         findViewById(R.id.backBtn).setOnClickListener(v -> finish());
         findViewById(R.id.listenerBtn).setOnClickListener(v ->
                 safeStart(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
@@ -653,23 +652,6 @@ public class SettingsActivity extends Activity {
         }
     }
 
-    // ---------- Ana ekran modu ----------
-
-    private ComponentName homeAlias() {
-        return new ComponentName(this, getPackageName() + ".HomeAlias");
-    }
-
-    private boolean isLauncherEnabled() {
-        return getPackageManager().getComponentEnabledSetting(homeAlias())
-                == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
-    }
-
-    private void setLauncherEnabled(boolean on) {
-        getPackageManager().setComponentEnabledSetting(homeAlias(),
-                on ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                   : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
-    }
 
     private void safeStart(Intent i) {
         try {

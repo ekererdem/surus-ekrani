@@ -794,7 +794,9 @@ public class MainActivity extends Activity {
         if (icon == null || text == null) return;
         List<Notifs.Item> l = Notifs.list();
         if (l.isEmpty()) {
-            icon.setVisibility(View.GONE); // boşken simge yok, sadece yazı
+            icon.setVisibility(View.GONE); // boşken simge yok, sadece ortalı yazı
+            text.setGravity(android.view.Gravity.CENTER);
+            ((android.widget.LinearLayout.LayoutParams) text.getLayoutParams()).setMarginStart(0);
             text.setText(hasListenerAccess() ? "Bildirim yok" : "Bildirim erişimi kapalı");
             text.setTextColor(getColor(R.color.muted));
             tile.setOnClickListener(null);
@@ -805,6 +807,9 @@ public class MainActivity extends Activity {
         Notifs.Item it = l.get(0);
         // Sadece mesajın geldiği uygulamanın simgesi (WhatsApp vb.)
         icon.setVisibility(it.icon != null ? View.VISIBLE : View.GONE);
+        text.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START);
+        ((android.widget.LinearLayout.LayoutParams) text.getLayoutParams()).setMarginStart(
+                Math.round(8 * getResources().getDisplayMetrics().density));
         if (it.icon != null) {
             icon.setImageDrawable(it.icon);
             icon.setImageTintList(null);

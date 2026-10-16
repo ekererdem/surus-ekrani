@@ -23,12 +23,6 @@
             android:textSize="36sp"
             android:textColor="@color/fg" />
 
-        <!-- Uygulamalar -->
-        <TextView style="@style/SectionTitle" android:text="Harici navigasyon uygulaması" />
-        <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
-            <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
-        </RadioGroup>
         <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
             android:text="Kutucukla aç/kapat, Üst sıra/Alt sıra ile satırını seç, oklarla sırasını değiştir." />
@@ -37,14 +31,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
-        <Button android:id="@+id/layoutReset" style="@style/OutlineBtn" android:layout_width="match_parent"
-            android:layout_marginTop="10dp" android:text="Varsayılan düzene dön" />
+        <TextView android:id="@+id/layoutReset" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="end" android:layout_marginTop="8dp" android:padding="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:textSize="14sp" android:textColor="@color/amber" android:text="Varsayılan düzene dön" />
+
+        <TextView style="@style/SectionTitle" android:text="Navigasyon uygulaması" />
+        <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
+            <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
+        </RadioGroup>
         <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="14dp"
             android:text="Açılınca haritayı yan yana başlat" />
         <TextView style="@style/Note"
             android:text="Haritanın ekrandaki payını ortadaki ayırma çizgisini sürükleyerek ayarlayabilirsin." />
 
         <TextView style="@style/SectionTitle" android:text="Müzik uygulaması" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Ana ekrandaki müzik kutusunu sola kaydırınca sonraki, sağa kaydırınca önceki şarkıya geçer." />
         <RadioGroup android:id="@+id/radioMusic" android:layout_width="match_parent" android:layout_height="wrap_content">
             <RadioButton android:id="@+id/rbSpotify" style="@style/Option" android:text="Spotify" />
             <RadioButton android:id="@+id/rbYtm" style="@style/Option" android:text="YouTube Music" />
@@ -59,12 +63,30 @@
         </RadioGroup>
 
         <TextView style="@style/SectionTitle" android:text="Ekran ölçeği" />
-        <RadioGroup android:id="@+id/radioScale" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/rbScaleXS" style="@style/Option" android:text="Çok küçük" />
-            <RadioButton android:id="@+id/rbScaleS" style="@style/Option" android:text="Küçük" />
-            <RadioButton android:id="@+id/rbScaleM" style="@style/Option" android:text="Normal" />
-            <RadioButton android:id="@+id/rbScaleL" style="@style/Option" android:text="Büyük" />
-        </RadioGroup>
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Çubuğu sağa ya da sola kaydırarak ana ekrandaki her şeyi büyütüp küçült." />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <SeekBar
+                android:id="@+id/scaleSeek"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:max="10"
+                android:progressTint="@color/amber"
+                android:progressBackgroundTint="@color/line"
+                android:thumbTint="@color/amber" />
+            <TextView
+                android:id="@+id/scaleText"
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textSize="17sp"
+                android:textColor="@color/fg" />
+        </LinearLayout>
 
         <!-- Adresler -->
         <TextView style="@style/SectionTitle" android:text="Hızlı arama (en fazla 5)" />
@@ -86,7 +108,7 @@
             android:orientation="vertical" />
 
         <!-- Araba -->
-        <TextView style="@style/SectionTitle" android:text="Araba Bluetooth'u" />
+        <TextView style="@style/SectionTitle" android:text="Araç Bluetooth bağlantısı" />
         <TextView android:id="@+id/carStatus" style="@style/Note" android:layout_marginTop="0dp"
             android:textColor="@color/fg" android:textSize="17sp" />
         <Button android:id="@+id/carBtn" style="@style/OutlineBtn" android:layout_width="match_parent"
@@ -146,15 +168,6 @@
             android:text="Açılan listede Sürüş Ekranı gri ve kapalıysa: 5 numaralı butona bas, sağ üstteki üç noktadan Kısıtlı ayarlara izin ver de, sonra 4'ü tekrar dene." />
         <Button android:id="@+id/appInfoBtn" style="@style/OutlineBtn" android:layout_width="match_parent"
             android:layout_marginTop="10dp" android:text="5. Uygulama bilgisi" />
-
-        <!-- Ana ekran -->
-        <TextView style="@style/SectionTitle" android:text="Ana ekran" />
-        <Switch android:id="@+id/swLauncher" style="@style/Toggle"
-            android:text="Ana ekran olarak kullanılabilsin" />
-        <TextView style="@style/Note"
-            android:text="Açınca telefon hangi ana ekranı kullanacağını sorar. Eski ana ekranına dönmek için aşağıdaki butondan HyperOS'u seç." />
-        <Button android:id="@+id/homeAppBtn" style="@style/OutlineBtn" android:layout_width="match_parent"
-            android:layout_marginTop="10dp" android:text="Varsayılan ana ekranı değiştir" />
 
         <Button android:id="@+id/backBtn" style="@style/OutlineBtn" android:layout_width="match_parent"
             android:layout_marginTop="32dp" android:background="@drawable/tile_amber"
