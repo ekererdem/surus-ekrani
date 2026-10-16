@@ -152,12 +152,23 @@ public class SettingsActivity extends Activity {
         int n = Places.count(this);
         for (int i = 1; i <= n; i++) {
             final int slot = i;
-            android.widget.Button b = placeButton();
             String label = Places.label(this, i);
-            b.setText(Places.name(this, i) + (label.isEmpty() ? "" : "  ·  " + shortLabel(label)));
-            setIconOn(b, Places.iconRes(Places.icon(this, i)), R.color.amber);
-            b.setOnClickListener(v -> editPlace(slot));
-            list.addView(b);
+            list.addView(itemRow(Places.iconRes(Places.icon(this, i)), R.color.amber,
+                    Places.name(this, i) + (label.isEmpty() ? "" : "  ·  " + shortLabel(label)),
+                    // simgeye dokun: simge seç
+                    v -> chooseIcon(Places.iconIndex(Places.icon(this, slot)), key -> {
+                        Places.setIcon(this, slot, key);
+                        renderPlaces();
+                    }),
+                    v -> askName(Places.name(this, slot), name -> {
+                        Places.setName(this, slot, name);
+                        renderPlaces();
+                    }),
+                    v -> {
+                        Places.remove(this, slot);
+                        renderPlaces();
+                        Toast.makeText(this, "Silindi", Toast.LENGTH_SHORT).show();
+                    }));
         }
         if (n < Places.MAX) {
             android.widget.Button add = placeButton();
@@ -166,6 +177,59 @@ public class SettingsActivity extends Activity {
             add.setOnClickListener(v -> addPlace(n + 1));
             list.addView(add);
         }
+    }
+
+    /** Liste satırı: [simge] ad ............ İsim ver   Sil  — satırın kendisine dokunmak bir şey yapmaz. */
+    private View itemRow(int iconRes, int iconColor, String text, View.OnClickListener onIcon,
+                         View.OnClickListener onRename, View.OnClickListener onDelete) {
+        float d = getResources().getDisplayMetrics().density;
+        android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+        row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        row.setBackgroundResource(R.drawable.btn_outline);
+        row.setPadding(Math.round(8 * d), 0, Math.round(4 * d), 0);
+        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, Math.round(60 * d));
+        lp.topMargin = Math.round(10 * d);
+        row.setLayoutParams(lp);
+
+        android.widget.ImageView ic = new android.widget.ImageView(this);
+        ic.setImageResource(iconRes);
+        ic.setImageTintList(android.content.res.ColorStateList.valueOf(getColor(iconColor)));
+        int pad = Math.round(9 * d);
+        ic.setPadding(pad, pad, pad, pad);
+        if (onIcon != null) {
+            android.util.TypedValue tv = new android.util.TypedValue();
+            getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true);
+            ic.setBackgroundResource(tv.resourceId);
+            ic.setOnClickListener(onIcon);
+            ic.setContentDescription("Simgeyi değiştir");
+        }
+        row.addView(ic, new android.widget.LinearLayout.LayoutParams(Math.round(44 * d), Math.round(44 * d)));
+
+        TextView name = new TextView(this);
+        name.setText(text);
+        name.setTextSize(17);
+        name.setTextColor(getColor(R.color.fg));
+        name.setSingleLine(true);
+        name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        android.widget.LinearLayout.LayoutParams nlp = new android.widget.LinearLayout.LayoutParams(0,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        nlp.setMarginStart(Math.round(6 * d));
+        row.addView(name, nlp);
+
+        TextView rename = smallBtn("İsim ver", Math.round(76 * d));
+        rename.setTextSize(15);
+        rename.setTextColor(getColor(R.color.amber));
+        rename.setOnClickListener(onRename);
+        row.addView(rename);
+
+        TextView del = smallBtn("Sil", Math.round(48 * d));
+        del.setTextSize(15);
+        del.setTextColor(getColor(R.color.low));
+        del.setOnClickListener(onDelete);
+        row.addView(del);
+        return row;
     }
 
     private android.widget.Button placeButton() {
@@ -499,11 +563,16 @@ public class SettingsActivity extends Activity {
             final int slot = i;
             String name = sp.getString("call" + i + "Name", ""), num = sp.getString("call" + i + "Num", "");
             String lbl = sp.getString("call" + i + "Label", "");
-            android.widget.Button b = placeButton();
-            b.setText((lbl.isEmpty() ? "" : lbl + "  ·  ") + (name.isEmpty() ? num : name));
-            setIconOn(b, R.drawable.ic_phone, R.color.teal);
-            b.setOnClickListener(v -> editCall(slot));
-            list.addView(b);
+            list.addView(itemRow(R.drawable.ic_phone, R.color.teal,
+                    (lbl.isEmpty() ? "" : lbl + "  ·  ") + (name.isEmpty() ? num : name),
+                    null,
+                    v -> askCallLabel(slot),
+                    v -> {
+                        sp.edit().remove("call" + slot + "Name").remove("call" + slot + "Num")
+                                .remove("call" + slot + "Label").apply();
+                        setupCalls();
+                        Toast.makeText(this, "Silindi", Toast.LENGTH_SHORT).show();
+                    }));
         }
         if (n < MAX_CALLS) {
             android.widget.Button add = placeButton();
