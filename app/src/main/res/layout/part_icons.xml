@@ -13,7 +13,7 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
-        <!-- Hava: solda şimdi, sağda 2 saat sonra ya da varış yerinde (iki düğme genişliğinde) -->
+        <!-- Hava: solda şimdi, sağda 1 saat sonra ya da varış yerinde (iki düğme genişliğinde) -->
         <LinearLayout
             android:id="@+id/weatherTile"
             android:layout_width="0dp"
@@ -42,7 +42,8 @@
             <TextView
                 android:id="@+id/wLater"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_margin="3dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:maxLines="2"

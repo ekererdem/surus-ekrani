@@ -349,8 +349,8 @@ final class Status {
                     for (int i = 0; pr != null && i < pr.length(); i++) if (pr.optDouble(i, 0) >= 0.3) wet = true;
                     if (wet) sev = Math.max(sev, t <= 1 ? 3 : 2);
                 }
-                // Sağ bölüm: 2 saat sonrası (burada) ya da rota varsa varış yerinde varış saati
-                long target = System.currentTimeMillis() / 1000 + 2 * 3600;
+                // Sağ bölüm: 1 saat sonrası (burada) ya da rota varsa varış yerinde varış saati
+                long target = System.currentTimeMillis() / 1000 + 3600;
                 String label = null;
                 int[] later = null;
                 if (dest != null) {
@@ -361,7 +361,7 @@ final class Status {
                         int hours = (int) Math.min(48, (arrive - System.currentTimeMillis() / 1000) / 3600 + 2);
                         JSONObject dw = new JSONObject(Route.get(String.format(Locale.US,
                                 "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
-                                        + "&hourly=temperature_2m,weather_code,is_day&forecast_hours=%d"
+                                        + "&hourly=temperature_2m,weather_code,is_day,precipitation&forecast_hours=%d"
                                         + "&timeformat=unixtime&timezone=auto", dl, dn, Math.max(2, hours))));
                         later = pick(dw.getJSONObject("hourly"), arrive);
                         if (later != null) label = "Varış " + hhmm(arrive);
@@ -377,7 +377,8 @@ final class Status {
                 SharedPreferences.Editor e = sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day)
                         .putString("wH", hz).putLong("wAt", System.currentTimeMillis());
                 if (later != null) e.putInt("lT", later[0]).putInt("lC", later[1])
-                        .putBoolean("lD", later[2] == 1).putString("lL", label);
+                        .putBoolean("lD", later[2] == 1).putString("lL", label)
+                        .putBoolean("lS", severe(later[1], later[3]));
                 e.apply();
                 a.runOnUiThread(() -> { showWeather(t, code, day, hz); night = null; applyNight(); });
             } catch (Exception e) {
@@ -422,16 +423,28 @@ final class Status {
         }
     }
 
-    /** Saatlik tahminden hedef zamana en yakın saat: {sıcaklık, kod, gündüz mü}. */
+    /** Şiddetli hava: yoğun yağmur/kar, sis, fırtına ya da saatte 2 mm üstü yağış. */
+    private static boolean severe(int c, int precipTenths) {
+        return c == 45 || c == 48                         // sis
+                || c == 63 || c == 65 || c == 66 || c == 67 // orta/kuvvetli, dondurucu yağmur
+                || c == 81 || c == 82                       // kuvvetli sağanak
+                || (c >= 71 && c <= 77) || c == 85 || c == 86 // kar
+                || c >= 95                                  // fırtına
+                || precipTenths >= 20;
+    }
+
+    /** Saatlik tahminden hedef zamana en yakın saat: {sıcaklık, kod, gündüz mü, yağış (mm×10)}. */
     private static int[] pick(JSONObject hr, long when) {
         org.json.JSONArray ti = hr.optJSONArray("time"), te = hr.optJSONArray("temperature_2m"),
-                wc = hr.optJSONArray("weather_code"), dy = hr.optJSONArray("is_day");
+                wc = hr.optJSONArray("weather_code"), dy = hr.optJSONArray("is_day"),
+                pr = hr.optJSONArray("precipitation");
         if (ti == null || te == null || wc == null || ti.length() == 0) return null;
         int best = 0;
         for (int i = 1; i < ti.length(); i++)
             if (Math.abs(ti.optLong(i) - when) < Math.abs(ti.optLong(best) - when)) best = i;
         return new int[]{(int) Math.round(te.optDouble(best)), wc.optInt(best),
-                dy == null ? 1 : dy.optInt(best, 1)};
+                dy == null ? 1 : dy.optInt(best, 1),
+                pr == null ? 0 : (int) Math.round(pr.optDouble(best, 0) * 10)};
     }
 
     private static String hhmm(long sec) {
@@ -462,29 +475,12 @@ final class Status {
             } else {
                 later.setText("–");
             }
-            // Yağmur/kar/sis/fırtına bekleniyorsa sağ üst köşede küçük kırmızı rozet
-            int res = "storm".equals(hazard) ? R.drawable.ic_w_storm
-                    : "snow".equals(hazard) ? R.drawable.ic_w_snow
-                    : "rain".equals(hazard) ? R.drawable.ic_w_rain
-                    : "fog".equals(hazard) ? R.drawable.ic_w_fog : 0;
-            if (res != 0) {
-                float dp = a.getResources().getDisplayMetrics().density;
-                android.graphics.drawable.Drawable d = a.getDrawable(res).mutate();
-                d.setTint(a.getColor(R.color.low));
-                android.graphics.drawable.LayerDrawable badge =
-                        new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{d});
-                badge.setLayerGravity(0, android.view.Gravity.TOP | android.view.Gravity.END);
-                badge.setLayerSize(0, Math.round(15 * dp), Math.round(15 * dp));
-                badge.setLayerInsetTop(0, Math.round(3 * dp));
-                badge.setLayerInsetEnd(0, Math.round(4 * dp));
-                tile.setForeground(badge);
-            } else {
-                tile.setForeground(null);
-            }
-            String what = "storm".equals(hazard) ? "fırtına" : "snow".equals(hazard) ? "kar"
-                    : "rain".equals(hazard) ? "yağmur" : "fog".equals(hazard) ? "sis" : "";
-            tile.setContentDescription("Hava " + temp + " derece, " + describe(code)
-                    + (what.isEmpty() ? "" : ", " + what + " bekleniyor"));
+            // Sol bölüm hiç kırmızı olmaz; sağ bölüm (1 saat sonra) şiddetli havada kırmızı çerçeveli
+            tile.setForeground(null);
+            boolean bad = !lbl.isEmpty() && sp.getBoolean("lS", false);
+            later.setBackgroundResource(bad ? R.drawable.later_alert : 0);
+            tile.setContentDescription("Hava şimdi " + temp + " derece, " + describe(code)
+                    + (bad ? ". " + lbl + " şiddetli hava bekleniyor" : ""));
         }
         weatherDesc.setText(describe(code));
     }
