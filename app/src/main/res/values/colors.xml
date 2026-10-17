@@ -14,4 +14,6 @@
     <color name="chg_low">#FF8A1F</color>
     <color name="chg_mid">#F5D90A</color>
     <color name="chg_high">#3DD68C</color>
+    <color name="alert_yellow">#F5D90A</color>
+    <color name="alert_orange">#FF8A1F</color>
 </resources>

@@ -28,7 +28,6 @@ import java.util.Set;
 
 public class SettingsActivity extends Activity {
     private static final int REQ_BT = 1;
-    private static final int REQ_CAM = 41;
     static final String EXTRA_DO = "do";
     private static final int REQ_NOTIF = 2;
     private static final int PICK_CALL = 21; // 21..25
@@ -88,14 +87,6 @@ public class SettingsActivity extends Activity {
 
         Places.migrate(this);
         setupCalls();
-
-        Switch frontCar = findViewById(R.id.swFrontCar);
-        frontCar.setChecked(FrontCarWatcher.enabled(this));
-        frontCar.setOnCheckedChangeListener((b, on) -> {
-            p.edit().putBoolean("frontCar", on).apply();
-            if (on && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-                requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAM);
-        });
 
         findViewById(R.id.featuresBtn).setOnClickListener(v ->
                 startActivity(new Intent(this, FeaturesActivity.class)));
@@ -758,15 +749,6 @@ public class SettingsActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
-        if (code == REQ_CAM) {
-            boolean ok = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
-            if (!ok) {
-                p.edit().putBoolean("frontCar", false).apply();
-                ((Switch) findViewById(R.id.swFrontCar)).setChecked(false);
-                Toast.makeText(this, "Kamera izni olmadan bu uyarı çalışmaz", Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
         boolean granted = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
         if (code == REQ_BT) {
             if (granted) pickCar();

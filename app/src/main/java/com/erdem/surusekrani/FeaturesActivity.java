@@ -26,10 +26,9 @@ public class FeaturesActivity extends Activity {
         Ui.item(this, box, "🗺️ Hızlı rotalar", "Ev, iş gibi yerlere tek dokunuşla rota. Harita yandaki Yandex/Google'da açılır.");
         Ui.item(this, box, "📞 Hızlı arama", "Dokun: 3 saniye sonra arar (iptal edebilirsin). Basılı tut: WhatsApp ile konumunu gönderir.");
         Ui.item(this, box, "🚗 Arabam nerede", "Basılı tut: park yerini kaydet (not da ekleyebilirsin). Dokun: arabana yürüyüş rotası.");
-        Ui.item(this, box, "🚦 Öndeki araç kalktı", "Dururken arka kamera öndeki aracı izler, araç hareket edince sesle uyarır. Ayarlar → Sürüş yardımı.");
 
         Ui.section(this, box, "Bilgi");
-        Ui.item(this, box, "🌦️ Hava durumu", "Şimdi ve 1 saat sonrası. Yoğun yağmur, kar, sis bekleniyorsa sağ taraf kırmızı çerçeveli. "
+        Ui.item(this, box, "🌦️ Hava durumu", "Şimdi ve 1 saat sonrası. Hava kötüleşecekse sağ taraf sarı, turuncu ya da kırmızı çerçeveli. "
                 + "Hızlı rotayla gidince varış yerinin havası.");
         Ui.item(this, box, "💬 Bildirimler", "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj ekranın altında birkaç saniye görünür. Kutuya dokun: mesajların tamamı. Basılı tut: uygulamaya geç.");
         Ui.item(this, box, "🔋 Telefon durumu", "Çekim, Bluetooth, şarj. Şarjdayken şimşek turuncu → sarı → yeşil dolar. Arabadayken şarj olmuyor ve şarj azsa şimşek kırmızı yanıp söner.");

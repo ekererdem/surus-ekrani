@@ -149,12 +149,7 @@
 
         <!-- Sürüş yardımı -->
         <TextView style="@style/SectionTitle" android:text="Sürüş yardımı" />
-        <Switch android:id="@+id/swFrontCar" style="@style/Toggle"
-            android:text="Öndeki araç kalktı uyarısı" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Trafikte ya da kırmızı ışıkta durunca telefonun arka kamerası öndeki aracı izler; araç hareket edince kısa bir sesle uyarır. Kamera sadece dururken açılır, hareket edince kapanır. Telefonun arka kamerası yolu görmeli." />
-
-        <Switch android:id="@+id/swWave" style="@style/Toggle" android:layout_marginTop="10dp"
+        <Switch android:id="@+id/swWave" style="@style/Toggle"
             android:text="El sallayarak müzik kontrolü" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
             android:text="Elini telefonun üst kısmının üzerinden bir kez geçir: sonraki şarkı. İki kez geçir: durdur / başlat." />

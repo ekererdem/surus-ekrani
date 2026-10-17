@@ -41,8 +41,8 @@ final class Layout {
     /** Ayarlar'da düğme adının altındaki kısa açıklama. */
     static String desc(String key) {
         switch (key) {
-            case "weather": return "Solda şu anki hava, sağda 1 saat sonrası. Yoğun yağmur, kar, sis ya da fırtına "
-                    + "bekleniyorsa sağ taraf kırmızı çerçeveli olur. Hızlı rotayla yola çıkınca sağda varış yerinin havası görünür.";
+            case "weather": return "Solda şu anki hava, sağda 1 saat sonrası. Hava kötüleşecekse sağ taraf çerçevelenir: "
+                    + "sarı (az yağmur, sis), turuncu (yağmur, kar), kırmızı (şiddetli yağmur, yoğun kar, fırtına). Hızlı rotayla yola çıkınca sağda varış yerinin havası görünür.";
             case "notif": return "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj gelince ekranın altında birkaç saniye "
                     + "mesajın kendisi görünür; kutuda 5 dakika kimden geldiği yazar, sonra sadece uygulama simgesi kalır. "
                     + "Dokun: mesajların tamamı ekranın altında açılır. Basılı tut: mesajın geldiği uygulamaya geçer.";

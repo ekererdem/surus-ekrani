@@ -383,7 +383,7 @@ final class Status {
                         .putInt("wV", vis).putString("wH", hz).putLong("wAt", System.currentTimeMillis());
                 if (later != null) e.putInt("lT", later[0]).putInt("lC", later[1])
                         .putBoolean("lD", later[2] == 1).putString("lL", label).putInt("lV", later[4])
-                        .putBoolean("lS", severe(later[1], later[3], later[4]));
+                        .putInt("lLv", alertLevel(later[1], later[3], later[4]));
                 e.apply();
                 a.runOnUiThread(() -> { showWeather(t, code, day, hz); night = null; applyNight(); });
             } catch (Exception e) {
@@ -428,15 +428,22 @@ final class Status {
         }
     }
 
-    /** Şiddetli hava: yoğun yağmur/kar, sis (görüş 1 km altı), fırtına ya da saatte 2 mm üstü yağış. */
-    private static boolean severe(int c, int precipTenths, int vis) {
-        if (WeatherIcon.isFog(c, vis)) return WeatherIcon.fogLines(vis) >= 2; // tek çizgi (hafif pus) kırmızı olmaz
-        return false
-                || c == 63 || c == 65 || c == 66 || c == 67 // orta/kuvvetli, dondurucu yağmur
-                || c == 81 || c == 82                       // kuvvetli sağanak
-                || (c >= 71 && c <= 77) || c == 85 || c == 86 // kar
-                || c >= 95                                  // fırtına
-                || precipTenths >= 20;
+    /**
+     * Sağ bölümün çerçevesi: 0 yok, 1 sarı, 2 turuncu, 3 kırmızı.
+     * Sarı: az yağmur/kar, hafif sağanak, sis (görüş 1 km altı).
+     * Turuncu: yağmur, sağanak, kar, yoğun sis (500 m altı), dondurucu çiseleme.
+     * Kırmızı: şiddetli yağmur/sağanak, yoğun kar, dondurucu yağmur, çok yoğun sis (200 m altı), fırtına.
+     * Saatlik yağış miktarı da bakılır: 0,5 mm sarı, 2 mm turuncu, 5 mm kırmızı.
+     */
+    static int alertLevel(int c, int precipTenths, int vis) {
+        int lv;
+        if (WeatherIcon.isFog(c, vis)) lv = Math.max(0, WeatherIcon.fogLines(vis) - 1);
+        else if (c >= 95 || c == 65 || c == 67 || c == 82 || c == 75 || c == 86) lv = 3;
+        else if (c == 63 || c == 66 || c == 81 || c == 73 || c == 85 || c == 57) lv = 2;
+        else if (c == 61 || c == 80 || c == 71 || c == 77 || c == 55 || c == 56) lv = 1;
+        else lv = 0;
+        int byRain = precipTenths >= 50 ? 3 : precipTenths >= 20 ? 2 : precipTenths >= 5 ? 1 : 0;
+        return Math.max(lv, byRain);
     }
 
     /** Saatlik tahminden hedef zamana en yakın saat: {sıcaklık, kod, gündüz mü, yağış (mm×10), görüş (m, yoksa -1)}. */
@@ -483,12 +490,14 @@ final class Status {
             } else {
                 later.setText("–");
             }
-            // Sol bölüm hiç kırmızı olmaz; sağ bölüm (1 saat sonra) şiddetli havada kırmızı çerçeveli
+            // Sol bölümde çerçeve yok; sağ bölüm havanın kötülüğüne göre sarı / turuncu / kırmızı çerçeveli
             tile.setForeground(null);
-            boolean bad = !lbl.isEmpty() && sp.getBoolean("lS", false);
-            later.setBackgroundResource(bad ? R.drawable.later_alert : 0);
+            int lv = lbl.isEmpty() ? 0 : sp.getInt("lLv", sp.getBoolean("lS", false) ? 3 : 0);
+            later.setBackgroundResource(lv == 3 ? R.drawable.later_alert : lv == 2 ? R.drawable.later_alert_orange
+                    : lv == 1 ? R.drawable.later_alert_yellow : 0);
+            String[] words = {"", "dikkat", "kötü hava", "şiddetli hava"};
             tile.setContentDescription("Hava şimdi " + temp + " derece, " + describe(code, vis)
-                    + (bad ? ". " + lbl + " şiddetli hava bekleniyor" : ""));
+                    + (lv > 0 ? ". " + lbl + " " + words[lv] + " bekleniyor" : ""));
         }
         weatherDesc.setText(describe(code, vis));
     }

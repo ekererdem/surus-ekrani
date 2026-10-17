@@ -43,7 +43,6 @@ public class MainActivity extends Activity {
     private Prefs p;
     private boolean compact;
     private Status status;
-    private FrontCarWatcher frontCar;
     private Wave wave;
     private static final int REQ_NOTE = 51;
     private float appliedScale = 1f;
@@ -99,7 +98,6 @@ public class MainActivity extends Activity {
         setContentView(compact ? R.layout.activity_main_compact : R.layout.activity_main);
         if (compact) ((TextView) findViewById(R.id.clock)).setTextSize(38);
         status = new Status(this);
-        frontCar = new FrontCarWatcher(this);
         // El sallama: 1 kez = sonraki şarkı, 2 kez = oynat/duraklat (tuşların kendi işlevi çalışır)
         wave = new Wave(this, () -> findViewById(R.id.nextBtn).performClick(), () -> playBtn.performClick());
 
@@ -1281,7 +1279,6 @@ public class MainActivity extends Activity {
         seek.removeCallbacks(progressTick);
         seek.post(progressTick);
         status.resume();
-        frontCar.start();
         wave.start(this);
         Tips.shower = this::showTip;
         // İlk kurulum yapılmadıysa kısa tanıtım; yapıldıysa ipuçları
@@ -1332,7 +1329,6 @@ public class MainActivity extends Activity {
         super.onPause();
         playBtn.removeCallbacks(autoSplitRun);
         status.pause();
-        frontCar.stop();
         wave.stop();
         Tips.shower = null;
         seek.removeCallbacks(progressTick);
