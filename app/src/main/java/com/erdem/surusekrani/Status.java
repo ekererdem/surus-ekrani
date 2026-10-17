@@ -184,7 +184,7 @@ final class Status {
         } catch (Exception ignored) {
         }
         signalIcon.setImageResource(SIGNAL[level]);
-        int color = a.getColor(level <= 1 ? R.color.low : R.color.muted);
+        int color = a.getColor(level <= 1 ? R.color.low : R.color.rain); // normalde mavi, zayıfken kırmızı
         signalIcon.setImageTintList(ColorStateList.valueOf(color));
         signalIcon.setContentDescription("Şebeke çekimi " + level + "/4");
     }
