@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg">#0F1418</color>
-    <color name="panel">#182027</color>
-    <color name="panel2">#212B33</color>
-    <color name="line">#2C3842</color>
-    <color name="fg">#E9EEF1</color>
-    <color name="muted">#8A9AA6</color>
-    <color name="amber">#F2A900</color>
-    <color name="amber_ink">#1A1300</color>
-    <color name="teal">#3FC1B0</color>
+    <!-- Tema: koyu lacivert zemin, antrasit kutular, turkuaz ana vurgu, kehribar ikincil vurgu -->
+    <color name="bg">#0B1730</color>
+    <color name="panel">#20252C</color>
+    <color name="panel2">#252A31</color>
+    <color name="line">#3A414B</color>
+    <color name="fg">#FFFFFF</color>
+    <color name="muted">#B9C3CD</color>
+    <color name="amber">#F4B400</color>
+    <color name="teal">#22C3B5</color>
     <color name="low">#E5484D</color>
     <color name="rain">#4FA3FF</color>
     <color name="chg_low">#FF8A1F</color>
@@ -16,4 +16,6 @@
     <color name="chg_high">#3DD68C</color>
     <color name="alert_yellow">#F5D90A</color>
     <color name="alert_orange">#FF8A1F</color>
+    <color name="accent_ink">#062A27</color>
+    <color name="art">#323944</color>
 </resources>

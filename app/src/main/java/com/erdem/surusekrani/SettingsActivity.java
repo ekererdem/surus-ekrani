@@ -534,7 +534,7 @@ public class SettingsActivity extends Activity {
             cb.setText(Layout.name(e.key));
             cb.setTextSize(15);
             cb.setTextColor(getColor(R.color.fg));
-            cb.setButtonTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.amber)));
+            cb.setButtonTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.teal)));
             cb.setChecked(e.on);
             if ("settings".equals(e.key)) cb.setEnabled(false); // ayarlar hep açık
             cb.setOnCheckedChangeListener((b, on) -> { e.on = on; Layout.save(this, l); });

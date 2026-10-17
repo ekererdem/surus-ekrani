@@ -71,8 +71,8 @@
             android:layout_height="60dp"
             android:layout_weight="1"
             android:layout_marginStart="10dp"
-            android:background="@drawable/tile_amber"
-            android:textColor="@color/amber_ink"
+            android:background="@drawable/tile_accent"
+            android:textColor="@color/accent_ink"
             android:elevation="4dp"
             android:text="Burayı kaydet" />
     </LinearLayout>

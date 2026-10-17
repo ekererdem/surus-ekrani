@@ -206,7 +206,7 @@ public class AppsActivity extends Activity {
             float alpha = editing && !selected ? 0.35f : 1f;
             icon.setAlpha(alpha);
             label.setAlpha(alpha);
-            label.setTextColor(getColor(editing && selected ? R.color.amber : R.color.fg));
+            label.setTextColor(getColor(editing && selected ? R.color.teal : R.color.fg));
             return cell;
         }
     }

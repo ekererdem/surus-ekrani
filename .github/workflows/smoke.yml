@@ -36,7 +36,9 @@ jobs:
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
             adb shell cmd notification post -c msg -t Annem testtag 'Nerdesiniz ne zaman geleceksiniz' || true ; sleep 2
             sleep 1 ; adb shell uiautomator dump /sdcard/u.xml > dump.txt 2>&1 ; adb shell cat /sdcard/u.xml > ui.xml 2>&1 || true
+            adb exec-out screencap -p > shot-main.png || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
+            adb exec-out screencap -p > shot-settings.png || true
             adb shell am start -n com.erdem.surusekrani/.FeaturesActivity ; sleep 4 ; adb shell am start -n com.erdem.surusekrani/.OnboardingActivity ; sleep 4
             adb shell uiautomator dump /sdcard/u2.xml ; adb shell cat /sdcard/u2.xml > ui2.xml || true
             python3 .github/drag_test.py || true
@@ -85,3 +87,4 @@ jobs:
           path: |
             crash.txt
             err.txt
+            shot-*.png

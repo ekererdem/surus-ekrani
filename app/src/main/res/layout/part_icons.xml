@@ -136,7 +136,7 @@
             android:id="@+id/assistBtn"
             style="@style/QuickIcon"
             android:src="@drawable/ic_mic"
-            android:tint="@color/amber"
+            android:tint="@color/fg"
             android:contentDescription="Sesli asistan" />
 
         <TextView
@@ -181,7 +181,7 @@
             android:id="@+id/settingsBtn"
             style="@style/QuickIcon"
             android:src="@drawable/ic_settings"
-            android:tint="@color/muted"
+            android:tint="@color/fg"
             android:contentDescription="Ayarlar" />
     </LinearLayout>
 </LinearLayout>

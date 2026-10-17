@@ -193,7 +193,7 @@ public class MainActivity extends Activity {
             navSub.setVisibility(View.VISIBLE);
         }
         navIcon.setImageResource(R.drawable.ic_nav);
-        navIcon.setImageTintList(ColorStateList.valueOf(getColor(R.color.amber_ink)));
+        navIcon.setImageTintList(ColorStateList.valueOf(getColor(R.color.accent_ink)));
     }
 
     private static String join(String a, String b) {

@@ -105,8 +105,8 @@ final class Ui {
         b.setPadding(dp(a, 12), 0, dp(a, 12), 0);
         b.setIncludeFontPadding(false);
         if (primary) {
-            b.setBackgroundResource(R.drawable.tile_amber);
-            b.setTextColor(a.getColor(R.color.amber_ink));
+            b.setBackgroundResource(R.drawable.tile_accent);
+            b.setTextColor(a.getColor(R.color.accent_ink));
         } else {
             b.setBackgroundResource(R.drawable.btn_outline);
         }
