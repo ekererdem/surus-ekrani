@@ -36,6 +36,7 @@ public class FeaturesActivity extends Activity {
         Ui.section(this, box, "Kendiliğinden");
         Ui.item(this, box, "🔵 Arabaya binince", "Araç Bluetooth'una bağlanınca uygulama açılır, müzik devam eder, ses seviyen ayarlanır.");
         Ui.item(this, box, "🌙 Gece modu", "Güneş batınca ekran kendiliğinden kısılır.");
+        Ui.item(this, box, "🔕 Sessiz ekran", "Uygulama açıkken telefonun yukarıdan inen bildirimleri çıkmaz; mesajlar bildirim kutusuna gelir. Aramalar etkilenmez.");
 
         Ui.button(this, box, "📝 Sesli notlarım", false).setOnClickListener(v -> {
             java.util.List<String> l = Notes.list(this);

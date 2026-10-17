@@ -1319,14 +1319,22 @@ public class MainActivity extends Activity {
         pickController();
         hideBars();
 
+        sResumed = true;
+        Quiet.on(this); // ekrandayken yukarıdan inen bildirimler gelmesin
+
         Rotation.giveBack(this); // daha önce kilitlendiyse telefonun kendi ayarına dön
         if (sOwnScreen) sOwnScreen = false;
         else autoSplit();
     }
 
+    /** Ana ekran şu an önde mi (Rahatsız Etmeyin'i yanlışlıkla açık bırakmamak için). */
+    static volatile boolean sResumed;
+
     @Override
     protected void onPause() {
         super.onPause();
+        sResumed = false;
+        Quiet.off(this);
         playBtn.removeCallbacks(autoSplitRun);
         status.pause();
         wave.stop();
@@ -1361,6 +1369,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (!sResumed) Quiet.off(this);
         if (status != null) status.destroy();
         if (browser != null) try { browser.disconnect(); } catch (Exception ignored) { }
     }

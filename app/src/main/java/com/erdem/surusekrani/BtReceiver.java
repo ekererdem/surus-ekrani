@@ -37,6 +37,7 @@ public class BtReceiver extends BroadcastReceiver {
         // Park yeri artık sadece düğmeye basınca kaydedilir
         if (disconnected) {
             Notes.remindIfPending(c); // yolda alınan sesli notları hatırlat
+            if (!MainActivity.sResumed) Quiet.off(c);
             return;
         }
         if (p.carVolOn()) setCarVolume(c, p.carVol());

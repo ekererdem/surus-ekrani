@@ -149,7 +149,11 @@
 
         <!-- Sürüş yardımı -->
         <TextView style="@style/SectionTitle" android:text="Sürüş yardımı" />
-        <Switch android:id="@+id/swWave" style="@style/Toggle"
+        <Switch android:id="@+id/swQuiet" style="@style/Toggle"
+            android:text="Yukarıdan inen bildirimleri gizle" />
+        <TextView android:id="@+id/quietStatus" style="@style/Note" android:layout_marginTop="0dp" />
+
+        <Switch android:id="@+id/swWave" style="@style/Toggle" android:layout_marginTop="10dp"
             android:text="El sallayarak müzik kontrolü" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
             android:text="Elini telefonun üst kısmının üzerinden bir kez geçir: sonraki şarkı. İki kez geçir: durdur / başlat." />
