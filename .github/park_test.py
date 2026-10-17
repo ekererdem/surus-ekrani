@@ -28,7 +28,11 @@ else:
     shot("shot-park.png")
     texts = re.findall(r'text="([^"]+)"', dump())
     res.append("panel: " + " / ".join(t for t in texts if t in ("Yürüyerek git", "Paylaş", "Sil", "Not", "Not ekle") or "Park yerin" in t or "B2" in t))
-    sh("input", "keyevent", "4")
+    # paneli kapat: başlığına dokun
+    t = re.search(r'text="Park yerin[^"]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', dump())
+    if t:
+        a1, b1, a2, b2 = map(int, t.groups())
+        sh("input", "tap", str((a1 + a2) // 2), str((b1 + b2) // 2))
     time.sleep(1)
     # kısa basılı tutma (0,5 sn)
     sh("input", "swipe", str(cx), str(cy), str(cx), str(cy), "500")
