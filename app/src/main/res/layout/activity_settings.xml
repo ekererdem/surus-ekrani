@@ -35,10 +35,20 @@
 
         <!-- Araba -->
         <TextView style="@style/SectionTitle" android:text="Araç Bluetooth bağlantısı" />
-        <TextView android:id="@+id/carStatus" style="@style/Note" android:layout_marginTop="0dp"
-            android:textColor="@color/fg" android:textSize="17sp" />
-        <Button android:id="@+id/carBtn" style="@style/OutlineBtn" android:textSize="16sp" android:layout_width="match_parent"
-            android:layout_marginTop="10dp" android:text="Arabayı seç" />
+        <!-- Seçili araba düğmenin içinde; sağda "Değiştir" -->
+        <LinearLayout android:id="@+id/carBtn" android:layout_width="match_parent" android:layout_height="60dp"
+            android:layout_marginTop="10dp" android:orientation="horizontal" android:gravity="center_vertical"
+            android:background="@drawable/btn_outline" android:clickable="true" android:focusable="true"
+            android:paddingStart="14dp" android:paddingEnd="14dp">
+            <ImageView android:id="@+id/carIcon" android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_bluetooth" android:tint="@color/teal" android:contentDescription="Bluetooth" />
+            <TextView android:id="@+id/carName" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:layout_marginStart="12dp"
+                android:textSize="16sp" android:textColor="@color/fg" android:singleLine="true"
+                android:ellipsize="end" android:text="Arabayı seç" />
+            <TextView android:id="@+id/carChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="14sp" android:textStyle="bold" android:textColor="@color/amber" android:text="Değiştir" />
+        </LinearLayout>
         <Switch android:id="@+id/swAutoOpen" style="@style/Toggle" android:layout_marginTop="10dp"
             android:text="Bağlanınca otomatik aç" />
         <Switch android:id="@+id/swAutoPlay" style="@style/Toggle"
@@ -92,7 +102,7 @@
 
         <TextView style="@style/SectionTitle" android:text="Uygulama kısayolları" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Seçtiğin uygulamalar ana ekranda müzik çaların altında görünür; kaç tane seçersen o kadar kutu olur (en fazla 5). Bir uygulamaya dokunarak çıkarabilirsin." />
+            android:text="Seçtiğin uygulamalar ana ekranda müzik çaların altında görünür; kaç tane seçersen o kadar kutu olur (en fazla 5). Sırasını değiştirmek için soldaki ≡ işaretinden tutup sürükle." />
         <LinearLayout
             android:id="@+id/appsList"
             android:layout_width="match_parent"
@@ -106,7 +116,7 @@
         <!-- Kişiler ve yerler -->
         <TextView style="@style/SectionTitle" android:text="Hızlı arama (en fazla 5)" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Eklediğin kişiler hızlı arama için ana ekrana gelir. Dokunduktan sonra iptal için 3 saniye süre başlar, iptal etmezsen arama başlar. Tuşa uzun basarsan ilgili kişiye WhatsApp üzerinden &quot;Yoldayım. İşte konumum&quot; mesajı ile anlık konumun gönderilir." />
+            android:text="Eklediğin kişiler hızlı arama için ana ekrana gelir. Dokunduktan sonra iptal için 3 saniye süre başlar, iptal etmezsen arama başlar. Tuşa uzun basarsan ilgili kişiye WhatsApp üzerinden &quot;Yoldayım. İşte konumum&quot; mesajı ile anlık konumun gönderilir. Sırasını değiştirmek için ≡ işaretinden tutup sürükle." />
         <LinearLayout
             android:id="@+id/callsList"
             android:layout_width="match_parent"
@@ -115,7 +125,7 @@
 
         <TextView style="@style/SectionTitle" android:text="Hızlı rotalar (en fazla 5)" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Eklediğin yerler ana ekranda simgeleriyle düğme olur; dokununca o yere rota başlar. Bir rotaya dokunarak adını, simgesini, konumunu değiştirebilir ya da silebilirsin." />
+            android:text="Eklediğin yerler ana ekranda simgeleriyle düğme olur; dokununca o yere rota başlar. Simgesine dokunarak simgesini değiştir; sırasını değiştirmek için ≡ işaretinden tutup sürükle." />
         <LinearLayout
             android:id="@+id/placesList"
             android:layout_width="match_parent"
@@ -129,7 +139,7 @@
         <!-- 4. Ana ekran görünümü -->
         <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Kutucukla aç/kapat, Üst sıra/Alt sıra ile satırını seç, oklarla sırasını değiştir." />
+            android:text="Kutucukla aç/kapat, Üst sıra/Alt sıra ile satırını seç. Sırasını değiştirmek için soldaki ≡ işaretinden tutup yukarı/aşağı sürükle." />
         <LinearLayout
             android:id="@+id/layoutList"
             android:layout_width="match_parent"

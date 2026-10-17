@@ -190,7 +190,7 @@ public class SettingsActivity extends Activity {
         for (int i = 1; i <= n; i++) {
             final int slot = i;
             String label = Places.label(this, i);
-            list.addView(itemRow(Places.iconRes(Places.icon(this, i)), R.color.amber,
+            addDraggable(list, (f, t) -> { Places.move(this, f + 1, t + 1); renderPlaces(); }, itemRow(Places.iconRes(Places.icon(this, i)), R.color.amber,
                     Places.name(this, i) + (label.isEmpty() ? "" : "  ·  " + shortLabel(label)),
                     // simgeye dokun: simge seç
                     v -> chooseIcon(Places.iconIndex(Places.icon(this, slot)), key -> {
@@ -231,11 +231,12 @@ public class SettingsActivity extends Activity {
         row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
         row.setGravity(android.view.Gravity.CENTER_VERTICAL);
         row.setBackgroundResource(R.drawable.btn_outline);
-        row.setPadding(Math.round(8 * d), 0, Math.round(4 * d), 0);
+        row.setPadding(0, 0, Math.round(4 * d), 0);
         android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT, Math.round(60 * d));
         lp.topMargin = Math.round(10 * d);
         row.setLayoutParams(lp);
+        row.addView(dragHandle(row));
 
         android.widget.ImageView ic = new android.widget.ImageView(this);
         ic.setImageDrawable(icon);
@@ -273,6 +274,27 @@ public class SettingsActivity extends Activity {
         del.setOnClickListener(onB);
         row.addView(del);
         return row;
+    }
+
+    /** Sürükleme tutamağı (≡): satırın solunda, tutup yukarı/aşağı çek. */
+    private View dragHandle(View row) {
+        float d = getResources().getDisplayMetrics().density;
+        TextView h = new TextView(this);
+        h.setText("≡");
+        h.setTextSize(24);
+        h.setTextColor(getColor(R.color.muted));
+        h.setGravity(android.view.Gravity.CENTER);
+        h.setContentDescription("Sırasını değiştirmek için tutup sürükle");
+        h.setLayoutParams(new android.widget.LinearLayout.LayoutParams(Math.round(34 * d),
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT));
+        row.setTag(R.id.drag_handle, h);
+        return h;
+    }
+
+    /** Satırı listeye ekle ve sürükleyerek sıralanabilir yap. */
+    private void addDraggable(android.widget.LinearLayout list, DragSort.Moved cb, View row) {
+        list.addView(row);
+        DragSort.make(list, row, (View) row.getTag(R.id.drag_handle), cb);
     }
 
     private android.widget.Button placeButton() {
@@ -455,7 +477,11 @@ public class SettingsActivity extends Activity {
                         new ComponentName(k.substring(0, slash), k.substring(slash + 1)), 0);
                 if (keys.size() >= Shortcuts.MAX) break;
                 keys.add(k);
-                list.addView(itemRow(info.loadIcon(pm), info.loadLabel(pm).toString(), null,
+                addDraggable(list, (f, t) -> {
+                    DragSort.move(keys, f, t);
+                    sp.edit().putString("favApps", android.text.TextUtils.join("|", keys)).apply();
+                    renderApps();
+                }, itemRow(info.loadIcon(pm), info.loadLabel(pm).toString(), null,
                         "Değiştir", v -> startActivity(new Intent(this, AppsActivity.class)
                                 .putExtra(AppsActivity.EXTRA_EDIT, true)
                                 .putExtra(AppsActivity.EXTRA_REPLACE, k)),
@@ -487,15 +513,22 @@ public class SettingsActivity extends Activity {
         java.util.List<Layout.Entry> l = Layout.load(this);
         float d = getResources().getDisplayMetrics().density;
         for (int i = 0; i < l.size(); i++) {
-            final int idx = i;
             Layout.Entry e = l.get(i);
+            // Sürüklenen birim: üstte satır (≡, kutucuk + ad, Üst/Alt sıra), altında açıklama
+            android.widget.LinearLayout unit = new android.widget.LinearLayout(this);
+            unit.setOrientation(android.widget.LinearLayout.VERTICAL);
+            unit.setBackgroundColor(getColor(R.color.bg));
+            android.widget.LinearLayout.LayoutParams ulp = new android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+            ulp.topMargin = Math.round(8 * d);
+            unit.setLayoutParams(ulp);
+
             android.widget.LinearLayout row = new android.widget.LinearLayout(this);
             row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
             row.setGravity(android.view.Gravity.CENTER_VERTICAL);
-            android.widget.LinearLayout.LayoutParams rlp = new android.widget.LinearLayout.LayoutParams(
-                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-            rlp.topMargin = Math.round(10 * d);
-            row.setLayoutParams(rlp);
+            View handle = dragHandle(row);
+            row.addView(handle, new android.widget.LinearLayout.LayoutParams(Math.round(34 * d), Math.round(44 * d)));
+            unit.setTag(R.id.drag_handle, handle);
 
             android.widget.CheckBox cb = new android.widget.CheckBox(this);
             cb.setText(Layout.name(e.key));
@@ -519,27 +552,16 @@ public class SettingsActivity extends Activity {
             rowBtn.setTextColor(getColor(R.color.amber));
             rowBtn.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
             row.addView(rowBtn);
+            unit.addView(row);
 
-            android.widget.TextView up = smallBtn("▲", Math.round(40 * d));
-            up.setEnabled(i > 0);
-            up.setAlpha(i > 0 ? 1f : 0.3f);
-            up.setOnClickListener(v -> { java.util.Collections.swap(l, idx, idx - 1); Layout.save(this, l); renderLayout(); });
-            row.addView(up);
-
-            android.widget.TextView down = smallBtn("▼", Math.round(40 * d));
-            down.setEnabled(i < l.size() - 1);
-            down.setAlpha(i < l.size() - 1 ? 1f : 0.3f);
-            down.setOnClickListener(v -> { java.util.Collections.swap(l, idx, idx + 1); Layout.save(this, l); renderLayout(); });
-            row.addView(down);
-
-            list.addView(row);
-            // Açıklama: satırın altında, tüm genişliği kullanır
             TextView desc = new TextView(this);
             desc.setText(Layout.desc(e.key));
             desc.setTextSize(12);
             desc.setTextColor(getColor(R.color.muted));
-            desc.setPadding(Math.round(4 * d), 0, Math.round(4 * d), Math.round(4 * d));
-            list.addView(desc);
+            desc.setPadding(Math.round(38 * d), 0, Math.round(4 * d), Math.round(4 * d));
+            unit.addView(desc);
+
+            addDraggable(list, (f, t) -> { DragSort.move(l, f, t); Layout.save(this, l); renderLayout(); }, unit);
         }
     }
 
@@ -599,7 +621,7 @@ public class SettingsActivity extends Activity {
             final int slot = i;
             String name = sp.getString("call" + i + "Name", ""), num = sp.getString("call" + i + "Num", "");
             String lbl = sp.getString("call" + i + "Label", "");
-            list.addView(itemRow(R.drawable.ic_phone, R.color.teal,
+            addDraggable(list, (f, t) -> { moveCall(f + 1, t + 1); setupCalls(); }, itemRow(R.drawable.ic_phone, R.color.teal,
                     (lbl.isEmpty() ? "" : lbl + "  ·  ") + (name.isEmpty() ? num : name),
                     null,
                     v -> askCallLabel(slot),
@@ -617,6 +639,22 @@ public class SettingsActivity extends Activity {
             add.setOnClickListener(v -> pickContact(n + 1));
             list.addView(add);
         }
+    }
+
+    /** Sürükleyerek sıralama: from. kişiyi to. sıraya taşı (1'den başlar). */
+    private void moveCall(int from, int to) {
+        android.content.SharedPreferences sp = calls();
+        int n = compactCalls();
+        java.util.List<String[]> l = new java.util.ArrayList<>();
+        for (int i = 1; i <= n; i++)
+            l.add(new String[]{sp.getString("call" + i + "Name", ""), sp.getString("call" + i + "Num", ""),
+                    sp.getString("call" + i + "Label", "")});
+        DragSort.move(l, from - 1, to - 1);
+        android.content.SharedPreferences.Editor e = sp.edit();
+        for (int i = 1; i <= n; i++)
+            e.putString("call" + i + "Name", l.get(i - 1)[0]).putString("call" + i + "Num", l.get(i - 1)[1])
+                    .putString("call" + i + "Label", l.get(i - 1)[2]);
+        e.apply();
     }
 
     private void pickContact(int slot) {
@@ -692,8 +730,11 @@ public class SettingsActivity extends Activity {
     }
 
     private void refreshStatus() {
-        ((TextView) findViewById(R.id.carStatus)).setText(
-                p.carName().isEmpty() ? "Henüz seçilmedi" : "Seçili: " + p.carName());
+        boolean hasCar = !p.carName().isEmpty();
+        ((TextView) findViewById(R.id.carName)).setText(hasCar ? p.carName() : "Arabayı seç");
+        findViewById(R.id.carChange).setVisibility(hasCar ? View.VISIBLE : View.GONE);
+        ((android.widget.ImageView) findViewById(R.id.carIcon)).setImageTintList(
+                android.content.res.ColorStateList.valueOf(getColor(hasCar ? R.color.teal : R.color.muted)));
         ((TextView) findViewById(R.id.overlayStatus)).setText(
                 Settings.canDrawOverlays(this) ? "Verildi ✓" : "Verilmedi. Otomatik açılma için gerekli.");
         NotificationManager lnm = getSystemService(NotificationManager.class);

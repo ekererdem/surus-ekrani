@@ -62,6 +62,21 @@ final class Places {
         e.apply();
     }
 
+    /** Sürükleyerek sıralama: from. rotayı to. sıraya taşır (1'den başlar). */
+    static void move(Context c, int from, int to) {
+        int n = count(c);
+        java.util.List<String[]> l = new java.util.ArrayList<>();
+        for (int i = 1; i <= n; i++) l.add(new String[]{name(c, i), coord(c, i), label(c, i), icon(c, i)});
+        DragSort.move(l, from - 1, to - 1);
+        SharedPreferences.Editor e = sp(c).edit();
+        for (int i = 1; i <= n; i++) {
+            String[] v = l.get(i - 1);
+            e.putString("place" + i + "Name", v[0]).putString("place" + i + "Coord", v[1])
+                    .putString("place" + i + "Label", v[2]).putString("place" + i + "Icon", v[3]);
+        }
+        e.apply();
+    }
+
     /** Konumu seçilmemiş yarım kayıtları temizler. */
     static void cleanup(Context c) {
         for (int i = MAX; i >= 1; i--) {
