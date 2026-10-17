@@ -41,18 +41,29 @@ final class Layout {
     /** Ayarlar'da düğme adının altındaki kısa açıklama. */
     static String desc(String key) {
         switch (key) {
-            case "weather": return "Solda şu anki hava, sağda 1 saat sonrası. Hava kötüleşecekse sağ taraf çerçevelenir: "
-                    + "sarı (az yağmur, sis), turuncu (yağmur, kar), kırmızı (şiddetli yağmur, yoğun kar, fırtına). Hızlı rotayla yola çıkınca sağda varış yerinin havası görünür.";
-            case "notif": return "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj gelince ekranın altında birkaç saniye "
-                    + "mesajın kendisi görünür; kutuda 5 dakika kimden geldiği yazar, sonra sadece uygulama simgesi kalır. "
-                    + "Dokun: mesajların tamamı ekranın altında açılır. Basılı tut: mesajın geldiği uygulamaya geçer. Uygulama açıkken telefonun yukarıdan kayan bildirimi kaldırılır, mesaj burada kalır.";
-            case "status": return "Şebeke çekimi, Bluetooth ve şarj. Şarjdayken şimşek dolulukla turuncu → sarı → yeşil olur; "
-                    + "şarj azsa kırmızı. Arabaya bağlıyken şarj olmuyor ve şarj %30'un altındaysa kırmızı yanıp söner.";
-            case "assist": return "Dokun: telefonun sesli asistanı. Basılı tut: sesli not al; arabadan inince notların hatırlatılır.";
-            case "calls": return "Eklediğin kişiler. Dokun: 3 saniye sonra arar. Basılı tut: WhatsApp ile konumunu gönderir.";
-            case "places": return "Eklediğin yerler. Dokun: o yere rota başlatır.";
-            case "park": return "Basılı tut: o anki konumu park yeri olarak kaydeder. Dokun: arabana yürüyüş rotası açar.";
-            case "settings": return "Bu ekranı açar. Kapatılamaz, sadece yeri değişir.";
+            case "weather": return "Şu anki havayı ve bir saat sonrasını yan yana görürsün. Hava bozacaksa sağ taraf "
+                    + "renkli bir çerçeveyle seni uyarır: sarı hafif yağmur ya da sis, turuncu yağmur ya da kar, "
+                    + "kırmızı sağanak, yoğun kar ya da fırtına demek. Hızlı rotayla yola çıktığında sağ tarafta "
+                    + "gideceğin yerin, varacağın saatteki havası çıkar. Bilgiler 15 dakikada bir yenilenir.";
+            case "notif": return "WhatsApp mesajları, SMS'ler ve cevapsız aramalar burada toplanır. Yeni bir mesaj "
+                    + "geldiğinde ekranın altında birkaç saniyeliğine mesajın kendisi görünür; telefonun yukarıdan "
+                    + "inen bildirimi önünü kapatmaz. Kutuya dokunursan mesajların tamamını okursun, basılı tutarsan "
+                    + "doğrudan o sohbete geçersin. Beş dakika sonra kutuda sadece uygulamanın simgesi kalır.";
+            case "status": return "Çekimi, Bluetooth bağlantısını ve şarjı tek bakışta görürsün. Telefon şarj olurken "
+                    + "şimşek doldukça turuncudan sarıya, sonra yeşile döner. Arabaya bağlıyken telefon şarj olmuyorsa "
+                    + "ve şarj %30'un altına düştüyse şimşek kırmızı yanıp sönerek kabloyu hatırlatır.";
+            case "assist": return "Dokunduğunda telefonun sesli asistanı açılır; elini direksiyondan ayırmadan arama "
+                    + "yapabilir, mesaj gönderebilirsin. Basılı tutarsan sesli not alırsın: aklına geleni söyle, "
+                    + "arabadan indiğinde sana hatırlatalım.";
+            case "calls": return "En sık aradığın kişiler. Dokunduğunda üç saniye içinde arama başlar; yanlışlıkla "
+                    + "bastıysan iptal etmeye vaktin olur. Basılı tutarsan o kişiye WhatsApp'tan \"Yoldayım\" "
+                    + "mesajıyla anlık konumunu gönderirsin.";
+            case "places": return "Ev, iş gibi sık gittiğin yerler. Dokunduğunda seçtiğin harita uygulamasında rota "
+                    + "hemen başlar, adres yazmana gerek kalmaz.";
+            case "park": return "Arabadan inmeden basılı tut, park ettiğin yer kaydedilsin; istersen kat ya da sıra "
+                    + "numarası gibi kısa bir not da ekleyebilirsin. Sonra dokunduğunda arabana yürüyerek nasıl "
+                    + "döneceğini gösterir.";
+            case "settings": return "Bu sayfaya buradan gelirsin. Gizlenemez ama istediğin yere taşıyabilirsin.";
             default: return "";
         }
     }
