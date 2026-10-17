@@ -713,9 +713,10 @@ public class MainActivity extends Activity {
             new Thread(() -> {
                 String addr = parkAddress(c);
                 if (addr != null) runOnUiThread(() -> {
+                    int s2 = tb.length();
                     tb.append(" · ").append(addr);
-                    tb.setSpan(new android.text.style.RelativeSizeSpan(0.78f), st, tb.length(), 0);
-                    tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, tb.length(), 0);
+                    tb.setSpan(new android.text.style.RelativeSizeSpan(0.78f), s2, tb.length(), 0);
+                    tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), s2, tb.length(), 0);
                     title.setText(tb);
                 });
             }).start();
