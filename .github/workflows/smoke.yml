@@ -31,7 +31,7 @@ jobs:
             adb logcat -c
             adb shell cmd notification allow_listener com.erdem.surusekrani/com.erdem.surusekrani.MediaListener || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 4 ; adb shell am force-stop com.erdem.surusekrani
-            adb shell "mkdir -p /data/data/com.erdem.surusekrani/shared_prefs && echo '<?xml version=\"1.0\" encoding=\"utf-8\"?><map><boolean name=\"autoSplit\" value=\"false\" /><boolean name=\"onboarded\" value=\"true\" /><string name=\"call1Name\">Ahmet</string><string name=\"call1Num\">05551112233</string><string name=\"place1Name\">Ev</string><string name=\"place1Coord\">39.9,32.8</string><string name=\"place1Icon\">home</string></map>' > /data/data/com.erdem.surusekrani/shared_prefs/surus.xml"
+            adb shell "mkdir -p /data/data/com.erdem.surusekrani/shared_prefs && echo '<?xml version=\"1.0\" encoding=\"utf-8\"?><map><boolean name=\"autoSplit\" value=\"false\" /><boolean name=\"onboarded\" value=\"true\" /><string name=\"call1Name\">Ahmet</string><string name=\"call1Num\">05551112233</string><string name=\"call2Name\">Ayşe</string><string name=\"call2Num\">05552223344</string><string name=\"place1Name\">Ev</string><string name=\"place1Coord\">39.9,32.8</string><string name=\"place1Icon\">home</string></map>' > /data/data/com.erdem.surusekrani/shared_prefs/surus.xml"
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 15
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
             adb shell cmd notification post -c msg -t Annem testtag 'Nerdesiniz ne zaman geleceksiniz' || true ; sleep 2
@@ -39,6 +39,7 @@ jobs:
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb shell am start -n com.erdem.surusekrani/.FeaturesActivity ; sleep 4 ; adb shell am start -n com.erdem.surusekrani/.OnboardingActivity ; sleep 4
             adb shell uiautomator dump /sdcard/u2.xml ; adb shell cat /sdcard/u2.xml > ui2.xml || true
+            python3 .github/drag_test.py || true
             adb logcat -d -b crash > crash.txt || true
             adb logcat -d '*:E' | grep -A40 -i 'FATAL\|AndroidRuntime' > err.txt || true
             cat crash.txt err.txt
@@ -63,6 +64,9 @@ jobs:
           txt=re.findall(r'text="([^"]+)"', x)[:15]
           print('::notice::pk='+','.join(pk)+' txt='+'/'.join(txt)+' btn='+' | '.join(out))
           PY
+      - name: Sürükleme
+        if: always()
+        run: echo "::notice::drag $(cat drag.txt 2>/dev/null)"
       - name: Ayarlar düzeni
         if: always()
         run: |
