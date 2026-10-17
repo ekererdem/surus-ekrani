@@ -31,3 +31,6 @@ jobs:
         run: |
           gh release delete latest --yes --cleanup-tag || true
           gh release create latest SurusEkrani.apk --title "Sürüş Ekranı" --notes "Son derleme: ${{ github.sha }}"
+          # Bazen taslak olarak kalıyor; indirme linki çalışsın diye yayınla
+          gh release edit latest --draft=false --latest
+          gh release view latest --json isDraft -q '.isDraft' | grep -q false
