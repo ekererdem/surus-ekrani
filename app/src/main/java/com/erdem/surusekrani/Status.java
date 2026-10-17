@@ -323,8 +323,8 @@ final class Status {
         double lat = l.getLatitude(), lon = l.getLongitude();
         String url = String.format(Locale.US,
                 "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
-                        + "&current=temperature_2m,weather_code,is_day"
-                        + "&hourly=temperature_2m,weather_code,is_day,precipitation_probability,precipitation"
+                        + "&current=temperature_2m,weather_code,is_day,visibility"
+                        + "&hourly=temperature_2m,weather_code,is_day,precipitation_probability,precipitation,visibility"
                         + "&forecast_hours=4&timeformat=unixtime&timezone=auto",
                 lat, lon);
         String dest = activeDest(lat, lon);
@@ -335,6 +335,7 @@ final class Status {
                 int t = (int) Math.round(cur.getDouble("temperature_2m"));
                 int code = cur.getInt("weather_code");
                 boolean day = cur.optInt("is_day", 1) == 1;
+                int vis = cur.has("visibility") && !cur.isNull("visibility") ? (int) cur.optDouble("visibility", -1) : -1;
                 // Şu an ve önümüzdeki saatlerde en kötü durum: fırtına > kar > yağmur > sis
                 int sev = severity(code);
                 JSONObject hr = all.optJSONObject("hourly");
@@ -361,7 +362,7 @@ final class Status {
                         int hours = (int) Math.min(48, (arrive - System.currentTimeMillis() / 1000) / 3600 + 2);
                         JSONObject dw = new JSONObject(Route.get(String.format(Locale.US,
                                 "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
-                                        + "&hourly=temperature_2m,weather_code,is_day,precipitation&forecast_hours=%d"
+                                        + "&hourly=temperature_2m,weather_code,is_day,precipitation,visibility&forecast_hours=%d"
                                         + "&timeformat=unixtime&timezone=auto", dl, dn, Math.max(2, hours))));
                         later = pick(dw.getJSONObject("hourly"), arrive);
                         if (later != null) label = "Varış " + hhmm(arrive);
@@ -375,10 +376,10 @@ final class Status {
                 }
                 String hz = HAZARDS[sev];
                 SharedPreferences.Editor e = sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day)
-                        .putString("wH", hz).putLong("wAt", System.currentTimeMillis());
+                        .putInt("wV", vis).putString("wH", hz).putLong("wAt", System.currentTimeMillis());
                 if (later != null) e.putInt("lT", later[0]).putInt("lC", later[1])
-                        .putBoolean("lD", later[2] == 1).putString("lL", label)
-                        .putBoolean("lS", severe(later[1], later[3]));
+                        .putBoolean("lD", later[2] == 1).putString("lL", label).putInt("lV", later[4])
+                        .putBoolean("lS", severe(later[1], later[3], later[4]));
                 e.apply();
                 a.runOnUiThread(() -> { showWeather(t, code, day, hz); night = null; applyNight(); });
             } catch (Exception e) {
@@ -423,9 +424,10 @@ final class Status {
         }
     }
 
-    /** Şiddetli hava: yoğun yağmur/kar, sis, fırtına ya da saatte 2 mm üstü yağış. */
-    private static boolean severe(int c, int precipTenths) {
-        return c == 45 || c == 48                         // sis
+    /** Şiddetli hava: yoğun yağmur/kar, sis (görüş 1 km altı), fırtına ya da saatte 2 mm üstü yağış. */
+    private static boolean severe(int c, int precipTenths, int vis) {
+        if (WeatherIcon.isFog(c, vis)) return WeatherIcon.fogLines(vis) >= 2; // tek çizgi (hafif pus) kırmızı olmaz
+        return false
                 || c == 63 || c == 65 || c == 66 || c == 67 // orta/kuvvetli, dondurucu yağmur
                 || c == 81 || c == 82                       // kuvvetli sağanak
                 || (c >= 71 && c <= 77) || c == 85 || c == 86 // kar
@@ -433,18 +435,19 @@ final class Status {
                 || precipTenths >= 20;
     }
 
-    /** Saatlik tahminden hedef zamana en yakın saat: {sıcaklık, kod, gündüz mü, yağış (mm×10)}. */
+    /** Saatlik tahminden hedef zamana en yakın saat: {sıcaklık, kod, gündüz mü, yağış (mm×10), görüş (m, yoksa -1)}. */
     private static int[] pick(JSONObject hr, long when) {
         org.json.JSONArray ti = hr.optJSONArray("time"), te = hr.optJSONArray("temperature_2m"),
                 wc = hr.optJSONArray("weather_code"), dy = hr.optJSONArray("is_day"),
-                pr = hr.optJSONArray("precipitation");
+                pr = hr.optJSONArray("precipitation"), vi = hr.optJSONArray("visibility");
         if (ti == null || te == null || wc == null || ti.length() == 0) return null;
         int best = 0;
         for (int i = 1; i < ti.length(); i++)
             if (Math.abs(ti.optLong(i) - when) < Math.abs(ti.optLong(best) - when)) best = i;
         return new int[]{(int) Math.round(te.optDouble(best)), wc.optInt(best),
                 dy == null ? 1 : dy.optInt(best, 1),
-                pr == null ? 0 : (int) Math.round(pr.optDouble(best, 0) * 10)};
+                pr == null ? 0 : (int) Math.round(pr.optDouble(best, 0) * 10),
+                vi == null || vi.isNull(best) ? -1 : (int) vi.optDouble(best, -1)};
     }
 
     private static String hhmm(long sec) {
@@ -463,15 +466,16 @@ final class Status {
     }
 
     private void showWeather(int temp, int code, boolean day, String hazard) {
-        weatherTemp.setText(icon(code, day) + " " + temp + "°");
+        int vis = sp.getInt("wV", -1);
+        weatherTemp.setText(iconTemp(weatherTemp, code, day, vis, temp));
         View tile = a.findViewById(R.id.weatherTile);
         TextView now = a.findViewById(R.id.wNow), later = a.findViewById(R.id.wLater);
         if (tile != null && now != null && later != null) {
-            now.setText(twoLine("Şimdi", icon(code, day) + " " + temp + "°"));
+            now.setText(twoLine("Şimdi", iconTemp(now, code, day, vis, temp)));
             String lbl = sp.getString("lL", "");
             if (!lbl.isEmpty()) {
                 int lt = sp.getInt("lT", 0), lc = sp.getInt("lC", 0);
-                later.setText(twoLine(lbl, icon(lc, sp.getBoolean("lD", true)) + " " + lt + "°"));
+                later.setText(twoLine(lbl, iconTemp(later, lc, sp.getBoolean("lD", true), sp.getInt("lV", -1), lt)));
             } else {
                 later.setText("–");
             }
@@ -479,14 +483,14 @@ final class Status {
             tile.setForeground(null);
             boolean bad = !lbl.isEmpty() && sp.getBoolean("lS", false);
             later.setBackgroundResource(bad ? R.drawable.later_alert : 0);
-            tile.setContentDescription("Hava şimdi " + temp + " derece, " + describe(code)
+            tile.setContentDescription("Hava şimdi " + temp + " derece, " + describe(code, vis)
                     + (bad ? ". " + lbl + " şiddetli hava bekleniyor" : ""));
         }
-        weatherDesc.setText(describe(code));
+        weatherDesc.setText(describe(code, vis));
     }
 
     /** Üstte küçük gri etiket, altta simge + derece. */
-    private CharSequence twoLine(String label, String value) {
+    private CharSequence twoLine(String label, CharSequence value) {
         android.text.SpannableStringBuilder b = new android.text.SpannableStringBuilder(label);
         b.setSpan(new android.text.style.RelativeSizeSpan(0.7f), 0, label.length(), 0);
         b.setSpan(new android.text.style.ForegroundColorSpan(a.getColor(R.color.muted)), 0, label.length(), 0);
@@ -495,18 +499,22 @@ final class Status {
         return b;
     }
 
-    private static String icon(int c, boolean day) {
-        if (c == 0) return day ? "☀️" : "🌙";
-        if (c <= 2) return day ? "⛅" : "☁️";
-        if (c == 3) return "☁️";
-        if (c == 45 || c == 48) return "🌫️";
-        if (c >= 51 && c <= 57) return "🌦️";
-        if (c >= 61 && c <= 67) return "🌧️";
-        if (c >= 71 && c <= 77) return "❄️";
-        if (c >= 80 && c <= 82) return "🌧️";
-        if (c == 85 || c == 86) return "🌨️";
-        if (c >= 95) return "⛈️";
-        return "🌡️";
+    /** Renkli çizilmiş simge + derece. */
+    private CharSequence iconTemp(TextView tv, int code, boolean day, int vis, int temp) {
+        WeatherIcon d = new WeatherIcon(code, day, vis);
+        int px = Math.round(tv.getTextSize() * 1.3f);
+        d.setBounds(0, 0, px, px);
+        android.text.SpannableStringBuilder b = new android.text.SpannableStringBuilder("\uFFFC " + temp + "°");
+        b.setSpan(new android.text.style.ImageSpan(d, android.text.style.ImageSpan.ALIGN_CENTER), 0, 1, 0);
+        return b;
+    }
+
+    private static String describe(int c, int vis) {
+        if (WeatherIcon.isFog(c, vis)) {
+            int n = WeatherIcon.fogLines(vis);
+            return n >= 3 ? "Yoğun sis" : n == 2 ? "Sisli" : "Puslu";
+        }
+        return describe(c);
     }
 
     private static String describe(int c) {
