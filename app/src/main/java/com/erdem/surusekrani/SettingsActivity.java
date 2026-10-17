@@ -544,7 +544,7 @@ public class SettingsActivity extends Activity {
             name.setText(Layout.name(e.key));
             name.setTextSize(15);
             name.setTextColor(getColor(R.color.fg));
-            name.setSingleLine(true);
+            name.setMaxLines(2); // dar ekranda kesilmesin, iki satıra insin
             name.setEllipsize(android.text.TextUtils.TruncateAt.END);
             android.widget.LinearLayout.LayoutParams nlp = new android.widget.LinearLayout.LayoutParams(0,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
