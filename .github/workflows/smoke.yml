@@ -3,6 +3,9 @@ name: Emülatörde dene
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
@@ -80,6 +83,14 @@ jobs:
           rows=[t for t in re.findall(r'text="([^"]+)"', x) if t.replace('&#10;',' ') in ('Üst sıra','Alt sıra')]
           print('::notice::cb='+str(cb)+' rows='+str(rows))
           PY
+      - name: Ekran görüntülerini "shots" dalına kaydet
+        if: always()
+        run: |
+          ls shot-*.png 2>/dev/null || exit 0
+          mkdir /tmp/shots && cp shot-*.png /tmp/shots/
+          git config user.name "smoke" && git config user.email "smoke@users.noreply.github.com"
+          git checkout --orphan shots && git rm -rfq . && git clean -fdq
+          cp /tmp/shots/*.png . && git add *.png && git commit -qm "ekran görüntüleri" && git push -fq origin shots
       - uses: actions/upload-artifact@v4
         if: always()
         with:
