@@ -96,6 +96,23 @@ public class SettingsActivity extends Activity {
                 requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAM);
         });
 
+        Switch waveSw = findViewById(R.id.swWave);
+        waveSw.setChecked(Wave.enabled(this));
+        waveSw.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("wave", on).apply());
+        findViewById(R.id.tipsReset).setOnClickListener(v -> {
+            Tips.reset(this);
+            Toast.makeText(this, "İpuçları ana ekranda yeniden gösterilecek", Toast.LENGTH_SHORT).show();
+        });
+        findViewById(R.id.notesBtn).setOnClickListener(v -> {
+            java.util.List<String> l = Notes.list(this);
+            if (l.isEmpty()) { Toast.makeText(this, "Henüz sesli not yok", Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(this).setTitle("Sesli notların")
+                    .setItems(l.toArray(new String[0]), null)
+                    .setPositiveButton("Kapat", null)
+                    .setNegativeButton("Hepsini sil", (d, w) -> Notes.clear(this))
+                    .show();
+        });
+
         renderLayout();
         findViewById(R.id.layoutReset).setOnClickListener(v -> {
             Layout.reset(this);

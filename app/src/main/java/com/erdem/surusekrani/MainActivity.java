@@ -44,6 +44,8 @@ public class MainActivity extends Activity {
     private boolean compact;
     private Status status;
     private FrontCarWatcher frontCar;
+    private Wave wave;
+    private static final int REQ_NOTE = 51;
     private float appliedScale = 1f;
 
     /** Ayarlar'daki "Ekran ölçeği"ni uygular: tüm ekranı küçültür ya da büyütür. */
@@ -98,6 +100,8 @@ public class MainActivity extends Activity {
         if (compact) ((TextView) findViewById(R.id.clock)).setTextSize(38);
         status = new Status(this);
         frontCar = new FrontCarWatcher(this);
+        // El sallama: 1 kez = sonraki şarkı, 2 kez = oynat/duraklat (tuşların kendi işlevi çalışır)
+        wave = new Wave(this, () -> findViewById(R.id.nextBtn).performClick(), () -> playBtn.performClick());
 
         navIcon = findViewById(R.id.navIcon);
         navTitle = findViewById(R.id.navTitle);
@@ -144,6 +148,7 @@ public class MainActivity extends Activity {
         musicArt.setOnClickListener(v -> Apps.openMusic(this, p));
 
         findViewById(R.id.assistBtn).setOnClickListener(v -> openAssistant());
+        findViewById(R.id.assistBtn).setOnLongClickListener(v -> { takeVoiceNote(); return true; });
         // Düğmeler uzayınca simgeler dev olmasın: simge en fazla 34dp
         findViewById(R.id.iconsGrid).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
                 v.post(() -> { squareQuick(); fitQuickIcons(); }));
@@ -710,6 +715,8 @@ public class MainActivity extends Activity {
 
         PlaybackState s = ctrl.getPlaybackState();
         boolean playing = s != null && s.getState() == PlaybackState.STATE_PLAYING;
+        if (playing && wave.available() && Wave.enabled(this))
+            Tips.maybe(this, "wave", "Elini telefonun üst kısmının üzerinden geçir: sonraki şarkı. İki kez geçir: durdur / başlat.");
         playBtn.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
         updateProgress();
     }
@@ -868,6 +875,32 @@ public class MainActivity extends Activity {
 
     private final Runnable bannerHide = this::hideBanner;
 
+    /** İpucu şeridi: ekranın altında 9 saniye, dokununca kapanır. */
+    private void showTip(String text) {
+        ViewGroup content = findViewById(android.R.id.content);
+        if (content == null) return;
+        float d = getResources().getDisplayMetrics().density;
+        if (bannerView != null) content.removeView(bannerView);
+        TextView t = new TextView(this);
+        t.setText(text);
+        t.setTextSize(16);
+        t.setTextColor(getColor(R.color.fg));
+        t.setBackgroundResource(R.drawable.tile_dark);
+        t.setElevation(12 * d);
+        int pad = Math.round(14 * d);
+        t.setPadding(pad, Math.round(12 * d), pad, Math.round(12 * d));
+        android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM);
+        int m = Math.round(16 * d);
+        lp.setMargins(m, m, m, m);
+        t.setOnClickListener(v -> hideBanner());
+        content.addView(t, lp);
+        bannerView = t;
+        t.setAlpha(0f);
+        t.animate().alpha(1f).setDuration(200).start();
+        t.postDelayed(bannerHide, 9000);
+    }
+
     private void hideBanner() {
         View b = bannerView;
         if (b == null) return;
@@ -1012,7 +1045,50 @@ public class MainActivity extends Activity {
         handleCarIntent(intent);
     }
 
+    // ---------- Sesli not ----------
+
+    private void takeVoiceNote() {
+        try {
+            sOwnScreen = true;
+            startActivityForResult(new Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                    .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                            android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "tr-TR")
+                    .putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Notunu söyle"), REQ_NOTE);
+        } catch (Exception e) {
+            Toast.makeText(this, "Ses tanıma bulunamadı", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req != REQ_NOTE || res != RESULT_OK || data == null) return;
+        java.util.ArrayList<String> r = data.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS);
+        if (r == null || r.isEmpty() || r.get(0).trim().isEmpty()) return;
+        Notes.add(this, r.get(0).trim());
+        Toast.makeText(this, "📝 Not kaydedildi: " + r.get(0).trim(), Toast.LENGTH_LONG).show();
+    }
+
+    private void showNotesDialog() {
+        java.util.List<String> l = Notes.list(this);
+        if (l.isEmpty()) {
+            Toast.makeText(this, "Henüz sesli not yok", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Sesli notların")
+                .setItems(l.toArray(new String[0]), null)
+                .setPositiveButton("Kapat", null)
+                .setNegativeButton("Hepsini sil", (d, w) -> Notes.clear(this))
+                .show();
+    }
+
     private void handleCarIntent(Intent i) {
+        if (i != null && i.getBooleanExtra(Notes.EXTRA_SHOW, false)) {
+            i.removeExtra(Notes.EXTRA_SHOW);
+            playBtn.post(this::showNotesDialog);
+        }
         if (i != null && i.getBooleanExtra(BtReceiver.EXTRA_FROM_CAR, false)) {
             i.removeExtra(BtReceiver.EXTRA_FROM_CAR);
             if (p.autoPlay()) Apps.playMedia(this);
@@ -1095,6 +1171,14 @@ public class MainActivity extends Activity {
         seek.post(progressTick);
         status.resume();
         frontCar.start();
+        wave.start(this);
+        Tips.shower = this::showTip;
+        // İlk açılışlarda sırayla tanıtılacak özellikler (her biri bir kez)
+        playBtn.postDelayed(() -> {
+            Tips.maybe(this, "note", "Sesli komut tuşuna basılı tut: yolda aklına geleni söyle, not olarak kaydedilsin.");
+            Tips.maybe(this, "park", "Arabadan inmeden araba tuşuna basılı tut: park yerin kaydedilir.");
+            Tips.maybe(this, "swipe", "Müzik kutusunu sola kaydır: sonraki şarkı, sağa kaydır: önceki şarkı.");
+        }, 5000);
         Shortcuts.render(this);
         renderCalls();
         arrangeQuick();
@@ -1127,6 +1211,8 @@ public class MainActivity extends Activity {
         playBtn.removeCallbacks(autoSplitRun);
         status.pause();
         frontCar.stop();
+        wave.stop();
+        Tips.shower = null;
         seek.removeCallbacks(progressTick);
         NavState.listener = null;
         Notifs.listener = null;

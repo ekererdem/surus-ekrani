@@ -48,7 +48,7 @@ final class Layout {
                     + "Dokun: açar. Basılı tut: gizler.";
             case "status": return "Şebeke çekimi, Bluetooth ve pil. Arabaya bağlıyken şarj olmuyor ve pil %30'un "
                     + "altındaysa pil kırmızı yanıp söner.";
-            case "assist": return "Telefonun sesli asistanını açar.";
+            case "assist": return "Dokun: telefonun sesli asistanı. Basılı tut: sesli not al; arabadan inince notların hatırlatılır.";
             case "calls": return "Eklediğin kişiler. Dokun: 3 saniye sonra arar. Basılı tut: WhatsApp ile konumunu gönderir.";
             case "places": return "Eklediğin yerler. Dokun: o yere rota başlatır.";
             case "park": return "Basılı tut: o anki konumu park yeri olarak kaydeder. Dokun: arabana yürüyüş rotası açar.";
