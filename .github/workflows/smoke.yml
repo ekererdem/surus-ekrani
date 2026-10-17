@@ -34,12 +34,13 @@ jobs:
             adb logcat -c
             adb shell cmd notification allow_listener com.erdem.surusekrani/com.erdem.surusekrani.MediaListener || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 4 ; adb shell am force-stop com.erdem.surusekrani
-            adb shell "mkdir -p /data/data/com.erdem.surusekrani/shared_prefs && echo '<?xml version=\"1.0\" encoding=\"utf-8\"?><map><boolean name=\"autoSplit\" value=\"false\" /><boolean name=\"onboarded\" value=\"true\" /><string name=\"call1Name\">Ahmet</string><string name=\"call1Num\">05551112233</string><string name=\"call2Name\">Ayşe</string><string name=\"call2Num\">05552223344</string><string name=\"place1Name\">Ev</string><string name=\"place1Coord\">39.9,32.8</string><string name=\"place1Icon\">home</string></map>' > /data/data/com.erdem.surusekrani/shared_prefs/surus.xml"
+            adb shell "mkdir -p /data/data/com.erdem.surusekrani/shared_prefs && echo '<?xml version=\"1.0\" encoding=\"utf-8\"?><map><boolean name=\"autoSplit\" value=\"false\" /><boolean name=\"onboarded\" value=\"true\" /><string name=\"call1Name\">Ahmet</string><string name=\"call1Num\">05551112233</string><string name=\"parkCoord\">39.9208,32.8541</string><long name=\"parkAt\" value=\"1792250000000\" /><string name=\"parkNote\">B2 katı, 47 numara</string><string name=\"call2Name\">Ayşe</string><string name=\"call2Num\">05552223344</string><string name=\"place1Name\">Ev</string><string name=\"place1Coord\">39.9,32.8</string><string name=\"place1Icon\">home</string></map>' > /data/data/com.erdem.surusekrani/shared_prefs/surus.xml"
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 15
             adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5
             adb shell cmd notification post -c msg -t Annem testtag 'Nerdesiniz ne zaman geleceksiniz' || true ; sleep 2
             sleep 1 ; adb shell uiautomator dump /sdcard/u.xml > dump.txt 2>&1 ; adb shell cat /sdcard/u.xml > ui.xml 2>&1 || true
             adb exec-out screencap -p > shot-main.png || true
+            python3 .github/park_test.py || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb exec-out screencap -p > shot-settings.png || true
             adb shell am start -n com.erdem.surusekrani/.FeaturesActivity ; sleep 4 ; adb shell am start -n com.erdem.surusekrani/.OnboardingActivity ; sleep 4
@@ -71,7 +72,9 @@ jobs:
           PY
       - name: Sürükleme
         if: always()
-        run: echo "::notice::drag $(cat drag.txt 2>/dev/null)"
+        run: |
+          echo "::notice::drag $(cat drag.txt 2>/dev/null)"
+          echo "::notice::park $(cat park.txt 2>/dev/null)"
       - name: Ayarlar düzeni
         if: always()
         run: |

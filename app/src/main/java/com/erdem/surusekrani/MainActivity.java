@@ -151,8 +151,10 @@ public class MainActivity extends Activity {
         findViewById(R.id.iconsGrid).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
                 v.post(() -> { squareQuick(); fitQuickIcons(); }));
         // Bas: kayıtlı park yerine rota. Basılı tut: o anki konumu kaydet.
-        findViewById(R.id.parkBtn).setOnClickListener(v -> showPark());
+        findViewById(R.id.parkBtn).setOnClickListener(v -> showPark()); // erişilebilirlik için
         findViewById(R.id.parkBtn).setOnLongClickListener(v -> { saveParkNow(); return true; });
+        // Telefonun uzun basma süresi yerine kısa (0,35 sn) basılı tutma
+        QuickHold.attach(findViewById(R.id.parkBtn), 350, this::showPark, this::saveParkNow);
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
                 openOwn(new Intent(this, SettingsActivity.class)));
 
@@ -414,68 +416,246 @@ public class MainActivity extends Activity {
 
     // ---------- Arabam nerede ----------
 
+    /** Kayıtlı park yeri varsa araba simgesinin köşesinde turkuaz "P". */
+    private void refreshParkBadge() {
+        ImageButton pb = findViewById(R.id.parkBtn);
+        if (pb == null) return;
+        if (Park.coord(this).isEmpty()) {
+            pb.setImageResource(R.drawable.ic_car);
+            pb.setImageTintList(ColorStateList.valueOf(getColor(R.color.fg)));
+            pb.setContentDescription("Arabam nerede: kayıtlı park yeri yok");
+        } else {
+            pb.setImageResource(R.drawable.ic_car_parked);
+            pb.setImageTintList(null);
+            pb.setContentDescription("Arabam nerede: park yeri kayıtlı, " + parkAgo(Park.savedAt(this)));
+        }
+    }
+
+    private static String parkAgo(long at) {
+        long mins = (System.currentTimeMillis() - at) / 60000;
+        return mins < 1 ? "az önce" : mins < 60 ? mins + " dk önce"
+                : mins < 1440 ? (mins / 60) + " saat önce" : (mins / 1440) + " gün önce";
+    }
+
+    private static String parkWhen(long at) {
+        java.util.Calendar now = java.util.Calendar.getInstance(), t = java.util.Calendar.getInstance();
+        t.setTimeInMillis(at);
+        String hm = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(new java.util.Date(at));
+        int dd = now.get(java.util.Calendar.DAY_OF_YEAR) - t.get(java.util.Calendar.DAY_OF_YEAR)
+                + 365 * (now.get(java.util.Calendar.YEAR) - t.get(java.util.Calendar.YEAR));
+        if (dd == 0) return "Bugün " + hm;
+        if (dd == 1) return "Dün " + hm;
+        return new java.text.SimpleDateFormat("d MMM HH:mm", new java.util.Locale("tr", "TR")).format(new java.util.Date(at));
+    }
+
+    /**
+     * Dokununca: ekranın altında park paneli. Ne zaman park edildiği, ne kadar uzakta olduğu, adres ve not;
+     * Yürüyerek git, Not, Paylaş, Sil.
+     */
     private void showPark() {
         String c = Park.coord(this);
         if (c.isEmpty()) {
-            Toast.makeText(this, "Henüz park yeri yok. Kaydetmek için bu düğmeye basılı tut.",
+            Toast.makeText(this, "Henüz park yeri yok. Kaydetmek için bu düğmeye kısaca basılı tut.",
                     Toast.LENGTH_LONG).show();
             return;
         }
-        long mins = (System.currentTimeMillis() - Park.savedAt(this)) / 60000;
-        String ago = mins < 1 ? "az önce" : mins < 60 ? mins + " dk önce"
-                : mins < 1440 ? (mins / 60) + " saat önce" : (mins / 1440) + " gün önce";
-        String note = Park.note(this);
-        if (note.isEmpty()) {
-            Toast.makeText(this, "Park yeri " + ago + " kaydedildi", Toast.LENGTH_SHORT).show();
-            Apps.openWalk(this, p, c);
-            return;
-        }
-        // Not varsa önce onu göster
+        ViewGroup content = findViewById(android.R.id.content);
+        if (content == null) return;
         float d = getResources().getDisplayMetrics().density;
-        android.widget.LinearLayout box = new android.widget.LinearLayout(this);
-        box.setOrientation(android.widget.LinearLayout.VERTICAL);
-        int pad = Math.round(20 * d);
-        box.setPadding(pad, Math.round(8 * d), pad, 0);
+        if (bannerView != null) { bannerView.removeCallbacks(bannerHide); content.removeView(bannerView); }
+
+        android.widget.LinearLayout panel = new android.widget.LinearLayout(this);
+        panel.setOrientation(android.widget.LinearLayout.VERTICAL);
+        panel.setBackgroundResource(R.drawable.tile_dark);
+        panel.setElevation(12 * d);
+        int pad = Math.round(16 * d);
+        panel.setPadding(pad, pad, pad, pad);
+
+        // Başlık: simge + "Park yerin" + ne zaman
+        android.widget.LinearLayout head = new android.widget.LinearLayout(this);
+        head.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        ImageView ic = new ImageView(this);
+        ic.setImageResource(R.drawable.ic_car_parked);
+        head.addView(ic, new android.widget.LinearLayout.LayoutParams(Math.round(36 * d), Math.round(36 * d)));
+        TextView title = new TextView(this);
+        long at = Park.savedAt(this);
+        android.text.SpannableStringBuilder tb = new android.text.SpannableStringBuilder("Park yerin");
+        tb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, tb.length(), 0);
+        int st = tb.length();
+        tb.append("\n").append(parkWhen(at)).append(" · ").append(parkAgo(at));
+        tb.setSpan(new android.text.style.RelativeSizeSpan(0.78f), st, tb.length(), 0);
+        tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, tb.length(), 0);
+        title.setText(tb);
+        title.setTextSize(18);
+        title.setTextColor(getColor(R.color.fg));
+        android.widget.LinearLayout.LayoutParams tlp = new android.widget.LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        tlp.setMarginStart(Math.round(12 * d));
+        head.addView(title, tlp);
+        panel.addView(head);
+
+        // Uzaklık ve adres (adres arka planda bulunur)
+        TextView where = new TextView(this);
+        where.setTextSize(15);
+        where.setTextColor(getColor(R.color.muted));
+        where.setPadding(0, Math.round(10 * d), 0, 0);
+        String dist = parkDistance(c);
+        where.setText(dist == null ? "" : dist);
+        where.setVisibility(dist == null ? View.GONE : View.VISIBLE);
+        panel.addView(where);
+        new Thread(() -> {
+            String addr = parkAddress(c);
+            if (addr == null) return;
+            runOnUiThread(() -> {
+                where.setText(dist == null ? addr : dist + " · " + addr);
+                where.setVisibility(View.VISIBLE);
+            });
+        }).start();
+
+        String note = Park.note(this);
         if (!note.isEmpty()) {
-            TextView t = new TextView(this);
-            t.setText(note);
-            t.setTextSize(22);
-            t.setTextColor(getColor(R.color.fg));
-            box.addView(t);
+            TextView nt = new TextView(this);
+            nt.setText(note);
+            nt.setTextSize(20);
+            nt.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            nt.setTextColor(getColor(R.color.fg));
+            nt.setPadding(0, Math.round(10 * d), 0, 0);
+            panel.addView(nt);
         }
-        new android.app.AlertDialog.Builder(this)
-                .setTitle("Park yeri (" + ago + ")")
-                .setView(box)
-                .setPositiveButton("Yol tarifi", (x, y) -> Apps.openWalk(this, p, c))
-                .setNegativeButton("Kapat", null)
-                .show();
+
+        // Düğmeler
+        android.widget.LinearLayout btns = new android.widget.LinearLayout(this);
+        btns.setPadding(0, Math.round(14 * d), 0, 0);
+        TextView go = parkBtn("Yürüyerek git", true);
+        go.setOnClickListener(v -> { hideBanner(); Apps.openWalk(this, p, c); });
+        btns.addView(go, new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1.6f));
+        TextView noteBtn = parkBtn(note.isEmpty() ? "Not ekle" : "Not", false);
+        noteBtn.setOnClickListener(v -> { hideBanner(); parkNoteDialog(false); });
+        btns.addView(noteBtn, parkBtnLp(d));
+        TextView share = parkBtn("Paylaş", false);
+        share.setOnClickListener(v -> {
+            hideBanner();
+            String txt = "Arabam burada: https://maps.google.com/?q=" + c + (note.isEmpty() ? "" : " (" + note + ")");
+            try {
+                startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain")
+                        .putExtra(Intent.EXTRA_TEXT, txt), "Park yerini paylaş"));
+            } catch (Exception ignored) {
+            }
+        });
+        btns.addView(share, parkBtnLp(d));
+        TextView del = parkBtn("Sil", false);
+        del.setTextColor(getColor(R.color.low));
+        del.setOnClickListener(v -> {
+            if (!"sure".equals(v.getTag())) { // yanlışlıkla silinmesin: ikinci dokunuşta sil
+                v.setTag("sure");
+                del.setText("Emin misin?");
+                return;
+            }
+            Park.clear(this);
+            refreshParkBadge();
+            hideBanner();
+            Toast.makeText(this, "Park yeri silindi", Toast.LENGTH_SHORT).show();
+        });
+        btns.addView(del, parkBtnLp(d));
+        panel.addView(btns);
+
+        panel.setOnClickListener(v -> hideBanner());
+        android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM);
+        int m = Math.round(16 * d);
+        lp.setMargins(m, m, m, m);
+        content.addView(panel, lp);
+        bannerView = panel;
+        panel.setAlpha(0f);
+        panel.setTranslationY(40 * d);
+        panel.animate().alpha(1f).translationY(0).setDuration(200).start();
+        panel.postDelayed(bannerHide, 30000);
+    }
+
+    private TextView parkBtn(String text, boolean primary) {
+        TextView b = new TextView(this);
+        b.setText(text);
+        b.setGravity(android.view.Gravity.CENTER);
+        b.setTextSize(15);
+        b.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        b.setSingleLine(true);
+        b.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        b.setClickable(true);
+        b.setFocusable(true);
+        b.setBackgroundResource(primary ? R.drawable.tile_accent : R.drawable.btn_outline);
+        b.setTextColor(getColor(primary ? R.color.accent_ink : R.color.fg));
+        return b;
+    }
+
+    private static android.widget.LinearLayout.LayoutParams parkBtnLp(float d) {
+        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1f);
+        lp.setMarginStart(Math.round(8 * d));
+        return lp;
+    }
+
+    /** "Buradan yaklaşık 350 m" — o anki konum bilinmiyorsa null. */
+    private String parkDistance(String park) {
+        String here = Park.current(this);
+        if (here == null) return null;
+        try {
+            String[] a = park.split(","), b = here.split(",");
+            float[] r = new float[1];
+            Location.distanceBetween(Double.parseDouble(a[0]), Double.parseDouble(a[1]),
+                    Double.parseDouble(b[0]), Double.parseDouble(b[1]), r);
+            if (r[0] < 30) return "Arabanın yanındasın";
+            if (r[0] < 1000) return "Buradan yaklaşık " + (Math.round(r[0] / 10f) * 10) + " m";
+            return String.format(new java.util.Locale("tr", "TR"), "Buradan yaklaşık %.1f km", r[0] / 1000f);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Park yerinin sokak adı (telefonun adres servisiyle); bulunamazsa null. */
+    private String parkAddress(String park) {
+        try {
+            String[] a = park.split(",");
+            List<android.location.Address> l = new android.location.Geocoder(this, new java.util.Locale("tr", "TR"))
+                    .getFromLocation(Double.parseDouble(a[0]), Double.parseDouble(a[1]), 1);
+            if (l == null || l.isEmpty()) return null;
+            android.location.Address ad = l.get(0);
+            String street = ad.getThoroughfare(), no = ad.getSubThoroughfare(), area = ad.getSubLocality();
+            StringBuilder b = new StringBuilder();
+            if (street != null) b.append(street).append(no != null ? " " + no : "");
+            if (area != null) b.append(b.length() > 0 ? ", " : "").append(area);
+            return b.length() > 0 ? b.toString() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void saveParkNow() {
-        Toast.makeText(this, "Konum alınıyor…", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Park yeri kaydediliyor…", Toast.LENGTH_SHORT).show();
         Park.saveNow(this, ok -> {
-            if (ok) parkNoteDialog();
-            else Toast.makeText(this, "Konum bulunamadı", Toast.LENGTH_SHORT).show();
+            if (ok) {
+                refreshParkBadge();
+                parkNoteDialog(true);
+            } else Toast.makeText(this, "Konum bulunamadı", Toast.LENGTH_SHORT).show();
         });
     }
 
-    // ---------- Park notu ve fotoğrafı ----------
+    // ---------- Park notu ----------
 
-
-    private void parkNoteDialog() {
+    private void parkNoteDialog(boolean justSaved) {
         float d = getResources().getDisplayMetrics().density;
         android.widget.EditText et = new android.widget.EditText(this);
         et.setHint("Not (ör. B2 katı, 47 numara)");
         et.setSingleLine(true);
+        et.setText(Park.note(this));
+        et.setSelection(et.getText().length());
         android.widget.FrameLayout fl = new android.widget.FrameLayout(this);
         int pad = Math.round(20 * d);
         fl.setPadding(pad, Math.round(8 * d), pad, 0);
         fl.addView(et);
         new android.app.AlertDialog.Builder(this)
-                .setTitle("Park yeri kaydedildi")
+                .setTitle(justSaved ? "Park yeri kaydedildi" : "Park notu")
                 .setView(fl)
                 .setPositiveButton("Kaydet", (x, y) -> Park.setNote(this, et.getText().toString().trim()))
-                .setNegativeButton("Geç", null)
+                .setNegativeButton(justSaved ? "Geç" : "Vazgeç", null)
                 .show();
     }
 
@@ -1315,6 +1495,7 @@ public class MainActivity extends Activity {
             Tips.maybe(this, "swipe", "Müzik kutusunu sola kaydır: sonraki şarkı, sağa kaydır: önceki şarkı.");
         }, 5000);
         Shortcuts.render(this);
+        refreshParkBadge();
         renderCalls();
         arrangeQuick();
 
