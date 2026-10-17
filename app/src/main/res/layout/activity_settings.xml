@@ -28,88 +28,10 @@
             android:layout_width="match_parent" android:layout_marginTop="14dp"
             android:text="💡 Neler yapabilirim?" />
 
-        <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Kutucukla aç/kapat, Üst sıra/Alt sıra ile satırını seç, oklarla sırasını değiştir." />
-        <LinearLayout
-            android:id="@+id/layoutList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-        <TextView android:id="@+id/layoutReset" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_gravity="end" android:layout_marginTop="8dp" android:padding="8dp"
-            android:background="?android:attr/selectableItemBackground"
-            android:textSize="14sp" android:textColor="@color/amber" android:text="Varsayılan düzene dön" />
 
-        <TextView style="@style/SectionTitle" android:text="Navigasyon uygulaması" />
-        <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
-            <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
-        </RadioGroup>
-        <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="14dp"
-            android:text="Açılınca haritayı yan yana başlat" />
 
-        <TextView style="@style/SectionTitle" android:text="Müzik uygulaması" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Ana ekrandaki müzik kutusunu sola kaydırınca sonraki, sağa kaydırınca önceki şarkıya geçer." />
-        <RadioGroup android:id="@+id/radioMusic" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/rbSpotify" style="@style/Option" android:text="Spotify" />
-            <RadioButton android:id="@+id/rbYtm" style="@style/Option" android:text="YouTube Music" />
-        </RadioGroup>
-
-        <TextView style="@style/SectionTitle" android:text="Uygulama kısayolları" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Seçtiğin uygulamalar ana ekranda müzik çaların altında görünür; kaç tane seçersen o kadar kutu olur (en fazla 5). Bir uygulamaya dokunarak çıkarabilirsin." />
-        <LinearLayout
-            android:id="@+id/appsList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <TextView style="@style/SectionTitle" android:text="Ekran ölçeği" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Çubuğu sağa ya da sola kaydırarak ana ekrandaki her şeyi büyütüp küçült." />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-            <SeekBar
-                android:id="@+id/scaleSeek"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:max="10"
-                android:progressTint="@color/amber"
-                android:progressBackgroundTint="@color/line"
-                android:thumbTint="@color/amber" />
-            <TextView
-                android:id="@+id/scaleText"
-                android:layout_width="64dp"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textSize="17sp"
-                android:textColor="@color/fg" />
-        </LinearLayout>
-
-        <!-- Adresler -->
-        <TextView style="@style/SectionTitle" android:text="Hızlı arama (en fazla 5)" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Eklediğin kişiler hızlı arama için ana ekrana gelir. Dokunduktan sonra iptal için 3 saniye süre başlar, iptal etmezsen arama başlar. Tuşa uzun basarsan ilgili kişiye WhatsApp üzerinden &quot;Yoldayım. İşte konumum&quot; mesajı ile anlık konumun gönderilir." />
-        <LinearLayout
-            android:id="@+id/callsList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <TextView style="@style/SectionTitle" android:text="Hızlı rotalar (en fazla 5)" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Eklediğin yerler ana ekranda simgeleriyle düğme olur; dokununca o yere rota başlar. Bir rotaya dokunarak adını, simgesini, konumunu değiştirebilir ya da silebilirsin." />
-        <LinearLayout
-            android:id="@+id/placesList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginTop="28dp" android:background="#22FFFFFF" />
 
         <!-- Araba -->
         <TextView style="@style/SectionTitle" android:text="Araç Bluetooth bağlantısı" />
@@ -147,6 +69,107 @@
                 android:textColor="@color/fg" />
         </LinearLayout>
 
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginTop="28dp" android:background="#22FFFFFF" />
+
+        <!-- 2. Uygulamalar -->
+        <TextView style="@style/SectionTitle" android:text="Navigasyon uygulaması" />
+        <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
+            <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
+        </RadioGroup>
+        <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="14dp"
+            android:text="Açılınca haritayı yan yana başlat" />
+
+        <TextView style="@style/SectionTitle" android:text="Müzik uygulaması" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Ana ekrandaki müzik kutusunu sola kaydırınca sonraki, sağa kaydırınca önceki şarkıya geçer." />
+        <RadioGroup android:id="@+id/radioMusic" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rbSpotify" style="@style/Option" android:text="Spotify" />
+            <RadioButton android:id="@+id/rbYtm" style="@style/Option" android:text="YouTube Music" />
+        </RadioGroup>
+
+        <TextView style="@style/SectionTitle" android:text="Uygulama kısayolları" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Seçtiğin uygulamalar ana ekranda müzik çaların altında görünür; kaç tane seçersen o kadar kutu olur (en fazla 5). Bir uygulamaya dokunarak çıkarabilirsin." />
+        <LinearLayout
+            android:id="@+id/appsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginTop="28dp" android:background="#22FFFFFF" />
+
+        <!-- Kişiler ve yerler -->
+        <TextView style="@style/SectionTitle" android:text="Hızlı arama (en fazla 5)" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Eklediğin kişiler hızlı arama için ana ekrana gelir. Dokunduktan sonra iptal için 3 saniye süre başlar, iptal etmezsen arama başlar. Tuşa uzun basarsan ilgili kişiye WhatsApp üzerinden &quot;Yoldayım. İşte konumum&quot; mesajı ile anlık konumun gönderilir." />
+        <LinearLayout
+            android:id="@+id/callsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView style="@style/SectionTitle" android:text="Hızlı rotalar (en fazla 5)" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Eklediğin yerler ana ekranda simgeleriyle düğme olur; dokununca o yere rota başlar. Bir rotaya dokunarak adını, simgesini, konumunu değiştirebilir ya da silebilirsin." />
+        <LinearLayout
+            android:id="@+id/placesList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginTop="28dp" android:background="#22FFFFFF" />
+
+        <!-- 4. Ana ekran görünümü -->
+        <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Kutucukla aç/kapat, Üst sıra/Alt sıra ile satırını seç, oklarla sırasını değiştir." />
+        <LinearLayout
+            android:id="@+id/layoutList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+        <TextView android:id="@+id/layoutReset" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="end" android:layout_marginTop="8dp" android:padding="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:textSize="14sp" android:textColor="@color/amber" android:text="Varsayılan düzene dön" />
+
+        <TextView style="@style/SectionTitle" android:text="Ekran ölçeği" />
+        <TextView style="@style/Note" android:layout_marginTop="0dp"
+            android:text="Çubuğu sağa ya da sola kaydırarak ana ekrandaki her şeyi büyütüp küçült." />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <SeekBar
+                android:id="@+id/scaleSeek"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:max="10"
+                android:progressTint="@color/amber"
+                android:progressBackgroundTint="@color/line"
+                android:thumbTint="@color/amber" />
+            <TextView
+                android:id="@+id/scaleText"
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textSize="17sp"
+                android:textColor="@color/fg" />
+        </LinearLayout>
+
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginTop="28dp" android:background="#22FFFFFF" />
+
         <!-- Sürüş yardımı -->
         <TextView style="@style/SectionTitle" android:text="Sürüş yardımı" />
         <Switch android:id="@+id/swQuiet" style="@style/Toggle"
@@ -168,6 +191,10 @@
                 android:background="?android:attr/selectableItemBackground"
                 android:textSize="14sp" android:textColor="@color/amber" android:text="İpuçlarını yeniden göster" />
         </LinearLayout>
+
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginTop="28dp" android:background="#22FFFFFF" />
 
         <!-- İzinler -->
         <TextView style="@style/SectionTitle" android:text="İzinler" />
