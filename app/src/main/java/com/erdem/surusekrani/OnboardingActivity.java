@@ -48,6 +48,8 @@ public class OnboardingActivity extends Activity {
 
     private void finishSetup() {
         getSharedPreferences("surus", MODE_PRIVATE).edit().putBoolean(DONE, true).apply();
+        // Ana ekrana dönünce her şey normal başlasın (harita yan yana açılsın)
+        MainActivity.sOwnScreen = false;
         finish();
     }
 
@@ -128,6 +130,6 @@ public class OnboardingActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (step > 0) { step--; render(); } else super.onBackPressed();
+        if (step > 0) { step--; render(); } else finishSetup(); // geri = tanıtımı atla (tekrar tekrar açılmasın)
     }
 }

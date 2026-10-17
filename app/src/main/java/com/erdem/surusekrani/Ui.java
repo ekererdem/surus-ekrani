@@ -101,6 +101,9 @@ final class Ui {
         b.setText(text);
         b.setTextSize(16);
         b.setAllCaps(false);
+        b.setGravity(Gravity.CENTER); // yazı kutunun tam ortasında
+        b.setPadding(dp(a, 12), 0, dp(a, 12), 0);
+        b.setIncludeFontPadding(false);
         if (primary) {
             b.setBackgroundResource(R.drawable.tile_amber);
             b.setTextColor(a.getColor(R.color.amber_ink));
