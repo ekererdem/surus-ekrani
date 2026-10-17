@@ -10,7 +10,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 /**
- * "Tın – tıııın" zil sesi: iki çan notası (Sol → Do, yükselen), kodla üretilir.
+ * Kristal zil sesi: iki ince nota (Do7 → Mi7, yükselen), kodla üretilir.
  * Navigasyon sesi gibi çalar: arabanın hoparlöründen çıkar, çalarken müzik kısılır.
  */
 final class Chime {
@@ -51,30 +51,32 @@ final class Chime {
         }
     }
 
-    /** İlk nota kısa (tın), ikincisi uzun ve yavaşça sönen (tıııın). */
+    /** Kristal: ince bir "tın" (Do7) ve ardından yükselen, uzun sönen "tınnnn" (Mi7). Cam bardağa dokunmak gibi. */
     private static synchronized short[] sound() {
         if (pcm != null) return pcm;
-        float[] a = new float[(int) (RATE * 1.45)];
-        bell(a, 0, 784f, 0.55f, 9f);          // Sol5 — tın
-        bell(a, (int) (RATE * 0.17), 1047f, 0.75f, 2.6f); // Do6 — tıııın
+        float[] a = new float[(int) (RATE * 2.8)];
+        hit(a, 0, 2093f, 10f, 0.5f);
+        hit(a, (int) (RATE * 0.17), 2637f, 2.0f, 2.6f);
+        float max = 0;
+        for (float v : a) max = Math.max(max, Math.abs(v));
+        int fade = (int) (RATE * 0.15);
         short[] s = new short[a.length];
         for (int i = 0; i < a.length; i++) {
-            float v = Math.max(-1f, Math.min(1f, a[i]));
-            s[i] = (short) (v * 32000);
+            float v = a[i] / max * 0.6f;
+            if (i > a.length - fade) v *= (a.length - i) / (float) fade;
+            s[i] = (short) (v * 32767);
         }
         return pcm = s;
     }
 
-    /** Çan sesi: temel ton + iki üst ton, hızlı vuruş, üstel sönme. */
-    private static void bell(float[] out, int start, float f, float amp, float decay) {
-        float[][] partials = {{1f, 1f}, {2.0f, 0.35f}, {3.01f, 0.12f}};
-        for (int i = start; i < out.length; i++) {
-            float t = (i - start) / (float) RATE;
-            float env = (float) Math.exp(-decay * t) * Math.min(1f, t / 0.004f); // 4 ms vuruş, tıkırtı olmasın
-            float v = 0;
-            for (float[] p : partials)
-                v += p[1] * (float) Math.sin(2 * Math.PI * f * p[0] * t) * (float) Math.exp(-decay * (p[0] - 1) * 0.6f * t);
-            out[i] += amp * env * v / 1.47f;
+    /** Tek vuruş: temel ton + hafif oktav, 2 ms yumuşak başlangıç, üstel sönme. */
+    private static void hit(float[] out, int start, float f, float decay, float dur) {
+        int n = Math.min(out.length - start, (int) (RATE * dur));
+        for (int k = 0; k < n; k++) {
+            float t = k / (float) RATE;
+            double v = Math.sin(2 * Math.PI * f * t) * Math.exp(-decay * t)
+                    + 0.12 * Math.sin(2 * Math.PI * f * 2 * t) * Math.exp(-decay * 1.5 * t);
+            out[start + k] += (float) (v * Math.min(1f, t / 0.002f));
         }
     }
 }
