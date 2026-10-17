@@ -97,10 +97,11 @@ final class DragSort {
         for (int j = 0; j < rows.size(); j++) {
             if (j == from) continue;
             View o = rows.get(j);
-            float oc = o.getTop() + o.getHeight() / 2f;
+            // Satırın %30'unu geçince yer değiştir (en uca sürüklerken de kesin geçsin)
+            float down = o.getTop() + o.getHeight() * 0.3f, up = o.getBottom() - o.getHeight() * 0.3f;
             float shift = 0;
-            if (j > from && center > oc) { shift = -step; target = Math.max(target, j); }
-            if (j < from && center < oc) { shift = step; target = Math.min(target, j); }
+            if (j > from && center > down) { shift = -step; target = Math.max(target, j); }
+            if (j < from && center < up) { shift = step; target = Math.min(target, j); }
             if (o.getTranslationY() != shift) o.animate().translationY(shift).setDuration(120).start();
         }
     }
