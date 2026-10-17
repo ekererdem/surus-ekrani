@@ -255,12 +255,7 @@ final class FrontCarWatcher {
         if (alerted || !camOn) return;
         alerted = true;
         closeCamera(); // bu duruş için iş bitti
-        try {
-            ToneGenerator t = new ToneGenerator(AudioManager.STREAM_MUSIC, 90);
-            t.startTone(ToneGenerator.TONE_PROP_BEEP2, 400);
-            main.postDelayed(t::release, 800);
-        } catch (Exception ignored) {
-        }
+        Chime.play(a); // "tın – tıııın", müziği kısarak
         Toast.makeText(a, "🚗 Öndeki araç hareket etti", Toast.LENGTH_SHORT).show();
     }
 }
