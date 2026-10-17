@@ -23,7 +23,7 @@ final class Notifs {
     interface Banner { void show(Item it); }
 
     static final class Item {
-        String key, pkg, who, app, text;
+        String key, pkg, who, app, text, full;
         int count;
         long when;
         boolean missedCall;
@@ -80,6 +80,7 @@ final class Notifs {
             txt = ((android.os.Bundle) msgs[msgs.length - 1]).getCharSequence("text");
         if (txt == null) txt = n.extras.getCharSequence(Notification.EXTRA_TEXT);
         it.text = txt == null ? "" : txt.toString().trim();
+        it.full = fullText(n, msgs, it.text);
         it.open = n.contentIntent;
         try {
             android.content.pm.PackageManager pm = c.getPackageManager();
@@ -97,6 +98,34 @@ final class Notifs {
             if (listener != null) listener.onNotifsChanged();
             if (fresh && banner != null) banner.show(it);
         });
+    }
+
+    /** Bildirimin tamamı: sohbet bildirimlerinde son 10 mesaj (grupta gönderenle), yoksa uzun metin. */
+    private static String fullText(Notification n, Parcelable[] msgs, String last) {
+        boolean group = n.extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false);
+        if (msgs != null && msgs.length > 0) {
+            StringBuilder b = new StringBuilder();
+            for (int i = Math.max(0, msgs.length - 10); i < msgs.length; i++) {
+                if (!(msgs[i] instanceof android.os.Bundle)) continue;
+                android.os.Bundle m = (android.os.Bundle) msgs[i];
+                CharSequence t = m.getCharSequence("text");
+                if (t == null) continue;
+                CharSequence who = m.getCharSequence("sender");
+                if (b.length() > 0) b.append("\n");
+                if (group && who != null) b.append(who).append(": ");
+                b.append(t.toString().trim());
+            }
+            if (b.length() > 0) return b.toString();
+        }
+        CharSequence big = n.extras.getCharSequence(Notification.EXTRA_BIG_TEXT);
+        if (big != null && big.length() > 0) return big.toString().trim();
+        CharSequence[] lines = n.extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES);
+        if (lines != null && lines.length > 0) {
+            StringBuilder b = new StringBuilder();
+            for (CharSequence l : lines) { if (b.length() > 0) b.append("\n"); b.append(l); }
+            return b.toString();
+        }
+        return last;
     }
 
     static void removed(StatusBarNotification sbn) {

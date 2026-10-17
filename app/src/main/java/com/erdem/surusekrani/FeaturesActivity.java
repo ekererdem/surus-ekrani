@@ -31,7 +31,7 @@ public class FeaturesActivity extends Activity {
         Ui.section(this, box, "Bilgi");
         Ui.item(this, box, "🌦️ Hava durumu", "Şimdi ve 1 saat sonrası. Yoğun yağmur, kar, sis bekleniyorsa sağ taraf kırmızı çerçeveli. "
                 + "Hızlı rotayla gidince varış yerinin havası.");
-        Ui.item(this, box, "💬 Bildirimler", "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj ekranın altında birkaç saniye görünür.");
+        Ui.item(this, box, "💬 Bildirimler", "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj ekranın altında birkaç saniye görünür. Kutuya dokun: mesajların tamamı. Basılı tut: uygulamaya geç.");
         Ui.item(this, box, "🔋 Telefon durumu", "Çekim, Bluetooth, şarj. Şarjdayken şimşek turuncu → sarı → yeşil dolar. Arabadayken şarj olmuyor ve şarj azsa şimşek kırmızı yanıp söner.");
 
         Ui.section(this, box, "Kendiliğinden");

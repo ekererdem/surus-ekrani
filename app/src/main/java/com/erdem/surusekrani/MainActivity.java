@@ -803,10 +803,112 @@ public class MainActivity extends Activity {
 
     // ---------- Bildirim kutusu ----------
 
-    /** Dokun: bildirimi aç (WhatsApp sohbeti, arama geçmişi). Basılı tut: bu ekrandan gizle. */
+    /** Dokun: bildirimlerin tamamı ekranın altında. Basılı tut: bildirimin uygulamasına geç. */
     private void setNotifClicks(View tile, Notifs.Item it) {
-        tile.setOnClickListener(v -> { openNotif(it); Notifs.hide(it.key); });
-        tile.setOnLongClickListener(v -> { Notifs.hide(it.key); return true; });
+        tile.setOnClickListener(v -> showFullNotifs());
+        tile.setOnLongClickListener(v -> { hideBanner(); openNotif(it); Notifs.hide(it.key); return true; });
+    }
+
+    /**
+     * Bildirimlerin tam hali, ekranın altında (en yeni üstte). Dokun: kapanır.
+     * Bir bildirime basılı tut: o uygulamaya geçer. "Temizle": ana ekrandan kaldırır (telefonda kalır).
+     */
+    private void showFullNotifs() {
+        List<Notifs.Item> l = Notifs.list();
+        ViewGroup content = findViewById(android.R.id.content);
+        if (l.isEmpty() || content == null) return;
+        float d = getResources().getDisplayMetrics().density;
+        if (bannerView != null) { bannerView.removeCallbacks(bannerHide); content.removeView(bannerView); }
+        android.widget.LinearLayout panel = new android.widget.LinearLayout(this);
+        panel.setOrientation(android.widget.LinearLayout.VERTICAL);
+        panel.setBackgroundResource(R.drawable.tile_dark);
+        panel.setElevation(12 * d);
+        int pad = Math.round(14 * d);
+        panel.setPadding(pad, Math.round(10 * d), pad, Math.round(6 * d));
+
+        int maxH = Math.round(content.getHeight() * 0.6f);
+        android.widget.ScrollView sv = new android.widget.ScrollView(this) {
+            @Override protected void onMeasure(int w, int h) {
+                super.onMeasure(w, MeasureSpec.makeMeasureSpec(Math.max(maxH, 1), MeasureSpec.AT_MOST));
+            }
+        };
+        android.widget.LinearLayout list = new android.widget.LinearLayout(this);
+        list.setOrientation(android.widget.LinearLayout.VERTICAL);
+        sv.addView(list);
+        java.text.SimpleDateFormat hm = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.US);
+        for (int i = 0; i < l.size(); i++) {
+            Notifs.Item it = l.get(i);
+            android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+            row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            row.setPadding(0, Math.round(8 * d), 0, Math.round(8 * d));
+            if (it.icon != null) {
+                ImageView ic = new ImageView(this);
+                ic.setImageDrawable(it.icon);
+                android.widget.LinearLayout.LayoutParams ilp = new android.widget.LinearLayout.LayoutParams(
+                        Math.round(30 * d), Math.round(30 * d));
+                ilp.topMargin = Math.round(2 * d);
+                row.addView(ic, ilp);
+            }
+            TextView t = new TextView(this);
+            String head = it.who;
+            String meta = "  " + it.app + " · " + hm.format(new java.util.Date(it.when));
+            String body = it.missedCall ? "Cevapsız arama"
+                    : (it.full != null && !it.full.isEmpty() ? it.full : it.text);
+            android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(head);
+            sb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, head.length(), 0);
+            int ms = sb.length();
+            sb.append(meta);
+            sb.setSpan(new android.text.style.RelativeSizeSpan(0.8f), ms, sb.length(), 0);
+            sb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), ms, sb.length(), 0);
+            if (body != null && !body.isEmpty()) sb.append("\n").append(body);
+            t.setText(sb);
+            t.setTextSize(17);
+            t.setTextColor(getColor(R.color.fg));
+            t.setLineSpacing(0, 1.1f);
+            android.widget.LinearLayout.LayoutParams tlp = new android.widget.LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            tlp.setMarginStart(Math.round(12 * d));
+            row.addView(t, tlp);
+            row.setOnClickListener(v -> hideBanner());
+            row.setOnLongClickListener(v -> { hideBanner(); openNotif(it); Notifs.hide(it.key); return true; });
+            if (i > 0) {
+                View line = new View(this);
+                line.setBackgroundColor(0x22FFFFFF);
+                list.addView(line, new android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, Math.round(d))));
+            }
+            list.addView(row);
+        }
+        panel.addView(sv, new android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        // Alt satır: ipucu solda, Temizle sağda
+        android.widget.LinearLayout foot = new android.widget.LinearLayout(this);
+        foot.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        TextView hint = new TextView(this);
+        hint.setText("Basılı tut: uygulamada aç · Dokun: kapat");
+        hint.setTextSize(13);
+        hint.setTextColor(getColor(R.color.muted));
+        foot.addView(hint, new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        TextView clear = new TextView(this);
+        clear.setText("Temizle");
+        clear.setTextSize(15);
+        clear.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        clear.setTextColor(getColor(R.color.amber));
+        clear.setPadding(Math.round(14 * d), Math.round(10 * d), Math.round(4 * d), Math.round(10 * d));
+        clear.setOnClickListener(v -> { hideBanner(); Notifs.clear(); });
+        foot.addView(clear);
+        panel.addView(foot);
+
+        panel.setOnClickListener(v -> hideBanner());
+        android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM);
+        int m = Math.round(16 * d);
+        lp.setMargins(m, m, m, m);
+        content.addView(panel, lp);
+        bannerView = panel;
+        panel.setAlpha(0f);
+        panel.setTranslationY(40 * d);
+        panel.animate().alpha(1f).translationY(0).setDuration(200).start();
+        panel.postDelayed(bannerHide, 30000);
     }
 
     private void openNotif(Notifs.Item it) {
@@ -833,7 +935,7 @@ public class MainActivity extends Activity {
         ViewGroup content = findViewById(android.R.id.content);
         if (content == null) return;
         float d = getResources().getDisplayMetrics().density;
-        if (bannerView != null) content.removeView(bannerView);
+        if (bannerView != null) { bannerView.removeCallbacks(bannerHide); content.removeView(bannerView); }
         android.widget.LinearLayout b = new android.widget.LinearLayout(this);
         b.setOrientation(android.widget.LinearLayout.HORIZONTAL);
         b.setGravity(android.view.Gravity.CENTER_VERTICAL);
@@ -870,7 +972,9 @@ public class MainActivity extends Activity {
                 android.view.Gravity.BOTTOM);
         int m = Math.round(16 * d);
         lp.setMargins(m, m, m, m);
-        b.setOnClickListener(v -> { hideBanner(); openNotif(it); Notifs.hide(it.key); });
+        // Dokun: tam halini göster. Basılı tut: uygulamaya geç.
+        b.setOnClickListener(v -> showFullNotifs());
+        b.setOnLongClickListener(v -> { hideBanner(); openNotif(it); Notifs.hide(it.key); return true; });
         content.addView(b, lp);
         bannerView = b;
         b.setAlpha(0f);
@@ -887,7 +991,7 @@ public class MainActivity extends Activity {
         ViewGroup content = findViewById(android.R.id.content);
         if (content == null) return;
         float d = getResources().getDisplayMetrics().density;
-        if (bannerView != null) content.removeView(bannerView);
+        if (bannerView != null) { bannerView.removeCallbacks(bannerHide); content.removeView(bannerView); }
         TextView t = new TextView(this);
         t.setText(text);
         t.setTextSize(16);

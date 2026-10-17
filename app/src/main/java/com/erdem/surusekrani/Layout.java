@@ -45,7 +45,7 @@ final class Layout {
                     + "bekleniyorsa sağ taraf kırmızı çerçeveli olur. Hızlı rotayla yola çıkınca sağda varış yerinin havası görünür.";
             case "notif": return "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj gelince ekranın altında birkaç saniye "
                     + "mesajın kendisi görünür; kutuda 5 dakika kimden geldiği yazar, sonra sadece uygulama simgesi kalır. "
-                    + "Dokun: açar. Basılı tut: gizler.";
+                    + "Dokun: mesajların tamamı ekranın altında açılır. Basılı tut: mesajın geldiği uygulamaya geçer.";
             case "status": return "Şebeke çekimi, Bluetooth ve şarj. Şarjdayken şimşek dolulukla turuncu → sarı → yeşil olur; "
                     + "şarj azsa kırmızı. Arabaya bağlıyken şarj olmuyor ve şarj %30'un altındaysa kırmızı yanıp söner.";
             case "assist": return "Dokun: telefonun sesli asistanı. Basılı tut: sesli not al; arabadan inince notların hatırlatılır.";
