@@ -345,16 +345,17 @@ public class MainActivity extends Activity {
         if (g.getPaddingLeft() != 0) g.setPadding(0, 0, 0, 0);
         for (ViewGroup r : new ViewGroup[]{r1, r2}) {
             ((android.widget.LinearLayout) r).setGravity(android.view.Gravity.CENTER_HORIZONTAL);
-            int cols = visibleCount(r);
+            float cols = visibleCount(r);
             // Alt sıra boşsa yeri yine dursun (üst sıra uzamasın)
             r.setVisibility(cols == 0 ? View.INVISIBLE : View.VISIBLE);
-            int w = Math.round(65 * d); // sabit genişlik (yükseklikten bağımsız)
+            float w = Math.round(65 * d); // sabit genişlik (yükseklikten bağımsız)
             if (cols > 0) w = Math.min(w, (g.getWidth() - (cols - 1) * gap) / cols); // sığmazsa daralt
             boolean first = true;
             for (int i = 0; i < r.getChildCount(); i++) {
                 View c = r.getChildAt(i);
                 if (c.getVisibility() == View.GONE) continue;
-                int k = weightOf(c), cw = w * k + gap * (k - 1), ms = first ? 0 : gap;
+                float k = weightOf(c);
+                int cw = Math.round(w * k + gap * (k - 1)), ms = first ? 0 : gap;
                 first = false;
                 android.widget.LinearLayout.LayoutParams lp =
                         (android.widget.LinearLayout.LayoutParams) c.getLayoutParams();
@@ -368,17 +369,18 @@ public class MainActivity extends Activity {
         }
     }
 
-    private static int visibleCount(ViewGroup r) {
-        int n = 0;
+    private static float visibleCount(ViewGroup r) {
+        float n = 0;
         for (int i = 0; i < r.getChildCount(); i++)
             if (r.getChildAt(i).getVisibility() != View.GONE) n += weightOf(r.getChildAt(i));
         return n;
     }
 
-    private static int weightOf(View v) {
+    private static float weightOf(View v) {
         int id = v.getId();
-        if (id == R.id.statusTile) return 3; // simgeler ve yüzde tam sığsın
-        if (id == R.id.notifTile || id == R.id.weatherTile) return 2;
+        if (id == R.id.statusTile) return 2.4f; // simgeler ve yüzde sığacak kadar
+        if (id == R.id.notifTile) return 2.6f;  // bildirim metnine biraz daha yer
+        if (id == R.id.weatherTile) return 2;
         return 1;
     }
 
