@@ -578,7 +578,7 @@ public class MainActivity extends Activity {
         b.setGravity(android.view.Gravity.CENTER);
         b.setTextSize(15);
         b.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-        b.setSingleLine(true);
+        b.setMaxLines(1); // (setSingleLine otomatik küçültmeyi bozuyor)
         b.setPadding(Math.round(4 * getResources().getDisplayMetrics().density), 0,
                 Math.round(4 * getResources().getDisplayMetrics().density), 0);
         // dar ekranda yazı kesilmesin, sığacak kadar küçülsün
