@@ -498,17 +498,22 @@ public class MainActivity extends Activity {
         // Kısa ad (ör. "Annem"); yoksa rehberdeki adın ilk kelimesi
         String label = sp.getString(key + "Label", "").trim();
         String first = !label.isEmpty() ? label : name.trim().isEmpty() ? num : name.trim().split("\\s+")[0];
-        // Üstte küçük turkuaz telefon simgesi, altında kişinin adı
-        b.setText(first);
-        b.setSingleLine(true);
-        b.setIncludeFontPadding(false);
+        // Küçük turkuaz telefon simgesi ve altında ad; ikisi birlikte tuşun tam ortasında
         float pd = getResources().getDisplayMetrics().density;
         android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
-        int psz = Math.round(15 * pd);
+        int psz = Math.round(16 * pd);
         ph.setBounds(0, 0, psz, psz);
         ph.setTint(getColor(R.color.teal));
-        b.setCompoundDrawablesRelative(null, ph, null, null);
-        b.setCompoundDrawablePadding(Math.round(3 * pd));
+        android.text.SpannableStringBuilder t = new android.text.SpannableStringBuilder(" \n" + first);
+        t.setSpan(new android.text.style.ImageSpan(ph, android.text.style.DynamicDrawableSpan.ALIGN_BOTTOM),
+                0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        b.setSingleLine(false);
+        b.setMaxLines(2);
+        b.setText(t);
+        b.setIncludeFontPadding(false);
+        b.setGravity(android.view.Gravity.CENTER);
+        b.setCompoundDrawablesRelative(null, null, null, null);
+        b.setLineSpacing(2 * pd, 1f);
         b.setTextSize(15);
         float dd = getResources().getDisplayMetrics().density;
         b.setPadding(Math.round(4 * dd), 0, Math.round(4 * dd), 0);
