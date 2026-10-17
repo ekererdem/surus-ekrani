@@ -1196,6 +1196,14 @@ public class MainActivity extends Activity {
         NavState.listener = this::renderNav;
         renderNav();
         Notifs.listener = this::renderNotifs;
+        // Bildirim dinleyicisi kapanmışsa yeniden bağla, açıksa mevcut bildirimleri tazele
+        if (hasListenerAccess()) {
+            if (MediaListener.instance != null) MediaListener.instance.resync();
+            else try {
+                android.service.notification.NotificationListenerService.requestRebind(listenerCn);
+            } catch (Exception ignored) {
+            }
+        }
         Notifs.banner = this::showBanner;
         renderNotifs();
         playBtn.removeCallbacks(notifTick);

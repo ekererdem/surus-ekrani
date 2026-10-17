@@ -50,6 +50,17 @@ final class Notifs {
     }
 
     static void posted(Context c, StatusBarNotification sbn) {
+        posted(c, sbn, true);
+    }
+
+    static void clear() {
+        MAIN.post(() -> {
+            ITEMS.clear();
+            if (listener != null) listener.onNotifsChanged();
+        });
+    }
+
+    static void posted(Context c, StatusBarNotification sbn, boolean allowBanner) {
         if (!relevant(c, sbn)) return;
         Notification n = sbn.getNotification();
         CharSequence title = n.extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE);
@@ -79,7 +90,7 @@ final class Notifs {
             it.app = "";
         }
         // Yeni gelen (birkaç saniye içinde gönderilmiş) bildirimde alt şeridi göster
-        boolean fresh = System.currentTimeMillis() - it.when < 15000;
+        boolean fresh = allowBanner && System.currentTimeMillis() - it.when < 15000;
         MAIN.post(() -> {
             ITEMS.remove(it.key);
             ITEMS.put(it.key, it); // en yeni en sonda

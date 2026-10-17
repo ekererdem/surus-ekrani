@@ -14,11 +14,31 @@ import android.service.notification.StatusBarNotification;
  */
 public class MediaListener extends NotificationListenerService {
 
+    /** Bağlı dinleyici; ana ekran açıldığında bildirimleri yeniden okumak için. */
+    static MediaListener instance;
+
     @Override
     public void onListenerConnected() {
+        instance = this;
+        resync();
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        instance = null;
+        // HyperOS dinleyiciyi kapatabiliyor: yeniden bağlanmayı iste
+        try {
+            requestRebind(new android.content.ComponentName(this, MediaListener.class));
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** Telefondaki mevcut bildirimleri baştan oku (alt şerit gösterilmez). */
+    void resync() {
         try {
             StatusBarNotification[] all = getActiveNotifications();
-            if (all != null) for (StatusBarNotification s : all) { handle(s); Notifs.posted(this, s); }
+            Notifs.clear();
+            if (all != null) for (StatusBarNotification s : all) { handle(s); Notifs.posted(this, s, false); }
         } catch (Exception ignored) {
         }
     }
