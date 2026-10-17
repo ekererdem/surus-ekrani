@@ -46,8 +46,8 @@ final class Layout {
             case "notif": return "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj gelince ekranın altında birkaç saniye "
                     + "mesajın kendisi görünür; kutuda 5 dakika kimden geldiği yazar, sonra sadece uygulama simgesi kalır. "
                     + "Dokun: açar. Basılı tut: gizler.";
-            case "status": return "Şebeke çekimi, Bluetooth ve pil. Arabaya bağlıyken şarj olmuyor ve pil %30'un "
-                    + "altındaysa pil kırmızı yanıp söner.";
+            case "status": return "Şebeke çekimi, Bluetooth ve şarj. Şarjdayken şimşek dolulukla turuncu → sarı → yeşil olur; "
+                    + "şarj azsa kırmızı. Arabaya bağlıyken şarj olmuyor ve şarj %30'un altındaysa kırmızı yanıp söner.";
             case "assist": return "Dokun: telefonun sesli asistanı. Basılı tut: sesli not al; arabadan inince notların hatırlatılır.";
             case "calls": return "Eklediğin kişiler. Dokun: 3 saniye sonra arar. Basılı tut: WhatsApp ile konumunu gönderir.";
             case "places": return "Eklediğin yerler. Dokun: o yere rota başlatır.";

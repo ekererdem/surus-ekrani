@@ -115,16 +115,16 @@
                 android:contentDescription="Bluetooth" />
             <ImageView
                 android:id="@+id/battIcon"
-                android:layout_width="25dp"
-                android:layout_height="19dp"
-                android:src="@drawable/battery_level"
+                android:layout_width="15dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_bolt"
                 android:tint="@color/muted"
-                android:contentDescription="Pil" />
+                android:contentDescription="Şarj" />
             <TextView
                 android:id="@+id/battText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="3dp"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@color/muted"

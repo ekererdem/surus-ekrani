@@ -203,16 +203,20 @@ final class Status {
         battPct = pct;
         checkCharge();
 
-        battText.setText((charging ? "⚡%" : "%") + pct);
-        if (battIcon.getTag() == null) {
-            battIcon.setImageResource(R.drawable.battery_level);
-            battIcon.setTag("level");
-        }
-        // Az doluyken de bir çizgi görünsün
-        battIcon.getDrawable().setLevel(Math.max(pct, 6) * 100);
-        int color = a.getColor(charging ? R.color.teal : pct <= 15 || warnedCharge ? R.color.low : R.color.muted);
+        battText.setText("%" + pct);
+        if (warnedCharge) return; // arabada şarj olmuyor uyarısı: kırmızı yanıp sönüyor, rengine dokunma
+        int color = battColor();
         battIcon.setImageTintList(ColorStateList.valueOf(color));
         battText.setTextColor(color);
+    }
+
+    /**
+     * Şimşeğin rengi. Şarjda: %40 altı turuncu, %80 altı sarı, üstü yeşil.
+     * Şarjda değilken: %20 ve altı kırmızı, yoksa gri.
+     */
+    private int battColor() {
+        if (charging) return a.getColor(battPct < 40 ? R.color.chg_low : battPct < 80 ? R.color.chg_mid : R.color.chg_high);
+        return a.getColor(battPct <= 20 ? R.color.low : R.color.muted);
     }
 
     private android.animation.ObjectAnimator blinkIcon, blinkText;
@@ -234,7 +238,7 @@ final class Status {
             blinkIcon = blinkText = null;
             battIcon.setAlpha(1f);
             battText.setAlpha(1f);
-            int c = a.getColor(charging ? R.color.teal : battPct <= 15 ? R.color.low : R.color.muted);
+            int c = battColor();
             battIcon.setImageTintList(ColorStateList.valueOf(c));
             battText.setTextColor(c);
         }
