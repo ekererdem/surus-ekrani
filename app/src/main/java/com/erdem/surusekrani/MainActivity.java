@@ -498,17 +498,17 @@ public class MainActivity extends Activity {
         // Kısa ad (ör. "Annem"); yoksa rehberdeki adın ilk kelimesi
         String label = sp.getString(key + "Label", "").trim();
         String first = !label.isEmpty() ? label : name.trim().isEmpty() ? num : name.trim().split("\\s+")[0];
-        // Üstte küçük gri "ara", altta kişinin adı; telefon simgesi yok
-        android.text.SpannableStringBuilder t = new android.text.SpannableStringBuilder("ara");
-        t.setSpan(new android.text.style.RelativeSizeSpan(0.65f), 0, 3, 0);
-        t.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), 0, 3, 0);
-        t.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.NORMAL), 0, 3, 0);
-        t.append("\n").append(first);
-        b.setText(t);
-        b.setSingleLine(false);
-        b.setMaxLines(2);
+        // Üstte küçük turkuaz telefon simgesi, altında kişinin adı
+        b.setText(first);
+        b.setSingleLine(true);
         b.setIncludeFontPadding(false);
-        b.setCompoundDrawablesRelative(null, null, null, null);
+        float pd = getResources().getDisplayMetrics().density;
+        android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
+        int psz = Math.round(15 * pd);
+        ph.setBounds(0, 0, psz, psz);
+        ph.setTint(getColor(R.color.teal));
+        b.setCompoundDrawablesRelative(null, ph, null, null);
+        b.setCompoundDrawablePadding(Math.round(3 * pd));
         b.setTextSize(15);
         float dd = getResources().getDisplayMetrics().density;
         b.setPadding(Math.round(4 * dd), 0, Math.round(4 * dd), 0);
