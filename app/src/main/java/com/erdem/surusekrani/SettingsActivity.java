@@ -90,14 +90,6 @@ public class SettingsActivity extends Activity {
 
         findViewById(R.id.featuresBtn).setOnClickListener(v ->
                 startActivity(new Intent(this, FeaturesActivity.class)));
-        Switch quietSw = findViewById(R.id.swQuiet);
-        quietSw.setChecked(Quiet.enabled(this));
-        quietSw.setOnCheckedChangeListener((b, on) -> {
-            p.edit().putBoolean("quietNotifs", on).apply();
-            if (on && !Quiet.hasAccess(this)) askQuietAccess();
-            refreshQuiet();
-        });
-        findViewById(R.id.quietStatus).setOnClickListener(v -> { if (!Quiet.hasAccess(this)) askQuietAccess(); });
         Switch waveSw = findViewById(R.id.swWave);
         waveSw.setChecked(Wave.enabled(this));
         waveSw.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("wave", on).apply());
@@ -181,24 +173,9 @@ public class SettingsActivity extends Activity {
     protected void onResume() {
         super.onResume();
         refreshStatus();
-        refreshQuiet();
         renderApps();
         Places.cleanup(this);
         renderPlaces();
-    }
-
-    private void askQuietAccess() {
-        Toast.makeText(this, "Listede Sürüş Ekranı'nı bul ve izin ver", Toast.LENGTH_LONG).show();
-        safeStart(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
-    }
-
-    private void refreshQuiet() {
-        TextView t = findViewById(R.id.quietStatus);
-        boolean need = Quiet.enabled(this) && !Quiet.hasAccess(this);
-        t.setText(need ? "⚠ İzin gerekli (Rahatsız Etmeyin erişimi). Vermek için dokun."
-                : "Uygulama ekrandayken telefonun yukarıdan inen bildirimleri çıkmaz, mesajlar bildirim kutusuna ve alttaki şeride gelir. "
-                + "Aramalar, alarmlar ve müzik etkilenmez. Uygulamadan çıkınca her şey eskisi gibi olur.");
-        t.setTextColor(getColor(need ? R.color.low : R.color.muted));
     }
 
     // ---------- Hızlı rotalar ----------

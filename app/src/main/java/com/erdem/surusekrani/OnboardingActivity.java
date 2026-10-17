@@ -92,9 +92,6 @@ public class OnboardingActivity extends Activity {
             Ui.button(this, box, (post ? "✓ " : "") + "Hatırlatmalar (sesli notlar)", false).setOnClickListener(v ->
                     requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 2));
         }
-        boolean quiet = Quiet.hasAccess(this);
-        Ui.button(this, box, (quiet ? "✓ " : "") + "Yukarıdan inen bildirimleri gizle", false).setOnClickListener(v ->
-                safe(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)));
         Ui.note(this, box, "Bildirim erişimi listesinde uygulama gri görünüyorsa: Ayarlar → İzinler bölümündeki adımları izle.");
         footer(box, "Devam");
     }

@@ -12,6 +12,7 @@
     <!-- Sadece önceki sürümün döndürme kilidini geri almak için -->
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Sadece 10.8'den kalan Rahatsız Etmeyin ayarını geri almak için -->
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 

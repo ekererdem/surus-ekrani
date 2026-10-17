@@ -21,7 +21,7 @@ public class MediaListener extends NotificationListenerService {
     public void onListenerConnected() {
         instance = this;
         resync();
-        if (!MainActivity.sResumed) Quiet.off(this); // uygulama kapanmışsa telefonun bildirim ayarını geri ver
+        LegacyDnd.restore(this);
     }
 
     @Override
