@@ -102,7 +102,8 @@
         <item name="android:minHeight">52dp</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/fg</item>
-        <item name="android:thumbTint">@color/teal</item>
+        <item name="android:thumbTint">@color/switch_thumb</item>
+        <item name="android:trackTint">@color/switch_track</item>
     </style>
 
     <style name="QuickIcon">
