@@ -18,6 +18,7 @@ def nodes(x):
 def order(x):
     return [t for t, _, _ in nodes(x) if "Ahmet" in t or "Ayşe" in t]
 
+W, H = map(int, re.findall(r"(\d+)x(\d+)", sh("wm", "size"))[-1])
 sh("am", "start", "-n", "com.erdem.surusekrani/.SettingsActivity")
 time.sleep(5)
 res = "tutamak bulunamadı"
@@ -26,7 +27,7 @@ for _ in range(10):
     o = order(x)
     hs = [(cx, cy) for t, cx, cy in nodes(x) if t == "≡"]
     rows = [(t, cy) for t, _, cy in nodes(x) if "Ahmet" in t or "Ayşe" in t]
-    if len(rows) == 2 and rows[1][1] < 1700:
+    if len(rows) == 2 and rows[1][1] < H * 0.85 and hs:
         # Ahmet satırının tutamağı (aynı yükseklikteki ≡)
         h = min(hs, key=lambda p: abs(p[1] - rows[0][1]))
         before = o
@@ -35,7 +36,8 @@ for _ in range(10):
         after = order(dump())
         res = f"önce={before} sonra={after} " + ("SÜRÜKLEME ÇALIŞTI" if after and after != before else "SIRA DEĞİŞMEDİ")
         break
-    sh("input", "swipe", "500", "1500", "500", "700", "400")
+    sh("input", "swipe", str(W // 2), str(int(H * 0.8)), str(W // 2), str(int(H * 0.35)), "400")
+    res = f"bulunamadı ekran={W}x{H} son yazılar={[t for t, _, _ in nodes(x)][:12]}"
     time.sleep(1)
 print(res)
 open("drag.txt", "w").write(res)
