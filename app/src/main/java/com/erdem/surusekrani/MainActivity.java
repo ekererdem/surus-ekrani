@@ -530,7 +530,7 @@ public class MainActivity extends Activity {
         go.setOnClickListener(v -> { hideBanner(); Apps.openWalk(this, p, c); });
         btns.addView(go, new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1.6f));
         TextView noteBtn = parkBtn(note.isEmpty() ? "Not ekle" : "Not", false);
-        noteBtn.setOnClickListener(v -> { hideBanner(); parkNoteDialog(false); });
+        noteBtn.setOnClickListener(v -> parkSheet(3));
         btns.addView(noteBtn, parkBtnLp(d));
         TextView share = parkBtn("Paylaş", false);
         share.setOnClickListener(v -> {
@@ -631,35 +631,212 @@ public class MainActivity extends Activity {
         }
     }
 
+    // Yanlışlıkla basılı tutulursa "Geri al" için önceki park yeri
+    private String prevParkCoord, prevParkNote;
+    private long prevParkAt;
+    private static final int REQ_PARK_VOICE = 52;
+
     private void saveParkNow() {
-        Toast.makeText(this, "Park yeri kaydediliyor…", Toast.LENGTH_SHORT).show();
+        prevParkCoord = Park.coord(this);
+        prevParkAt = Park.savedAt(this);
+        prevParkNote = Park.note(this);
+        parkSheet(0);
         Park.saveNow(this, ok -> {
             if (ok) {
                 refreshParkBadge();
-                parkNoteDialog(true);
-            } else Toast.makeText(this, "Konum bulunamadı", Toast.LENGTH_SHORT).show();
+                parkSheet(1);
+            } else {
+                parkSheet(2);
+            }
         });
     }
 
-    // ---------- Park notu ----------
-
-    private void parkNoteDialog(boolean justSaved) {
+    /**
+     * Park kaydı paneli (ekranın altında, diğer panellerle aynı görünüm).
+     * 0: kaydediliyor, 1: kaydedildi + not alanı, 2: konum bulunamadı, 3: notu düzenle.
+     */
+    private void parkSheet(int mode) {
+        ViewGroup content = findViewById(android.R.id.content);
+        if (content == null) return;
         float d = getResources().getDisplayMetrics().density;
-        android.widget.EditText et = new android.widget.EditText(this);
-        et.setHint("Not (ör. B2 katı, 47 numara)");
-        et.setSingleLine(true);
-        et.setText(Park.note(this));
-        et.setSelection(et.getText().length());
-        android.widget.FrameLayout fl = new android.widget.FrameLayout(this);
-        int pad = Math.round(20 * d);
-        fl.setPadding(pad, Math.round(8 * d), pad, 0);
-        fl.addView(et);
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(justSaved ? "Park yeri kaydedildi" : "Park notu")
-                .setView(fl)
-                .setPositiveButton("Kaydet", (x, y) -> Park.setNote(this, et.getText().toString().trim()))
-                .setNegativeButton(justSaved ? "Geç" : "Vazgeç", null)
-                .show();
+        if (bannerView != null) { bannerView.removeCallbacks(bannerHide); content.removeView(bannerView); }
+
+        android.widget.LinearLayout panel = new android.widget.LinearLayout(this);
+        panel.setOrientation(android.widget.LinearLayout.VERTICAL);
+        panel.setBackgroundResource(R.drawable.tile_dark);
+        panel.setElevation(12 * d);
+        int pad = Math.round(16 * d);
+        panel.setPadding(pad, pad, pad, pad);
+        panel.setClickable(true); // alttaki düğmelere dokunuş geçmesin
+
+        // Başlık satırı
+        android.widget.LinearLayout head = new android.widget.LinearLayout(this);
+        head.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        View lead;
+        if (mode == 0) {
+            android.widget.ProgressBar pb = new android.widget.ProgressBar(this);
+            pb.setIndeterminateTintList(ColorStateList.valueOf(getColor(R.color.teal)));
+            lead = pb;
+        } else {
+            ImageView ic = new ImageView(this);
+            ic.setImageResource(mode == 2 ? R.drawable.ic_car : R.drawable.ic_car_parked);
+            if (mode == 2) ic.setImageTintList(ColorStateList.valueOf(getColor(R.color.low)));
+            lead = ic;
+        }
+        head.addView(lead, new android.widget.LinearLayout.LayoutParams(Math.round(36 * d), Math.round(36 * d)));
+        long at = Park.savedAt(this);
+        String t1, t2;
+        switch (mode) {
+            case 0: t1 = "Park yeri kaydediliyor…"; t2 = "Konumun alınıyor, birkaç saniye sürebilir"; break;
+            case 1: t1 = "✓ Park yerin kaydedildi"; t2 = parkWhen(at); break;
+            case 2: t1 = "Konum bulunamadı"; t2 = "Konumun açık olduğundan emin ol, gökyüzünü gören bir yerde tekrar dene"; break;
+            default: t1 = "Park notu"; t2 = parkWhen(at); break;
+        }
+        TextView title = new TextView(this);
+        android.text.SpannableStringBuilder tb = new android.text.SpannableStringBuilder(t1);
+        tb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, t1.length(), 0);
+        if (t1.startsWith("✓")) tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.teal)), 0, 1, 0);
+        int st = tb.length();
+        tb.append("\n").append(t2);
+        tb.setSpan(new android.text.style.RelativeSizeSpan(0.78f), st, tb.length(), 0);
+        tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, tb.length(), 0);
+        title.setText(tb);
+        title.setTextSize(18);
+        title.setTextColor(getColor(R.color.fg));
+        android.widget.LinearLayout.LayoutParams tlp = new android.widget.LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        tlp.setMarginStart(Math.round(12 * d));
+        head.addView(title, tlp);
+        panel.addView(head);
+        if (mode == 1) { // adres gelince alt satıra ekle
+            String c = Park.coord(this);
+            new Thread(() -> {
+                String addr = parkAddress(c);
+                if (addr != null) runOnUiThread(() -> {
+                    tb.append(" · ").append(addr);
+                    tb.setSpan(new android.text.style.RelativeSizeSpan(0.78f), st, tb.length(), 0);
+                    tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, tb.length(), 0);
+                    title.setText(tb);
+                });
+            }).start();
+        }
+
+        // Not alanı (+ sesle yazdırma)
+        android.widget.EditText et = null;
+        if (mode == 1 || mode == 3) {
+            android.widget.LinearLayout nr = new android.widget.LinearLayout(this);
+            nr.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            nr.setPadding(0, Math.round(14 * d), 0, 0);
+            et = new android.widget.EditText(this);
+            et.setBackgroundResource(R.drawable.field_bg);
+            et.setPadding(Math.round(14 * d), 0, Math.round(14 * d), 0);
+            et.setTextSize(16);
+            et.setTextColor(getColor(R.color.fg));
+            et.setHintTextColor(getColor(R.color.muted));
+            et.setHint("Not ekle: B2 katı, 47 numara");
+            et.setSingleLine(true);
+            et.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
+            et.setText(Park.note(this));
+            et.setSelection(et.getText().length());
+            nr.addView(et, new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1f));
+            android.widget.ImageButton mic = new android.widget.ImageButton(this);
+            mic.setImageResource(R.drawable.ic_mic);
+            mic.setImageTintList(ColorStateList.valueOf(getColor(R.color.teal)));
+            mic.setBackgroundResource(R.drawable.btn_outline);
+            mic.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            mic.setPadding(Math.round(13 * d), Math.round(13 * d), Math.round(13 * d), Math.round(13 * d));
+            mic.setContentDescription("Notu sesle söyle");
+            mic.setOnClickListener(v -> parkVoiceNote());
+            android.widget.LinearLayout.LayoutParams mlp = new android.widget.LinearLayout.LayoutParams(Math.round(52 * d), Math.round(52 * d));
+            mlp.setMarginStart(Math.round(8 * d));
+            nr.addView(mic, mlp);
+            panel.addView(nr);
+            et.setOnFocusChangeListener((v, f) -> { if (f) panel.removeCallbacks(bannerHide); });
+        }
+        final android.widget.EditText field = et;
+
+        // Düğmeler
+        android.widget.LinearLayout btns = new android.widget.LinearLayout(this);
+        btns.setPadding(0, Math.round(12 * d), 0, 0);
+        Runnable saveNote = () -> {
+            if (field != null) {
+                Park.setNote(this, field.getText().toString().trim());
+                hideKeyboard(field);
+            }
+            hideBanner();
+        };
+        if (mode == 1) {
+            TextView ok = parkBtn("Tamam", true);
+            ok.setOnClickListener(v -> saveNote.run());
+            btns.addView(ok, new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1.4f));
+            TextView undo = parkBtn("Geri al", false);
+            undo.setOnClickListener(v -> {
+                if (field != null) hideKeyboard(field);
+                if (prevParkCoord == null || prevParkCoord.isEmpty()) Park.clear(this);
+                else Park.restore(this, prevParkCoord, prevParkAt, prevParkNote);
+                refreshParkBadge();
+                hideBanner();
+                Toast.makeText(this, "Park kaydı geri alındı", Toast.LENGTH_SHORT).show();
+            });
+            btns.addView(undo, parkBtnLp(d));
+        } else if (mode == 2) {
+            TextView again = parkBtn("Tekrar dene", true);
+            again.setOnClickListener(v -> saveParkNow());
+            btns.addView(again, new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1.4f));
+            TextView close = parkBtn("Kapat", false);
+            close.setOnClickListener(v -> hideBanner());
+            btns.addView(close, parkBtnLp(d));
+        } else if (mode == 3) {
+            TextView ok = parkBtn("Kaydet", true);
+            ok.setOnClickListener(v -> saveNote.run());
+            btns.addView(ok, new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1.4f));
+            TextView cancel = parkBtn("Vazgeç", false);
+            cancel.setOnClickListener(v -> { if (field != null) hideKeyboard(field); hideBanner(); });
+            btns.addView(cancel, parkBtnLp(d));
+        }
+        if (btns.getChildCount() > 0) panel.addView(btns);
+        if (field != null) field.setOnEditorActionListener((v, a, e) -> { saveNote.run(); return true; });
+
+        android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM);
+        int m = Math.round(16 * d);
+        lp.setMargins(m, m, m, m);
+        // Klavye açılınca panel klavyenin üstüne çıksın
+        panel.setOnApplyWindowInsetsListener((v, in) -> {
+            int ime = in.getInsets(WindowInsets.Type.ime()).bottom;
+            int bars = in.getInsets(WindowInsets.Type.systemBars()).bottom;
+            v.setTranslationY(-Math.max(0, ime - bars));
+            return in;
+        });
+        content.addView(panel, lp);
+        bannerView = panel;
+        panel.setAlpha(0f);
+        panel.animate().alpha(1f).setDuration(200).start();
+        if (mode == 1) panel.postDelayed(bannerHide, 25000);
+        else if (mode == 2) panel.postDelayed(bannerHide, 20000);
+        else if (mode == 3) panel.postDelayed(bannerHide, 60000);
+    }
+
+    private void hideKeyboard(View v) {
+        android.view.inputmethod.InputMethodManager imm = getSystemService(android.view.inputmethod.InputMethodManager.class);
+        if (imm != null) imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        v.clearFocus();
+    }
+
+    /** Park notunu konuşarak yazdır. */
+    private void parkVoiceNote() {
+        try {
+            sOwnScreen = true;
+            startActivityForResult(new Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                    .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                            android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "tr-TR")
+                    .putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Park notunu söyle (ör. B2 katı, 47 numara)"),
+                    REQ_PARK_VOICE);
+        } catch (Exception e) {
+            sOwnScreen = false;
+            Toast.makeText(this, "Ses tanıma bulunamadı", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // ---------- Hızlı arama ----------
@@ -1355,6 +1532,13 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
+        if (req == REQ_PARK_VOICE) {
+            java.util.ArrayList<String> r = data == null || res != RESULT_OK ? null
+                    : data.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS);
+            if (r != null && !r.isEmpty() && !r.get(0).trim().isEmpty()) Park.setNote(this, r.get(0).trim());
+            playBtn.post(this::showPark); // notuyla birlikte park bilgisini göster
+            return;
+        }
         if (req != REQ_NOTE || res != RESULT_OK || data == null) return;
         java.util.ArrayList<String> r = data.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS);
         if (r == null || r.isEmpty() || r.get(0).trim().isEmpty()) return;

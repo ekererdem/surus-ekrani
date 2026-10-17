@@ -36,9 +36,10 @@ else:
     time.sleep(1)
     # kısa basılı tutma (0,5 sn)
     sh("input", "swipe", str(cx), str(cy), str(cx), str(cy), "500")
-    time.sleep(3)
+    time.sleep(4)
     shot("shot-hold.png")
     texts = re.findall(r'text="([^"]+)"', dump())
-    res.append("basılı tut: " + ("KAYIT PENCERESİ AÇILDI" if any("Park yeri kaydedildi" in t for t in texts) else "pencere yok " + str(texts[:8])))
+    hit = [t for t in texts if "kaydedildi" in t or "kaydediliyor" in t or "bulunamadı" in t]
+    res.append("basılı tut: " + (hit[0].replace("&#10;", " / ") if hit else "panel yok " + str(texts[:8])))
 print(" | ".join(res))
 open("park.txt", "w").write(" | ".join(res))

@@ -104,6 +104,11 @@ final class Park {
         return coord;
     }
 
+    /** "Geri al": önceki park yerini olduğu gibi geri koy. */
+    static void restore(Context c, String coord, long at, String note) {
+        sp(c).edit().putString("parkCoord", coord).putLong("parkAt", at).putString("parkNote", note == null ? "" : note).apply();
+    }
+
     /** Park yerini sil (araba simgesindeki P işareti de kalkar). */
     static void clear(Context c) {
         sp(c).edit().remove("parkCoord").remove("parkAt").remove("parkNote").remove("parkPhoto").apply();
