@@ -579,7 +579,10 @@ public class MainActivity extends Activity {
         b.setTextSize(15);
         b.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         b.setSingleLine(true);
-        b.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        b.setPadding(Math.round(4 * getResources().getDisplayMetrics().density), 0,
+                Math.round(4 * getResources().getDisplayMetrics().density), 0);
+        // dar ekranda yazı kesilmesin, sığacak kadar küçülsün
+        b.setAutoSizeTextTypeUniformWithConfiguration(11, 15, 1, android.util.TypedValue.COMPLEX_UNIT_SP);
         b.setClickable(true);
         b.setFocusable(true);
         b.setBackgroundResource(primary ? R.drawable.tile_accent : R.drawable.btn_outline);
