@@ -1173,8 +1173,11 @@ public class MainActivity extends Activity {
         frontCar.start();
         wave.start(this);
         Tips.shower = this::showTip;
-        // İlk açılışlarda sırayla tanıtılacak özellikler (her biri bir kez)
-        playBtn.postDelayed(() -> {
+        // İlk kurulum yapılmadıysa kısa tanıtım; yapıldıysa ipuçları
+        if (OnboardingActivity.needed(this)) {
+            startActivity(new Intent(this, OnboardingActivity.class));
+        } else playBtn.postDelayed(() -> {
+            if (!hasWindowFocus() && !isInMultiWindowMode()) return;
             Tips.maybe(this, "note", "Sesli komut tuşuna basılı tut: yolda aklına geleni söyle, not olarak kaydedilsin.");
             Tips.maybe(this, "park", "Arabadan inmeden araba tuşuna basılı tut: park yerin kaydedilir.");
             Tips.maybe(this, "swipe", "Müzik kutusunu sola kaydır: sonraki şarkı, sağa kaydır: önceki şarkı.");

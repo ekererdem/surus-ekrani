@@ -26,6 +26,12 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        <intent>
+            <action android:name="android.speech.RecognizerIntent" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
     </queries>
 
     <application
@@ -50,6 +56,8 @@
 
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".AppsActivity" android:exported="false" />
+        <activity android:name=".FeaturesActivity" android:exported="false" />
+        <activity android:name=".OnboardingActivity" android:exported="false" />
         <activity android:name=".MapPickActivity" android:exported="false" />
         <activity
             android:name=".NavActivity"

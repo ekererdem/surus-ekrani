@@ -29,6 +29,7 @@ import java.util.Set;
 public class SettingsActivity extends Activity {
     private static final int REQ_BT = 1;
     private static final int REQ_CAM = 41;
+    static final String EXTRA_DO = "do";
     private static final int REQ_NOTIF = 2;
     private static final int PICK_CALL = 21; // 21..25
 
@@ -96,6 +97,8 @@ public class SettingsActivity extends Activity {
                 requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAM);
         });
 
+        findViewById(R.id.featuresBtn).setOnClickListener(v ->
+                startActivity(new Intent(this, FeaturesActivity.class)));
         Switch waveSw = findViewById(R.id.swWave);
         waveSw.setChecked(Wave.enabled(this));
         waveSw.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("wave", on).apply());
@@ -160,6 +163,15 @@ public class SettingsActivity extends Activity {
         findViewById(R.id.notifBtn).setOnClickListener(v -> askNotifications());
         findViewById(R.id.xiaomiBtn).setOnClickListener(v -> openXiaomiPermissions());
         findViewById(R.id.backBtn).setOnClickListener(v -> finish());
+
+        // Tanıtım ekranından doğrudan bir işe gelindiyse onu başlat
+        String todo = getIntent().getStringExtra(EXTRA_DO);
+        if ("car".equals(todo)) pickCar();
+        else if ("place".equals(todo) && Places.count(this) < Places.MAX) addPlace(Places.count(this) + 1);
+        else if ("call".equals(todo)) {
+            int n = compactCalls();
+            if (n < MAX_CALLS) pickContact(n + 1);
+        }
         findViewById(R.id.listenerBtn).setOnClickListener(v ->
                 safeStart(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         findViewById(R.id.appInfoBtn).setOnClickListener(v -> safeStart(new Intent(
