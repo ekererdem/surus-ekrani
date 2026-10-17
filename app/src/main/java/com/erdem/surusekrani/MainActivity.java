@@ -892,7 +892,7 @@ public class MainActivity extends Activity {
         clear.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         clear.setTextColor(getColor(R.color.amber));
         clear.setPadding(Math.round(14 * d), Math.round(10 * d), Math.round(4 * d), Math.round(10 * d));
-        clear.setOnClickListener(v -> { hideBanner(); Notifs.clear(); });
+        clear.setOnClickListener(v -> { hideBanner(); Notifs.clearAll(); });
         foot.addView(clear);
         panel.addView(foot);
 

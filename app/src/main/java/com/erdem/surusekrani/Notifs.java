@@ -27,6 +27,8 @@ final class Notifs {
         int count;
         long when;
         boolean missedCall;
+        /** Telefonun bildirimini biz kaldırdık (ekrandayken yukarıdan kaymasın diye); kutuda kalır. */
+        boolean swallowed;
         PendingIntent open;
         Drawable icon;
     }
@@ -35,6 +37,9 @@ final class Notifs {
     static Banner banner;
     private static final Map<String, Item> ITEMS = new LinkedHashMap<>();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    /** Bizim kaldırdığımız bildirimler: "kaldırıldı" haberi gelince kutudan silinmesin. */
+    private static final java.util.Set<String> SWALLOWED =
+            java.util.Collections.synchronizedSet(new java.util.HashSet<>());
 
     private Notifs() {}
 
@@ -53,7 +58,16 @@ final class Notifs {
         posted(c, sbn, true);
     }
 
+    /** Telefondan yeniden okumadan önce: bizim kaldırdıklarımız (telefonda artık yoklar) kutuda kalsın. */
     static void clear() {
+        MAIN.post(() -> {
+            ITEMS.values().removeIf(it -> !it.swallowed);
+            if (listener != null) listener.onNotifsChanged();
+        });
+    }
+
+    /** "Temizle": kutuyu tamamen boşalt. */
+    static void clearAll() {
         MAIN.post(() -> {
             ITEMS.clear();
             if (listener != null) listener.onNotifsChanged();
@@ -92,6 +106,19 @@ final class Notifs {
         }
         // Yeni gelen (birkaç saniye içinde gönderilmiş) bildirimde alt şeridi göster
         boolean fresh = allowBanner && System.currentTimeMillis() - it.when < 15000;
+        // Ana ekran açıkken telefonun yukarıdan kayan bildirimi görünmesin: hemen kaldır, kutuda tut.
+        // (Gelen arama bu listede yok; ona dokunulmaz.)
+        if (fresh && MainActivity.sResumed
+                && c instanceof android.service.notification.NotificationListenerService) {
+            it.swallowed = true;
+            SWALLOWED.add(it.key);
+            try {
+                ((android.service.notification.NotificationListenerService) c).cancelNotification(it.key);
+            } catch (Exception e) {
+                SWALLOWED.remove(it.key);
+                it.swallowed = false;
+            }
+        }
         MAIN.post(() -> {
             ITEMS.remove(it.key);
             ITEMS.put(it.key, it); // en yeni en sonda
@@ -130,6 +157,7 @@ final class Notifs {
 
     static void removed(StatusBarNotification sbn) {
         String key = sbn.getKey();
+        if (SWALLOWED.remove(key)) return; // biz kaldırdık, kutuda kalsın
         MAIN.post(() -> {
             if (ITEMS.remove(key) != null && listener != null) listener.onNotifsChanged();
         });
