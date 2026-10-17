@@ -1200,8 +1200,32 @@ public class MainActivity extends Activity {
         }
         if (i != null && i.getBooleanExtra(BtReceiver.EXTRA_FROM_CAR, false)) {
             i.removeExtra(BtReceiver.EXTRA_FROM_CAR);
-            if (p.autoPlay()) Apps.playMedia(this);
+            if (p.autoPlay()) playWhenCarAudioReady(System.currentTimeMillis());
         }
+    }
+
+    /**
+     * Bluetooth önce "bağlandı" der ama arabanın ses kanalı (A2DP) birkaç saniye sonra açılır.
+     * Hemen çalarsak müzik telefonun hoparlöründen başlar. Bu yüzden ses çıkışı gerçekten araba
+     * olana kadar bekle (en fazla 25 sn), oturması için 1,5 sn daha bekle, sonra çal.
+     * Araba ses kanalı hiç gelmezse çalma (telefondan çalmasın).
+     */
+    private void playWhenCarAudioReady(long since) {
+        if (carAudioOut()) {
+            playBtn.postDelayed(() -> {
+                if (carAudioOut() && !musicActive()) Apps.playMedia(this);
+            }, 1500);
+        } else if (System.currentTimeMillis() - since < 25000) {
+            playBtn.postDelayed(() -> playWhenCarAudioReady(since), 500);
+        }
+    }
+
+    private boolean carAudioOut() {
+        AudioManager am = getSystemService(AudioManager.class);
+        if (am == null) return false;
+        for (android.media.AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_OUTPUTS))
+            if (d.getType() == android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP) return true;
+        return false;
     }
 
     void goTo(String addr) {
