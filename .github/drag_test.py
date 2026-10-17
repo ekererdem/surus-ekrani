@@ -41,3 +41,15 @@ for _ in range(10):
     time.sleep(1)
 print(res)
 open("drag.txt", "w").write(res)
+
+# Ana ekran düğmeleri bölümünün ekran görüntüsü
+for _ in range(15):
+    x = dump()
+    if any(t in ("Gizle", "Göster") for t, _, _ in nodes(x)):
+        sh("input", "swipe", str(W // 2), str(int(H * 0.6)), str(W // 2), str(int(H * 0.4)), "400")
+        time.sleep(1)
+        with open("shot-layout.png", "wb") as f:
+            f.write(subprocess.run(["adb", "exec-out", "screencap", "-p"], capture_output=True).stdout)
+        break
+    sh("input", "swipe", str(W // 2), str(int(H * 0.8)), str(W // 2), str(int(H * 0.35)), "400")
+    time.sleep(1)

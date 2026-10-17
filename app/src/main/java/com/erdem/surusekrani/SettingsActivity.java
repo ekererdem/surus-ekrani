@@ -507,62 +507,112 @@ public class SettingsActivity extends Activity {
 
     // ---------- Ana ekran düğme düzeni ----------
 
+    /**
+     * Ana ekran düğmeleri: diğer listeler gibi çerçeveli satırlar.
+     * [≡] [simge] Ad ........ Üst sıra/Alt sıra   Gizle/Göster — altında kısa açıklama, aynı kutunun içinde.
+     */
     private void renderLayout() {
         android.widget.LinearLayout list = findViewById(R.id.layoutList);
         list.removeAllViews();
         java.util.List<Layout.Entry> l = Layout.load(this);
         float d = getResources().getDisplayMetrics().density;
-        for (int i = 0; i < l.size(); i++) {
-            Layout.Entry e = l.get(i);
-            // Sürüklenen birim: üstte satır (≡, kutucuk + ad, Üst/Alt sıra), altında açıklama
-            android.widget.LinearLayout unit = new android.widget.LinearLayout(this);
-            unit.setOrientation(android.widget.LinearLayout.VERTICAL);
-            unit.setBackgroundColor(getColor(R.color.bg));
-            android.widget.LinearLayout.LayoutParams ulp = new android.widget.LinearLayout.LayoutParams(
+        for (Layout.Entry e : l) {
+            android.widget.LinearLayout card = new android.widget.LinearLayout(this);
+            card.setOrientation(android.widget.LinearLayout.VERTICAL);
+            card.setBackgroundResource(R.drawable.btn_outline);
+            card.setPadding(0, 0, 0, Math.round(12 * d));
+            android.widget.LinearLayout.LayoutParams clp = new android.widget.LinearLayout.LayoutParams(
                     android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-            ulp.topMargin = Math.round(8 * d);
-            unit.setLayoutParams(ulp);
+            clp.topMargin = Math.round(10 * d);
+            card.setLayoutParams(clp);
 
             android.widget.LinearLayout row = new android.widget.LinearLayout(this);
             row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
             row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(0, 0, Math.round(4 * d), 0);
             View handle = dragHandle(row);
-            row.addView(handle, new android.widget.LinearLayout.LayoutParams(Math.round(34 * d), Math.round(44 * d)));
-            unit.setTag(R.id.drag_handle, handle);
+            row.addView(handle, new android.widget.LinearLayout.LayoutParams(Math.round(34 * d), Math.round(60 * d)));
+            card.setTag(R.id.drag_handle, handle);
 
-            android.widget.CheckBox cb = new android.widget.CheckBox(this);
-            cb.setText(Layout.name(e.key));
-            cb.setTextSize(15);
-            cb.setTextColor(getColor(R.color.fg));
-            cb.setButtonTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.teal)));
-            cb.setChecked(e.on);
-            if ("settings".equals(e.key)) cb.setEnabled(false); // ayarlar hep açık
-            cb.setOnCheckedChangeListener((b, on) -> { e.on = on; Layout.save(this, l); });
-            row.addView(cb, new android.widget.LinearLayout.LayoutParams(0,
-                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            android.widget.ImageView ic = new android.widget.ImageView(this);
+            ic.setImageDrawable(layoutIcon(e.key));
+            int pad = Math.round(9 * d);
+            ic.setPadding(pad, pad, pad, pad);
+            row.addView(ic, new android.widget.LinearLayout.LayoutParams(Math.round(44 * d), Math.round(44 * d)));
 
-            android.widget.TextView rowBtn = smallBtn(e.row == 1 ? "Üst\nsıra" : "Alt\nsıra", Math.round(56 * d));
-            rowBtn.setTextSize(15);
-            rowBtn.setLineSpacing(0, 0.9f);
+            TextView name = new TextView(this);
+            name.setText(Layout.name(e.key));
+            name.setTextSize(15);
+            name.setTextColor(getColor(R.color.fg));
+            name.setSingleLine(true);
+            name.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            android.widget.LinearLayout.LayoutParams nlp = new android.widget.LinearLayout.LayoutParams(0,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            nlp.setMarginStart(Math.round(6 * d));
+            row.addView(name, nlp);
+
+            TextView rowBtn = smallBtn(e.row == 1 ? "Üst sıra" : "Alt sıra", Math.round(76 * d));
+            rowBtn.setTextSize(14);
+            rowBtn.setTextColor(getColor(R.color.amber));
             rowBtn.setOnClickListener(v -> {
                 e.row = e.row == 1 ? 2 : 1;
                 Layout.save(this, l);
                 renderLayout();
             });
-            rowBtn.setTextColor(getColor(R.color.amber));
-            rowBtn.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
             row.addView(rowBtn);
-            unit.addView(row);
+
+            TextView vis;
+            if ("settings".equals(e.key)) { // ayarlar hep açık
+                vis = smallBtn("Hep açık", Math.round(64 * d));
+                vis.setTextSize(13);
+                vis.setTextColor(getColor(R.color.muted));
+                vis.setClickable(false);
+                vis.setBackground(null);
+            } else {
+                vis = smallBtn(e.on ? "Gizle" : "Göster", Math.round(64 * d));
+                vis.setTextSize(14);
+                vis.setTextColor(getColor(e.on ? R.color.low : R.color.teal));
+                vis.setOnClickListener(v -> {
+                    e.on = !e.on;
+                    Layout.save(this, l);
+                    renderLayout();
+                });
+            }
+            row.addView(vis);
+            card.addView(row);
 
             TextView desc = new TextView(this);
             desc.setText(Layout.desc(e.key));
-            desc.setTextSize(12);
+            desc.setTextSize(13);
             desc.setTextColor(getColor(R.color.muted));
-            desc.setPadding(Math.round(38 * d), 0, Math.round(4 * d), Math.round(4 * d));
-            unit.addView(desc);
+            desc.setPadding(Math.round(84 * d), 0, Math.round(14 * d), 0);
+            card.addView(desc);
 
-            addDraggable(list, (f, t) -> { DragSort.move(l, f, t); Layout.save(this, l); renderLayout(); }, unit);
+            if (!e.on) { // gizli düğme soluk görünsün
+                ic.setAlpha(0.35f);
+                name.setAlpha(0.5f);
+                desc.setAlpha(0.6f);
+            }
+            addDraggable(list, (f, t) -> { DragSort.move(l, f, t); Layout.save(this, l); renderLayout(); }, card);
         }
+    }
+
+    /** Ana ekrandaki düğmenin simgesi (ayarlar listesinde). */
+    private android.graphics.drawable.Drawable layoutIcon(String key) {
+        int res, color;
+        switch (key) {
+            case "weather": return new WeatherIcon(2, true, -1);
+            case "notif": res = R.drawable.ic_bell; color = R.color.teal; break;
+            case "status": res = R.drawable.ic_signal_4; color = R.color.teal; break;
+            case "assist": res = R.drawable.ic_mic; color = R.color.fg; break;
+            case "calls": res = R.drawable.ic_phone; color = R.color.teal; break;
+            case "places": res = R.drawable.ic_home; color = R.color.amber; break;
+            case "park": res = R.drawable.ic_car; color = R.color.fg; break;
+            default: res = R.drawable.ic_settings; color = R.color.fg; break;
+        }
+        android.graphics.drawable.Drawable dr = getDrawable(res).mutate();
+        dr.setTint(getColor(color));
+        return dr;
     }
 
     /** Çerçevesiz, yazısı ortalı küçük tuş (Üst/Alt, ▲, ▼). */
