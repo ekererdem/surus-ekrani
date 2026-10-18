@@ -24,7 +24,7 @@ jobs:
         run: |
           chmod +x gradlew
           if ! ./gradlew assembleDebug --no-daemon > build.log 2>&1; then
-            echo "::error::$(grep -E 'error:|What went wrong|> ' build.log | head -20 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            echo "::error::$(grep -A8 -E 'error:|What went wrong|FAILED' build.log | grep -v '^> Task.*UP-TO-DATE' | head -30 | sed ':a;N;$!ba;s/\n/%0A/g')"
             exit 1
           fi
       - name: Çalıştır
