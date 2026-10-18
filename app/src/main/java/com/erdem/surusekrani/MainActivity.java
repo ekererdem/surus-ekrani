@@ -105,8 +105,8 @@ public class MainActivity extends Activity {
         setContentView(compact ? R.layout.activity_main_compact : R.layout.activity_main);
         if (compact) ((TextView) findViewById(R.id.clock)).setTextSize(38);
         status = new Status(this);
-        // El sallama: 1 kez = sonraki şarkı, 2 kez = oynat/duraklat (tuşların kendi işlevi çalışır)
-        wave = new Wave(this, () -> findViewById(R.id.nextBtn).performClick(), () -> playBtn.performClick());
+        // El sallama: 1 kez / 2 kez ne yapacağı Ayarlar'dan seçilir (varsayılan: sonraki şarkı / durdur-başlat)
+        wave = new Wave(this, () -> runWave(WaveActions.get(this, 1)), () -> runWave(WaveActions.get(this, 2)));
 
         navIcon = findViewById(R.id.navIcon);
         navTitle = findViewById(R.id.navTitle);
@@ -405,6 +405,89 @@ public class MainActivity extends Activity {
         }
     }
 
+    // ---------- El sallama işleri ----------
+
+    /** Müzik işleri tuşların kendi işlevini kullanır (Play davranışı CLAUDE.md'deki gibi kalır). */
+    private void runWave(String key) {
+        switch (key) {
+            case "next": findViewById(R.id.nextBtn).performClick(); break;
+            case "prev": findViewById(R.id.prevBtn).performClick(); break;
+            case "play": playBtn.performClick(); break;
+            case "notif":
+                if (Notifs.list().isEmpty()) Toast.makeText(this, "Bekleyen bildirim yok", Toast.LENGTH_SHORT).show();
+                else showFullNotifs();
+                break;
+            case "read": readLatestNotif(); break;
+            case "mute": toggleMute(); break;
+            case "assist": openAssistant(); break;
+            case "home": goHome(); break;
+            case "park": saveParkNow(); break;
+            default: break; // "none"
+        }
+    }
+
+    private android.speech.tts.TextToSpeech waveTts;
+    private boolean waveTtsReady;
+    private String waveTtsPending;
+
+    /** En yeni bildirimi sesli okur: "WhatsApp'tan Annem: yoldayım". Ekranda da bildirim listesi açılır. */
+    private void readLatestNotif() {
+        List<Notifs.Item> l = Notifs.list();
+        String say;
+        if (l.isEmpty()) {
+            say = "Bekleyen bildirim yok";
+        } else {
+            Notifs.Item it = l.get(0);
+            StringBuilder sb = new StringBuilder();
+            if (it.app != null && !it.app.isEmpty()) sb.append(it.app).append(". ");
+            if (it.who != null && !it.who.isEmpty()) sb.append(it.who).append(": ");
+            String body = it.text != null && !it.text.isEmpty() ? it.text : it.full;
+            if (body != null) sb.append(body.length() > 220 ? body.substring(0, 220) : body);
+            if (l.size() > 1) sb.append(". ").append(l.size() - 1).append(" bildirim daha var.");
+            say = sb.toString();
+            showFullNotifs();
+        }
+        speakWave(say);
+    }
+
+    private void speakWave(String text) {
+        if (waveTts == null) {
+            waveTtsPending = text;
+            waveTts = new android.speech.tts.TextToSpeech(this, st -> {
+                if (st != android.speech.tts.TextToSpeech.SUCCESS) return;
+                waveTts.setLanguage(new java.util.Locale("tr", "TR"));
+                waveTts.setAudioAttributes(new android.media.AudioAttributes.Builder()
+                        .setUsage(android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build());
+                waveTtsReady = true;
+                if (waveTtsPending != null) speakWave(waveTtsPending);
+                waveTtsPending = null;
+            });
+            return;
+        }
+        if (!waveTtsReady) { waveTtsPending = text; return; }
+        waveTts.speak(text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "wave");
+    }
+
+    private void toggleMute() {
+        AudioManager am = getSystemService(AudioManager.class);
+        if (am == null) return;
+        am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI);
+    }
+
+    /** Ayarlar'daki hızlı rotalardan "Ev" simgeli olana rota başlatır. */
+    private void goHome() {
+        int n = Places.count(this);
+        for (int i = 1; i <= n; i++) {
+            if ("home".equals(Places.icon(this, i))) {
+                String coord = Places.coord(this, i);
+                if (coord != null && !coord.isEmpty()) { goTo(coord); return; }
+            }
+        }
+        if (!p.home().isEmpty()) { goTo(p.home()); return; }
+        Toast.makeText(this, "Ev adresi kayıtlı değil (Ayarlar → hızlı rotalar)", Toast.LENGTH_SHORT).show();
+    }
+
     // ---------- Sesli asistan ----------
 
     private void openAssistant() {
@@ -424,7 +507,7 @@ public class MainActivity extends Activity {
 
     // ---------- Arabam nerede ----------
 
-    /** Kayıtlı park yeri varsa araba simgesinin köşesinde turkuaz "P". */
+    /** Kayıtlı park yeri varsa araba simgesinin köşesinde sarı "P". */
     private void refreshParkBadge() {
         ImageButton pb = findViewById(R.id.parkBtn);
         if (pb == null) return;
@@ -683,7 +766,7 @@ public class MainActivity extends Activity {
         View lead;
         if (mode == 0) {
             android.widget.ProgressBar pb = new android.widget.ProgressBar(this);
-            pb.setIndeterminateTintList(ColorStateList.valueOf(getColor(R.color.teal)));
+            pb.setIndeterminateTintList(ColorStateList.valueOf(getColor(R.color.accent)));
             lead = pb;
         } else {
             ImageView ic = new ImageView(this);
@@ -703,7 +786,7 @@ public class MainActivity extends Activity {
         TextView title = new TextView(this);
         android.text.SpannableStringBuilder tb = new android.text.SpannableStringBuilder(t1);
         tb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, t1.length(), 0);
-        if (t1.startsWith("✓")) tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.teal)), 0, 1, 0);
+        if (t1.startsWith("✓")) tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.accent)), 0, 1, 0);
         int st = tb.length();
         tb.append("\n").append(t2);
         tb.setSpan(new android.text.style.RelativeSizeSpan(0.78f), st, tb.length(), 0);
@@ -750,7 +833,7 @@ public class MainActivity extends Activity {
             nr.addView(et, new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1f));
             android.widget.ImageButton mic = new android.widget.ImageButton(this);
             mic.setImageResource(R.drawable.ic_mic);
-            mic.setImageTintList(ColorStateList.valueOf(getColor(R.color.teal)));
+            mic.setImageTintList(ColorStateList.valueOf(getColor(R.color.accent)));
             mic.setBackgroundResource(R.drawable.btn_outline);
             mic.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             mic.setPadding(Math.round(13 * d), Math.round(13 * d), Math.round(13 * d), Math.round(13 * d));
@@ -867,12 +950,12 @@ public class MainActivity extends Activity {
         // Kısa ad (ör. "Annem"); yoksa rehberdeki adın ilk kelimesi
         String label = sp.getString(key + "Label", "").trim();
         String first = !label.isEmpty() ? label : name.trim().isEmpty() ? num : name.trim().split("\\s+")[0];
-        // Küçük turkuaz telefon simgesi ve altında ad; ikisi birlikte tuşun tam ortasında
+        // Küçük sarı telefon simgesi ve altında ad; ikisi birlikte tuşun tam ortasında
         float pd = getResources().getDisplayMetrics().density;
         android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
         int psz = Math.round(16 * pd);
         ph.setBounds(0, 0, psz, psz);
-        ph.setTint(getColor(R.color.teal));
+        ph.setTint(getColor(R.color.accent));
         android.text.SpannableStringBuilder t = new android.text.SpannableStringBuilder(" \n" + first);
         t.setSpan(new android.text.style.ImageSpan(ph, android.text.style.DynamicDrawableSpan.ALIGN_BOTTOM),
                 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -1090,7 +1173,11 @@ public class MainActivity extends Activity {
         PlaybackState s = ctrl.getPlaybackState();
         boolean playing = s != null && s.getState() == PlaybackState.STATE_PLAYING;
         if (playing && wave.available() && Wave.enabled(this))
-            Tips.maybe(this, "wave", "Elini telefonun üst kısmının üzerinden geçir: sonraki şarkı. İki kez geçir: durdur / başlat.");
+            Tips.maybe(this, "wave", "Elini telefonun üst kısmının üzerinden geçir: "
+                    + WaveActions.label(WaveActions.get(this, 1)).toLowerCase(new java.util.Locale("tr", "TR"))
+                    + ". İki kez geçir: "
+                    + WaveActions.label(WaveActions.get(this, 2)).toLowerCase(new java.util.Locale("tr", "TR"))
+                    + ". Ayarlar'dan değiştirebilirsin.");
         playBtn.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
         updateProgress();
     }
@@ -1771,6 +1858,7 @@ public class MainActivity extends Activity {
         super.onDestroy();
         if (status != null) status.destroy();
         if (browser != null) try { browser.disconnect(); } catch (Exception ignored) { }
+        if (waveTts != null) waveTts.shutdown();
     }
 
     @Override

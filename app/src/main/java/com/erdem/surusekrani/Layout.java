@@ -34,7 +34,7 @@ final class Layout {
             case "places": return "Hızlı rotalar";
             case "park": return "Arabadan inmeden düğmeye kısaca basılı tut, park ettiğin yer kaydedilsin; istersen "
                     + "kat ya da sıra numarası gibi kısa bir not da ekleyebilirsin. Kayıtlı bir park yerin varsa araba "
-                    + "simgesinin köşesinde turkuaz bir P görürsün. Dokunduğunda ne zaman park ettiğini, arabanın ne "
+                    + "simgesinin köşesinde sarı bir P görürsün. Dokunduğunda ne zaman park ettiğini, arabanın ne "
                     + "kadar uzakta olduğunu ve notunu gösterir; oradan yürüyüş yol tarifini açabilir, konumu "
                     + "paylaşabilir ya da silebilirsin.";
             case "settings": return "Ayarlar";

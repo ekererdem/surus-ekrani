@@ -92,7 +92,13 @@ public class SettingsActivity extends Activity {
                 startActivity(new Intent(this, FeaturesActivity.class)));
         Switch waveSw = findViewById(R.id.swWave);
         waveSw.setChecked(Wave.enabled(this));
-        waveSw.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("wave", on).apply());
+        waveSw.setOnCheckedChangeListener((b, on) -> {
+            p.edit().putBoolean("wave", on).apply();
+            renderWave();
+        });
+        findViewById(R.id.wave1Btn).setOnClickListener(v -> pickWave(1));
+        findViewById(R.id.wave2Btn).setOnClickListener(v -> pickWave(2));
+        renderWave();
         findViewById(R.id.tipsReset).setOnClickListener(v -> {
             Tips.reset(this);
             Toast.makeText(this, "İpuçları ana ekranda yeniden gösterilecek", Toast.LENGTH_SHORT).show();
@@ -571,7 +577,7 @@ public class SettingsActivity extends Activity {
             } else {
                 vis = smallBtn(e.on ? "Gizle" : "Göster", Math.round(64 * d));
                 vis.setTextSize(14);
-                vis.setTextColor(getColor(e.on ? R.color.low : R.color.teal));
+                vis.setTextColor(getColor(e.on ? R.color.low : R.color.accent));
                 vis.setOnClickListener(v -> {
                     e.on = !e.on;
                     Layout.save(this, l);
@@ -602,10 +608,10 @@ public class SettingsActivity extends Activity {
         int res, color;
         switch (key) {
             case "weather": return new WeatherIcon(2, true, -1);
-            case "notif": res = R.drawable.ic_bell; color = R.color.teal; break;
-            case "status": res = R.drawable.ic_signal_4; color = R.color.teal; break;
+            case "notif": res = R.drawable.ic_bell; color = R.color.accent; break;
+            case "status": res = R.drawable.ic_signal_4; color = R.color.accent; break;
             case "assist": res = R.drawable.ic_mic; color = R.color.fg; break;
-            case "calls": res = R.drawable.ic_phone; color = R.color.teal; break;
+            case "calls": res = R.drawable.ic_phone; color = R.color.accent; break;
             case "places": res = R.drawable.ic_home; color = R.color.amber; break;
             case "park": res = R.drawable.ic_car; color = R.color.fg; break;
             default: res = R.drawable.ic_settings; color = R.color.fg; break;
@@ -662,6 +668,40 @@ public class SettingsActivity extends Activity {
         return l.size();
     }
 
+    // ---------- El sallama seçenekleri ----------
+
+    private void renderWave() {
+        boolean on = Wave.enabled(this);
+        waveRow(R.id.wave1Btn, "Bir kez el salla", WaveActions.get(this, 1), on);
+        waveRow(R.id.wave2Btn, "İki kez el salla", WaveActions.get(this, 2), on);
+    }
+
+    private void waveRow(int id, String title, String key, boolean on) {
+        TextView t = findViewById(id);
+        String value = WaveActions.label(key) + "  ›";
+        android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(title + "\n" + value);
+        int s = title.length() + 1;
+        sb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), 0, title.length(), 0);
+        sb.setSpan(new android.text.style.RelativeSizeSpan(0.85f), 0, title.length(), 0);
+        sb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.accent)), s, sb.length(), 0);
+        t.setText(sb);
+        t.setEnabled(on);
+        t.setAlpha(on ? 1f : 0.4f);
+    }
+
+    private void pickWave(int times) {
+        String cur = WaveActions.get(this, times);
+        new AlertDialog.Builder(this)
+                .setTitle(times == 2 ? "İki kez el sallayınca" : "Bir kez el sallayınca")
+                .setSingleChoiceItems(WaveActions.LABELS, WaveActions.index(cur), (d, which) -> {
+                    WaveActions.set(this, times, WaveActions.KEYS[which]);
+                    renderWave();
+                    d.dismiss();
+                })
+                .setNegativeButton("Vazgeç", null)
+                .show();
+    }
+
     private void setupCalls() {
         android.widget.LinearLayout list = findViewById(R.id.callsList);
         list.removeAllViews();
@@ -671,7 +711,7 @@ public class SettingsActivity extends Activity {
             final int slot = i;
             String name = sp.getString("call" + i + "Name", ""), num = sp.getString("call" + i + "Num", "");
             String lbl = sp.getString("call" + i + "Label", "");
-            addDraggable(list, (f, t) -> { moveCall(f + 1, t + 1); setupCalls(); }, itemRow(R.drawable.ic_phone, R.color.teal,
+            addDraggable(list, (f, t) -> { moveCall(f + 1, t + 1); setupCalls(); }, itemRow(R.drawable.ic_phone, R.color.accent,
                     (lbl.isEmpty() ? "" : lbl + "  ·  ") + (name.isEmpty() ? num : name),
                     null,
                     v -> askCallLabel(slot),
@@ -784,7 +824,7 @@ public class SettingsActivity extends Activity {
         ((TextView) findViewById(R.id.carName)).setText(hasCar ? p.carName() : "Arabayı seç");
         findViewById(R.id.carChange).setVisibility(hasCar ? View.VISIBLE : View.GONE);
         ((android.widget.ImageView) findViewById(R.id.carIcon)).setImageTintList(
-                android.content.res.ColorStateList.valueOf(getColor(hasCar ? R.color.teal : R.color.muted)));
+                android.content.res.ColorStateList.valueOf(getColor(hasCar ? R.color.accent : R.color.muted)));
         ((TextView) findViewById(R.id.overlayStatus)).setText(
                 Settings.canDrawOverlays(this) ? "Verildi ✓" : "Verilmedi. Otomatik açılma için gerekli.");
         NotificationManager lnm = getSystemService(NotificationManager.class);

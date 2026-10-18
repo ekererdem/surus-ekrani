@@ -13,9 +13,10 @@ public class FeaturesActivity extends Activity {
         LinearLayout box = Ui.page(this, "Neler yapabilirim?");
 
         Ui.section(this, box, "Dokunmadan");
-        Ui.item(this, box, "👋 El sallayarak şarkı geç",
-                "Elini telefonun üst kısmının (ön kameranın) üzerinden bir kez geçir: sonraki şarkı. "
-                        + "Art arda iki kez geçir: durdur / devam et.");
+        Ui.item(this, box, "👋 El sallayarak kontrol",
+                "Elini telefonun üst kısmının (ön kameranın) üzerinden bir kez ya da art arda iki kez geçir. "
+                        + "Ne yapacağını Ayarlar → Sürüş yardımı'ndan seç: şarkı geç/durdur, bildirimi göster "
+                        + "ya da sesli oku, sesi kapat, sesli komut, eve rota, park yerini kaydet.");
         Ui.item(this, box, "↔️ Kaydırarak şarkı değiştir",
                 "Müzik kutusunu sola kaydır: sonraki şarkı. Sağa kaydır: önceki şarkı.");
         Ui.item(this, box, "🎙️ Sesli not",
@@ -25,7 +26,7 @@ public class FeaturesActivity extends Activity {
         Ui.section(this, box, "Yolda");
         Ui.item(this, box, "🗺️ Hızlı rotalar", "Ev, iş gibi yerlere tek dokunuşla rota. Harita yandaki Yandex/Google'da açılır.");
         Ui.item(this, box, "📞 Hızlı arama", "Dokun: 3 saniye sonra arar (iptal edebilirsin). Basılı tut: WhatsApp ile konumunu gönderir.");
-        Ui.item(this, box, "🚗 Arabam nerede", "Kısaca basılı tut: park yerin kaydedilir, simgede turkuaz P belirir. Dokun: ne zaman park ettiğin, ne kadar uzakta olduğu, notun; yürüyerek git, paylaş ya da sil.");
+        Ui.item(this, box, "🚗 Arabam nerede", "Kısaca basılı tut: park yerin kaydedilir, simgede sarı P belirir. Dokun: ne zaman park ettiğin, ne kadar uzakta olduğu, notun; yürüyerek git, paylaş ya da sil.");
 
         Ui.section(this, box, "Bilgi");
         Ui.item(this, box, "🌦️ Hava durumu", "Şimdi ve 1 saat sonrası. Hava kötüleşecekse sağ taraf sarı, turuncu ya da kırmızı çerçeveli. "

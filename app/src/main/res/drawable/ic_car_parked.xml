@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Park yeri kayıtlıyken: araba + sağ üstte turkuaz "P" rozeti -->
+<!-- Park yeri kayıtlıyken: araba + sağ üstte sarı "P" rozeti -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp"
     android:viewportWidth="24" android:viewportHeight="24">
@@ -15,8 +15,8 @@
             android:fillColor="#FFFFFFFF" />
     </group>
     <path android:pathData="M18.4,5.6m-5.4,0a5.4,5.4 0,1 1,10.8 0a5.4,5.4 0,1 1,-10.8 0"
-        android:fillColor="#22C3B5" android:strokeColor="#252A31" android:strokeWidth="1.2" />
+        android:fillColor="#F5A623" android:strokeColor="#252A31" android:strokeWidth="1.2" />
     <path android:pathData="M16.9,8.4V2.8h2.1a1.75,1.75 0,0 1,0 3.5h-2.1"
-        android:fillColor="#00000000" android:strokeColor="#062A27" android:strokeWidth="1.6"
+        android:fillColor="#00000000" android:strokeColor="#2B1A00" android:strokeWidth="1.6"
         android:strokeLineJoin="round" android:strokeLineCap="round" />
 </vector>

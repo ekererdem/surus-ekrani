@@ -68,7 +68,7 @@ public class OnboardingActivity extends Activity {
                 + "rotalar büyük tuşlarla bu tarafta.");
         Ui.section(this, box, "En çok işine yarayacaklar");
         Ui.item(this, box, "🔵 Arabaya binince kendiliğinden açılır", "Araç Bluetooth'unu bir kez seçmen yeterli.");
-        Ui.item(this, box, "👋 El sallayarak şarkı geç", "Elini telefonun üst kısmının üzerinden geçir.");
+        Ui.item(this, box, "👋 El sallayarak kontrol", "Elini telefonun üst kısmının üzerinden geçir: şarkı geçer. Ayarlar'dan değiştirebilirsin.");
         Ui.item(this, box, "🚗 Arabam nerede", "Arabadan inmeden park tuşuna basılı tut, sonra kolayca bul.");
         footer(box, "Başlayalım");
     }

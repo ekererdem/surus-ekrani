@@ -6,7 +6,7 @@
         <item name="android:windowLayoutInDisplayCutoutMode">always</item>
         <item name="android:statusBarColor">@color/bg</item>
         <item name="android:navigationBarColor">@color/bg</item>
-        <item name="android:colorAccent">@color/teal</item>
+        <item name="android:colorAccent">@color/accent</item>
         <item name="android:textColorPrimary">@color/fg</item>
         <item name="android:textColorSecondary">@color/muted</item>
     </style>
@@ -93,7 +93,7 @@
         <item name="android:layout_height">52dp</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/fg</item>
-        <item name="android:buttonTint">@color/teal</item>
+        <item name="android:buttonTint">@color/accent</item>
     </style>
 
     <style name="Toggle">

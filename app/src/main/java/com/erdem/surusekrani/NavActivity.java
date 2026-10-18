@@ -350,7 +350,7 @@ public class NavActivity extends Activity {
         line = new Polyline();
         line.setPoints(route.points);
         Paint paint = line.getOutlinePaint();
-        paint.setColor(getColor(R.color.teal));
+        paint.setColor(getColor(R.color.accent));
         paint.setStrokeWidth(dp(8));
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeJoin(Paint.Join.ROUND);

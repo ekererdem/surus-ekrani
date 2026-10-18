@@ -41,7 +41,7 @@
             android:background="@drawable/btn_outline" android:clickable="true" android:focusable="true"
             android:paddingStart="14dp" android:paddingEnd="14dp">
             <ImageView android:id="@+id/carIcon" android:layout_width="24dp" android:layout_height="24dp"
-                android:src="@drawable/ic_bluetooth" android:tint="@color/teal" android:contentDescription="Bluetooth" />
+                android:src="@drawable/ic_bluetooth" android:tint="@color/accent" android:contentDescription="Bluetooth" />
             <TextView android:id="@+id/carName" android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:layout_marginStart="12dp"
                 android:textSize="16sp" android:textColor="@color/fg" android:singleLine="true"
@@ -67,9 +67,9 @@
                 android:layout_height="40dp"
                 android:layout_weight="1"
                 android:max="100"
-                android:progressTint="@color/teal"
+                android:progressTint="@color/accent"
                 android:progressBackgroundTint="@color/line"
-                android:thumbTint="@color/teal" />
+                android:thumbTint="@color/accent" />
             <TextView
                 android:id="@+id/carVolText"
                 android:layout_width="56dp"
@@ -164,9 +164,9 @@
                 android:layout_height="40dp"
                 android:layout_weight="1"
                 android:max="10"
-                android:progressTint="@color/teal"
+                android:progressTint="@color/accent"
                 android:progressBackgroundTint="@color/line"
-                android:thumbTint="@color/teal" />
+                android:thumbTint="@color/accent" />
             <TextView
                 android:id="@+id/scaleText"
                 android:layout_width="64dp"
@@ -185,7 +185,15 @@
         <Switch android:id="@+id/swWave" style="@style/Toggle"
             android:text="El sallayarak müzik kontrolü" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Elini telefonun üst kısmının üzerinden bir kez geçir: sonraki şarkı. İki kez geçir: durdur / başlat." />
+            android:text="Elini telefonun üst kısmının (ön kamera) üzerinden geçir. Ne yapacağını aşağıdan seç." />
+        <TextView android:id="@+id/wave1Btn" style="@style/Option"
+            android:layout_height="wrap_content" android:minHeight="52dp"
+            android:gravity="center_vertical" android:paddingVertical="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+        <TextView android:id="@+id/wave2Btn" style="@style/Option"
+            android:layout_height="wrap_content" android:minHeight="52dp"
+            android:gravity="center_vertical" android:paddingVertical="8dp"
+            android:background="?android:attr/selectableItemBackground" />
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:layout_marginTop="8dp">
             <TextView android:id="@+id/notesBtn" android:layout_width="0dp" android:layout_weight="1"
