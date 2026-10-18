@@ -10,8 +10,8 @@ android {
         applicationId 'com.erdem.surusekrani'
         minSdk 30
         targetSdk 34
-        versionCode 110
-        versionName '11.9'
+        versionCode 111
+        versionName '12.0'
     }
 
     // Sabit imza: her derleme aynı anahtarla imzalanır, böylece yeni sürüm eskisinin üzerine kurulur.

@@ -78,6 +78,13 @@ public class MainActivity extends Activity {
     private final MediaController.Callback mediaCb = new MediaController.Callback() {
         @Override public void onMetadataChanged(MediaMetadata m) { renderMusic(); }
         @Override public void onPlaybackStateChanged(PlaybackState s) {
+            // Başka bir uygulamanın oturumu durduysa kutudan kaldır (Spotify'ınki kalır)
+            if (ctrl != null && !Apps.musicPkg(p.music()).equals(ctrl.getPackageName())
+                    && (s == null || (s.getState() != PlaybackState.STATE_PLAYING
+                        && s.getState() != PlaybackState.STATE_BUFFERING))) {
+                pickController();
+                return;
+            }
             renderMusic();
             seek.removeCallbacks(progressTick);
             seek.post(progressTick);
@@ -230,7 +237,8 @@ public class MainActivity extends Activity {
                 if (s != null && s.getState() == PlaybackState.STATE_PLAYING) { best = c; break; }
             }
         }
-        if (best == null && !list.isEmpty()) best = list.get(0);
+        // Durmuş başka uygulama oturumlarını (Instagram/TikTok videosu vb.) gösterme:
+        // seçili müzik uygulaması yoksa yalnızca o an gerçekten çalan oturum gösterilir.
         setController(best);
         renderMusic();
         autoPlayIfPending();
