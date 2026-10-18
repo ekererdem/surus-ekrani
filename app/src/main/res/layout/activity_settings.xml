@@ -102,7 +102,7 @@
 
         <TextView style="@style/SectionTitle" android:text="Uygulama kısayolları" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Seçtiğin uygulamalar ana ekranda müzik çaların altında görünür; kaç tane seçersen o kadar kutu olur (en fazla 5). Sırasını değiştirmek için soldaki ≡ işaretinden tutup sürükle." />
+            android:text="Seçtiğin uygulamalar ana ekranda müzik çaların altında görünür; kaç tane seçersen o kadar kutu olur (en fazla 4). En sağda her zaman Ayarlar düğmesi durur. Sırasını değiştirmek için soldaki ≡ işaretinden tutup sürükle." />
         <LinearLayout
             android:id="@+id/appsList"
             android:layout_width="match_parent"

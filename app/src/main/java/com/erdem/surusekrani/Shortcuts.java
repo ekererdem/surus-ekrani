@@ -13,9 +13,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/** Müzik çaların altında, Ayarlar'dan seçilen uygulamaların kısayolu (en fazla 5). */
+/** Müzik çaların altında, seçilen uygulamaların kısayolu (en fazla 4) ve en sağda her zaman Ayarlar. */
 final class Shortcuts {
-    static final int MAX = 5;
+    static final int MAX = 4;
 
     static void render(Activity a) {
         LinearLayout row = a.findViewById(R.id.shortcutRow);
@@ -23,7 +23,7 @@ final class Shortcuts {
         row.removeAllViews();
         PackageManager pm = a.getPackageManager();
 
-        // Seçilen uygulamalar (en fazla 5); kaç tane seçildiyse o kadar kutu
+        // Seçilen uygulamalar (en fazla 4) + Ayarlar; kaç tane seçildiyse o kadar kutu
         java.util.List<ComponentName> apps = new java.util.ArrayList<>();
         java.util.List<ActivityInfo> infos = new java.util.ArrayList<>();
         String saved = a.getSharedPreferences("surus", Context.MODE_PRIVATE).getString("favApps", "");
@@ -65,6 +65,24 @@ final class Shortcuts {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)));
             tile.setOnLongClickListener(v -> { openEditor(a); return true; });
         }
+        // En sağda her zaman Ayarlar: uygulama simgesi gibi yuvarlak zemin üstünde mavi çark
+        View st = tile(a, row, Math.max(1, apps.size()) , false);
+        ImageView gear = st.findViewWithTag("icon");
+        android.graphics.drawable.GradientDrawable circle = new android.graphics.drawable.GradientDrawable();
+        circle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        circle.setColor(a.getColor(R.color.panel2));
+        circle.setStroke(dp(a, 1), a.getColor(R.color.line));
+        gear.setBackground(circle);
+        gear.setImageResource(R.drawable.ic_settings);
+        gear.setImageTintList(android.content.res.ColorStateList.valueOf(a.getColor(R.color.rain)));
+        int gp = dp(a, 14);
+        gear.setPadding(gp, gp, gp, gp);
+        st.setContentDescription("Ayarlar");
+        st.setOnClickListener(v -> {
+            MainActivity.sOwnScreen = true;
+            a.startActivity(new Intent(a, SettingsActivity.class));
+        });
+        st.setOnLongClickListener(v -> { openEditor(a); return true; });
     }
 
     private static void openEditor(Activity a) {

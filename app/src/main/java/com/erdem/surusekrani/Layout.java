@@ -19,8 +19,9 @@ final class Layout {
         Entry(String key, int row, boolean on) { this.key = key; this.row = row; this.on = on; }
     }
 
-    static final String[] KEYS = {"weather", "notif", "status", "assist", "calls", "places", "park", "settings"};
-    private static final int[] DEF_ROW = {1, 1, 1, 2, 2, 2, 2, 2};
+    // Ayarlar düğmesi artık en alttaki uygulama kısayollarının en sağında (Shortcuts); burada yok.
+    static final String[] KEYS = {"weather", "notif", "status", "assist", "calls", "places", "park"};
+    private static final int[] DEF_ROW = {1, 1, 1, 2, 2, 2, 2};
 
     private Layout() {}
 
@@ -93,8 +94,6 @@ final class Layout {
             boolean on = !"assist".equals(KEYS[i]) || sp(c).getBoolean("assistBtn", true);
             l.add(new Entry(KEYS[i], DEF_ROW[i], on));
         }
-        Entry st = find(l, "settings");
-        if (st != null) st.on = true; // ayarlara her zaman ulaşılabilsin
         return l;
     }
 

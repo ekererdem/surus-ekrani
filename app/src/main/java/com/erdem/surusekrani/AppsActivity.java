@@ -126,7 +126,7 @@ public class AppsActivity extends Activity {
         if (editing) {
             for (ResolveInfo r : all) shown.add(key(r));
             title.setText(getIntent().getStringExtra(EXTRA_REPLACE) != null ? "Yerine konacak uygulamayı seç" : "Uygulama seç");
-            hint.setText("Ana ekranda müzik çaların altında görünmesini istediğin uygulamalara dokun (en fazla 5). Tekrar dokunursan çıkar.");
+            hint.setText("Ana ekranda müzik çaların altında görünmesini istediğin uygulamalara dokun (en fazla 4; en sağda her zaman Ayarlar durur). Tekrar dokunursan çıkar.");
             hint.setVisibility(View.VISIBLE);
             editBtn.setText("Tamam");
         } else {
