@@ -21,7 +21,12 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Derle
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+        run: |
+          chmod +x gradlew
+          if ! ./gradlew assembleDebug --no-daemon > build.log 2>&1; then
+            echo "::error::$(grep -E 'error:|What went wrong|> ' build.log | head -20 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
       - name: Çalıştır
         uses: reactivecircus/android-emulator-runner@v2
         with:
