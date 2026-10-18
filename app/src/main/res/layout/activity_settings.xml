@@ -183,9 +183,9 @@
         <!-- Sürüş yardımı -->
         <TextView style="@style/SectionTitle" android:text="Sürüş yardımı" />
         <Switch android:id="@+id/swWave" style="@style/Toggle"
-            android:text="El sallayarak müzik kontrolü" />
+            android:text="El sallayarak kontrol" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Elini telefonun üst kısmının (ön kamera) üzerinden geçir. Ne yapacağını aşağıdan seç." />
+            android:text="Yolda telefona dokunmadan iş gör: elini ön kameranın hemen üzerinden bir ya da iki kez geçirmen yeter. Hangi hareketin ne yapacağını aşağıdan sen seç; şarkı geçmek, son mesajı sesli dinlemek ya da sesi kapatmak gibi. Kopilot ekrandayken çalışır." />
         <TextView android:id="@+id/wave1Btn" style="@style/Option"
             android:layout_height="wrap_content" android:minHeight="52dp"
             android:gravity="center_vertical" android:paddingVertical="8dp"
