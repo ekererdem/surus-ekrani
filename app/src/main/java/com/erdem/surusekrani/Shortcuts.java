@@ -43,7 +43,7 @@ final class Shortcuts {
         }
         // Kutular satırı eşit paylaşır: 2 uygulama = iki yarım, 5 uygulama = beşte bir
         if (apps.isEmpty()) {
-            View tile = tile(a, row, 0);
+            View tile = tile(a, row, 0, true);
             ImageView icon = tile.findViewWithTag("icon");
             icon.setImageResource(R.drawable.ic_plus);
             icon.setImageTintList(android.content.res.ColorStateList.valueOf(a.getColor(R.color.muted)));
@@ -56,9 +56,8 @@ final class Shortcuts {
         for (int i = 0; i < apps.size(); i++) {
             ComponentName cn = apps.get(i);
             ActivityInfo info = infos.get(i);
-            View tile = tile(a, row, i);
+            View tile = tile(a, row, i, false);
             ((ImageView) tile.findViewWithTag("icon")).setImageDrawable(info.loadIcon(pm));
-            ((TextView) tile.findViewWithTag("label")).setText(info.loadLabel(pm));
             tile.setContentDescription(info.loadLabel(pm));
             tile.setOnClickListener(v -> a.startActivity(new Intent(Intent.ACTION_MAIN)
                     .addCategory(Intent.CATEGORY_LAUNCHER)
@@ -73,30 +72,43 @@ final class Shortcuts {
         a.startActivity(new Intent(a, AppsActivity.class).putExtra(AppsActivity.EXTRA_EDIT, true));
     }
 
-    private static View tile(Activity a, LinearLayout row, int index) {
+    /**
+     * framed: "Ekle" kutusu (çerçeveli, yazılı). Uygulamalar ise çerçevesiz, yazısız, büyük logo;
+     * dokunma alanı satırdaki payın tamamı, basınca yuvarlak dalga.
+     */
+    private static View tile(Activity a, LinearLayout row, int index, boolean framed) {
         LinearLayout t = new LinearLayout(a);
         t.setOrientation(LinearLayout.VERTICAL);
         t.setGravity(Gravity.CENTER);
-        t.setBackgroundResource(R.drawable.chip_bg);
-        t.setPadding(dp(a, 4), dp(a, 8), dp(a, 4), dp(a, 6));
         t.setClickable(true);
         t.setFocusable(true);
 
         ImageView icon = new ImageView(a);
         icon.setTag("icon");
-        t.addView(icon, new LinearLayout.LayoutParams(dp(a, 36), dp(a, 36)));
+        icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
-        TextView label = new TextView(a);
-        label.setTag("label");
-        label.setTextSize(12);
-        label.setTextColor(a.getColor(R.color.muted));
-        label.setGravity(Gravity.CENTER);
-        label.setSingleLine(true);
-        label.setEllipsize(TextUtils.TruncateAt.END);
-        LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        llp.topMargin = dp(a, 4);
-        t.addView(label, llp);
+        if (framed) {
+            t.setBackgroundResource(R.drawable.chip_bg);
+            t.setPadding(dp(a, 4), dp(a, 8), dp(a, 4), dp(a, 6));
+            t.addView(icon, new LinearLayout.LayoutParams(dp(a, 36), dp(a, 36)));
+            TextView label = new TextView(a);
+            label.setTag("label");
+            label.setTextSize(12);
+            label.setTextColor(a.getColor(R.color.muted));
+            label.setGravity(Gravity.CENTER);
+            label.setSingleLine(true);
+            label.setEllipsize(TextUtils.TruncateAt.END);
+            LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            llp.topMargin = dp(a, 4);
+            t.addView(label, llp);
+        } else {
+            android.util.TypedValue tv = new android.util.TypedValue();
+            a.getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true);
+            t.setBackgroundResource(tv.resourceId);
+            t.setPadding(0, dp(a, 6), 0, dp(a, 6));
+            t.addView(icon, new LinearLayout.LayoutParams(dp(a, 58), dp(a, 58)));
+        }
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         if (index > 0) lp.setMarginStart(dp(a, 8));
