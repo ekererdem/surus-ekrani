@@ -87,7 +87,7 @@ public class BtReceiver extends BroadcastReceiver {
         Notification n = new Notification.Builder(c, CHANNEL)
                 .setSmallIcon(R.drawable.ic_nav)
                 .setContentTitle("Arabaya bağlandın")
-                .setContentText("Sürüş Ekranı'nı açmak için dokun")
+                .setContentText("Kopilot'u açmak için dokun")
                 .setContentIntent(pi)
                 .setFullScreenIntent(pi, true)
                 .setCategory(Notification.CATEGORY_NAVIGATION)
