@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:label="WhatsApp">
-        <!-- adb shell am broadcast -n com.whatsapp/.Post --es who Annem --es text "..." -->
+        <!-- Test: adb ile Post alıcısına yayın gönderilir (who, texts) -->
         <receiver android:name=".Post" android:exported="true" />
     </application>
 </manifest>
