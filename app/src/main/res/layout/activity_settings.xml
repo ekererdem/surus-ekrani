@@ -224,7 +224,7 @@
             android:layout_marginTop="14dp" android:text="4. Bildirim erişimi (şarkı ve yön)" />
         <TextView android:id="@+id/listenerStatus" style="@style/Note" />
         <TextView style="@style/Note"
-            android:text="Açılan listede Sürüş Ekranı gri ve kapalıysa: 5 numaralı butona bas, sağ üstteki üç noktadan Kısıtlı ayarlara izin ver de, sonra 4'ü tekrar dene." />
+            android:text="Açılan listede Kopilot gri ve kapalıysa: 5 numaralı butona bas, sağ üstteki üç noktadan Kısıtlı ayarlara izin ver de, sonra 4'ü tekrar dene." />
         <Button android:id="@+id/appInfoBtn" style="@style/OutlineBtn" android:textSize="16sp" android:layout_width="match_parent"
             android:layout_marginTop="10dp" android:text="5. Uygulama bilgisi" />
 
