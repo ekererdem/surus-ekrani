@@ -327,13 +327,16 @@ public class MainActivity extends Activity {
             b.setTextSize(13);
             b.setTextColor(getColor(R.color.fg));
             b.setText(name);
+            // Büyük simge üstte, adı altında (arama düğmeleri gibi)
             android.graphics.drawable.Drawable ic = getDrawable(Places.iconRes(Places.icon(this, i))).mutate();
-            int sz = Math.round(18 * d);
+            int sz = Math.round(26 * d);
             ic.setBounds(0, 0, sz, sz);
             ic.setTint(getColor(R.color.amber));
-            b.setCompoundDrawablesRelative(ic, null, null, null);
-            b.setCompoundDrawablePadding(Math.round(4 * d));
-            b.setPadding(Math.round(6 * d), 0, Math.round(6 * d), 0);
+            b.setCompoundDrawablesRelative(null, ic, null, null);
+            b.setCompoundDrawablePadding(Math.round(1 * d));
+            b.setIncludeFontPadding(false);
+            b.setGravity(android.view.Gravity.CENTER);
+            b.setPadding(Math.round(4 * d), Math.round(4 * d), Math.round(4 * d), Math.round(2 * d));
             b.setContentDescription(name + " için rota başlat");
             b.setOnClickListener(v -> goTo(coord));
             b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });
@@ -395,7 +398,7 @@ public class MainActivity extends Activity {
     /** Simge boyutunu düğmenin küçük kenarına göre sınırla. */
     private void fitQuickIcons() {
         float d = getResources().getDisplayMetrics().density;
-        int max = Math.round(24 * d), min = Math.round(6 * d);
+        int max = Math.round(32 * d), min = Math.round(5 * d); // simgeler düğmede daha dolgun dursun
         for (int id : QUICK) {
             View c = findViewById(id);
             if (!(c instanceof ImageButton) || c.getWidth() == 0) continue;
