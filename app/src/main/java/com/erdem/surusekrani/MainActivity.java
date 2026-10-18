@@ -512,9 +512,9 @@ public class MainActivity extends Activity {
         ImageButton pb = findViewById(R.id.parkBtn);
         if (pb == null) return;
         if (Park.coord(this).isEmpty()) {
-            pb.setImageResource(R.drawable.ic_car);
-            pb.setImageTintList(ColorStateList.valueOf(getColor(R.color.fg)));
-            pb.setContentDescription("Arabam nerede: kayıtlı park yeri yok");
+            pb.setImageResource(R.drawable.ic_car_add); // araba + gri artı: "basılı tut, kaydet"
+            pb.setImageTintList(null);
+            pb.setContentDescription("Arabam nerede: kayıtlı park yeri yok, kaydetmek için basılı tut");
         } else {
             pb.setImageResource(R.drawable.ic_car_parked);
             pb.setImageTintList(null);

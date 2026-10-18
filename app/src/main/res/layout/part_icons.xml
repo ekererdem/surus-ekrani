@@ -173,8 +173,7 @@
         <ImageButton
             android:id="@+id/parkBtn"
             style="@style/QuickIcon"
-            android:src="@drawable/ic_car"
-            android:tint="@color/fg"
+            android:src="@drawable/ic_car_add"
             android:contentDescription="Arabam nerede" />
 
         <ImageButton
