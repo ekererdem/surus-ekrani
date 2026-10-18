@@ -614,7 +614,7 @@ public class SettingsActivity extends Activity {
             case "calls": res = R.drawable.ic_phone; color = R.color.accent; break;
             case "places": res = R.drawable.ic_home; color = R.color.amber; break;
             case "park": res = R.drawable.ic_car; color = R.color.fg; break;
-            default: res = R.drawable.ic_settings; color = R.color.fg; break;
+            default: res = R.drawable.ic_settings; color = R.color.rain; break;
         }
         android.graphics.drawable.Drawable dr = getDrawable(res).mutate();
         dr.setTint(getColor(color));

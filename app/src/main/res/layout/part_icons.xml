@@ -180,7 +180,7 @@
             android:id="@+id/settingsBtn"
             style="@style/QuickIcon"
             android:src="@drawable/ic_settings"
-            android:tint="@color/fg"
+            android:tint="@color/rain"
             android:contentDescription="Ayarlar" />
     </LinearLayout>
 </LinearLayout>
