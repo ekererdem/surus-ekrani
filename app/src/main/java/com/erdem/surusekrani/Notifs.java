@@ -99,8 +99,9 @@ final class Notifs {
         // Uygulamanın adı ve simgesi: önce bildirimin içindeki uygulama bilgisinden (paket görünürlüğüne takılmaz),
         // olmazsa paket yöneticisinden, o da olmazsa bildirimin küçük simgesinden.
         android.content.pm.PackageManager pm = c.getPackageManager();
-        android.content.pm.ApplicationInfo ai = n.extras.getParcelable("android.appInfo",
-                android.content.pm.ApplicationInfo.class);
+        android.content.pm.ApplicationInfo ai = null;
+        Object o = n.extras.get("android.appInfo"); // (sınıflı getParcelable Android 13+; uygulama 11'den başlıyor)
+        if (o instanceof android.content.pm.ApplicationInfo) ai = (android.content.pm.ApplicationInfo) o;
         try {
             if (ai == null) ai = pm.getApplicationInfo(it.pkg, 0);
         } catch (Exception ignored) {
