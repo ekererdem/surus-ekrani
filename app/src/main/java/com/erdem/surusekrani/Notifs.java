@@ -96,13 +96,22 @@ final class Notifs {
         it.text = txt == null ? "" : txt.toString().trim();
         it.full = fullText(n, msgs, it.text);
         it.open = n.contentIntent;
+        // Uygulamanın adı ve simgesi: önce bildirimin içindeki uygulama bilgisinden (paket görünürlüğüne takılmaz),
+        // olmazsa paket yöneticisinden, o da olmazsa bildirimin küçük simgesinden.
+        android.content.pm.PackageManager pm = c.getPackageManager();
+        android.content.pm.ApplicationInfo ai = n.extras.getParcelable("android.appInfo",
+                android.content.pm.ApplicationInfo.class);
         try {
-            android.content.pm.PackageManager pm = c.getPackageManager();
-            android.content.pm.ApplicationInfo ai = pm.getApplicationInfo(it.pkg, 0);
-            it.app = pm.getApplicationLabel(ai).toString();
-            it.icon = pm.getApplicationIcon(ai);
-        } catch (Exception e) {
-            it.app = "";
+            if (ai == null) ai = pm.getApplicationInfo(it.pkg, 0);
+        } catch (Exception ignored) {
+        }
+        it.app = "";
+        if (ai != null) {
+            try { it.app = pm.getApplicationLabel(ai).toString(); } catch (Exception ignored) { }
+            try { it.icon = pm.getApplicationIcon(ai); } catch (Exception ignored) { }
+        }
+        if (it.icon == null && n.getSmallIcon() != null) {
+            try { it.icon = n.getSmallIcon().loadDrawable(c); } catch (Exception ignored) { }
         }
         // Yeni gelen (birkaç saniye içinde gönderilmiş) bildirimde alt şeridi göster
         boolean fresh = allowBanner && System.currentTimeMillis() - it.when < 15000;

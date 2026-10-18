@@ -1308,7 +1308,7 @@ public class MainActivity extends Activity {
             }
             TextView t = new TextView(this);
             String head = it.who;
-            String meta = "  " + it.app + " · " + hm.format(new java.util.Date(it.when));
+            String meta = "  " + (it.app == null || it.app.isEmpty() ? "" : it.app + " · ") + hm.format(new java.util.Date(it.when));
             String body = it.missedCall ? "Cevapsız arama"
                     : (it.full != null && !it.full.isEmpty() ? it.full : it.text);
             android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(head);
@@ -1406,7 +1406,7 @@ public class MainActivity extends Activity {
             b.addView(ic, new android.widget.LinearLayout.LayoutParams(Math.round(32 * d), Math.round(32 * d)));
         }
         TextView t = new TextView(this);
-        String head = it.app + " · " + it.who;
+        String head = it.app == null || it.app.isEmpty() ? it.who : it.app + " · " + it.who;
         String body = it.missedCall ? "Cevapsız arama" : it.text;
         android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(head);
         sb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, head.length(), 0);
@@ -1541,7 +1541,8 @@ public class MainActivity extends Activity {
         }
         String what = it.missedCall ? "cevapsız arama" : it.count > 1 ? it.count + " mesaj" : "mesaj";
         String time = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(new java.util.Date(it.when));
-        String sub = it.app + " · " + what + " · " + time + (l.size() > 1 ? "  +" + (l.size() - 1) : "");
+        String sub = (it.app == null || it.app.isEmpty() ? "" : it.app + " · ") + what + " · " + time
+                + (l.size() > 1 ? "  +" + (l.size() - 1) : "");
         android.text.SpannableStringBuilder b = new android.text.SpannableStringBuilder(it.who);
         b.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, it.who.length(), 0);
         int st = b.length() + 1;

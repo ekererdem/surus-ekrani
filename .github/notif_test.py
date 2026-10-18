@@ -14,8 +14,8 @@ def dump():
 
 sh("am", "start", "-n", "com.erdem.surusekrani/.MainActivity")
 time.sleep(3)
-sh("am", "broadcast", "-n", "com.whatsapp/.Post", "--es", "who", "Ecem",
-   "--esa", "texts", "Çıktın mı?,Ekmek alır mısın gelirken. Bir de yarın sabah için süt lazım")
+sh("am broadcast -n com.whatsapp/.Post --es who Ecem "
+   "--esa texts 'Çıktın mı?,Ekmek alır mısın gelirken. Bir de yarın sabah için süt lazım'")
 time.sleep(1.5)
 shot("shot-notif-banner.png")
 time.sleep(8)  # alt şerit kaybolsun
