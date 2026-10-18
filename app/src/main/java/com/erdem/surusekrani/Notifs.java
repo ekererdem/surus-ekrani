@@ -124,10 +124,14 @@ final class Notifs {
             SWALLOWED.add(it.key);
             try {
                 ((android.service.notification.NotificationListenerService) c).cancelNotification(it.key);
+                android.util.Log.i("Kopilot", "kayan bildirim kaldırıldı: " + it.pkg);
             } catch (Exception e) {
+                android.util.Log.w("Kopilot", "kayan bildirim kaldırılamadı: " + e);
                 SWALLOWED.remove(it.key);
                 it.swallowed = false;
             }
+        } else if (fresh) {
+            android.util.Log.i("Kopilot", "kaldırılmadı: ekranda=" + MainActivity.sResumed);
         }
         MAIN.post(() -> {
             ITEMS.remove(it.key);

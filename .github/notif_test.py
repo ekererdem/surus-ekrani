@@ -18,6 +18,8 @@ sh("am broadcast -n com.whatsapp/.Post --es who Ecem "
    "--esa texts 'Çıktın mı?,Ekmek alır mısın gelirken. Bir de yarın sabah için süt lazım'")
 time.sleep(1.5)
 shot("shot-notif-banner.png")
+log = subprocess.run(["adb", "logcat", "-d", "-s", "Kopilot"], capture_output=True, text=True).stdout.strip().splitlines()[-3:]
+still = sh("dumpsys notification --noredact | grep -c 'pkg=com.whatsapp'").strip()
 time.sleep(8)  # alt şerit kaybolsun
 shot("shot-notif-tile.png")
 x = dump()
@@ -29,5 +31,6 @@ if m:
     time.sleep(1.5)
     shot("shot-notif-panel.png")
     res += " | panel: " + " / ".join(t.replace("&#10;", " | ")[:80] for t in re.findall(r'text="([^"]+)"', dump()) if "Ecem" in t or "Ekmek" in t)
+res += " | log: " + " ; ".join(l[-80:] for l in log) + " | telefonda kalan: " + still
 print(res)
 open("notif.txt", "w").write(res)
