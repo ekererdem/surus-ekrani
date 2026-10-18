@@ -22,7 +22,7 @@ jobs:
       - name: Derle
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew :app:assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk SurusEkrani.apk
 
       - name: Sürüm olarak yayınla
