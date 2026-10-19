@@ -477,16 +477,17 @@ final class NavPanel {
         setSummary(r.distance, r.duration);
         setMode(Mode.PREVIEW);
         myLoc.disableFollowLocation();
+        if (autoStart) { // hızlı rota: önizlemeyi atla, hemen sür
+            autoStart = false;
+            startNav();
+            return;
+        }
         map.post(() -> {
             try {
                 map.zoomToBoundingBox(BoundingBox.fromGeoPoints(r.points).increaseByScale(1.3f), true);
             } catch (Exception ignored) {
             }
         });
-        if (autoStart) {
-            autoStart = false;
-            startNav();
-        }
     }
 
     private void drawRoute() {
