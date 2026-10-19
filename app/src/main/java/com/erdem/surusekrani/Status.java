@@ -184,7 +184,7 @@ final class Status {
         } catch (Exception ignored) {
         }
         signalIcon.setImageResource(SIGNAL[level]);
-        int color = a.getColor(level <= 1 ? R.color.low : R.color.accent); // normalde altın sarısı, zayıfken kırmızı
+        int color = a.getColor(level <= 1 ? R.color.low : R.color.chg_high); // normalde yeşil, zayıfken kırmızı
         signalIcon.setImageTintList(ColorStateList.valueOf(color));
         signalIcon.setContentDescription("Şebeke çekimi " + level + "/4");
     }
@@ -293,8 +293,9 @@ final class Status {
         btConnected = connected;
         checkCharge();
         btIcon.setVisibility(on ? View.VISIBLE : View.GONE);
-        btIcon.setImageTintList(ColorStateList.valueOf(a.getColor(connected ? R.color.accent : R.color.muted)));
-        btIcon.setAlpha(connected ? 1f : 0.55f);
+        // Her zaman mavi; arabaya bağlı değilken biraz soluk
+        btIcon.setImageTintList(ColorStateList.valueOf(a.getColor(R.color.rain)));
+        btIcon.setAlpha(connected ? 1f : 0.7f);
         btIcon.setContentDescription(connected ? "Bluetooth bağlı" : "Bluetooth açık");
     }
 
