@@ -65,18 +65,15 @@ final class Shortcuts {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)));
             tile.setOnLongClickListener(v -> { openEditor(a); return true; });
         }
-        // En sağda her zaman Ayarlar: uygulama simgesi gibi yuvarlak zemin üstünde mavi çark
-        View st = tile(a, row, Math.max(1, apps.size()) , false);
+        // En sağda her zaman Ayarlar. Telefonun kendi uygulama simgesi şablonuyla (AdaptiveIcon) çizilir:
+        // Xiaomi'de yuvarlatılmış kare, başka telefonda o telefonun şekli; diğer logolarla birebir aynı.
+        View st = tile(a, row, Math.max(1, apps.size()), false);
         ImageView gear = st.findViewWithTag("icon");
-        android.graphics.drawable.GradientDrawable circle = new android.graphics.drawable.GradientDrawable();
-        circle.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-        circle.setColor(a.getColor(R.color.panel2));
-        circle.setStroke(dp(a, 1), a.getColor(R.color.line));
-        gear.setBackground(circle);
-        gear.setImageResource(R.drawable.ic_settings);
-        gear.setImageTintList(android.content.res.ColorStateList.valueOf(a.getColor(R.color.rain)));
-        int gp = dp(a, 14);
-        gear.setPadding(gp, gp, gp, gp);
+        android.graphics.drawable.Drawable g = a.getDrawable(R.drawable.ic_settings).mutate();
+        g.setTint(a.getColor(R.color.rain));
+        gear.setImageDrawable(new android.graphics.drawable.AdaptiveIconDrawable(
+                new android.graphics.drawable.ColorDrawable(0xFF2A313A),
+                new android.graphics.drawable.InsetDrawable(g, 0.33f)));
         st.setContentDescription("Ayarlar");
         st.setOnClickListener(v -> {
             MainActivity.sOwnScreen = true;
