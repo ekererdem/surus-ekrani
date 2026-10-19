@@ -36,6 +36,7 @@ public class BtReceiver extends BroadcastReceiver {
 
         // Park yeri artık sadece düğmeye basınca kaydedilir
         if (disconnected) {
+            if (CarLink.justKnocked(c)) return; // Kopilot'un arabaya seslenmesinden kalan kısa bağlantı
             Notes.remindIfPending(c); // yolda alınan sesli notları hatırlat
             return;
         }

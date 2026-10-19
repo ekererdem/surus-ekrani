@@ -164,6 +164,8 @@ public class MainActivity extends Activity {
         QuickHold.attach(findViewById(R.id.parkBtn), 350, this::showPark, this::saveParkNow);
         findViewById(R.id.settingsBtn).setOnClickListener(v ->
                 openOwn(new Intent(this, SettingsActivity.class)));
+        // Pil/Bluetooth kutusuna dokun: araba bağlı değilse bağlanmayı dener, olmazsa Bluetooth ekranını açar
+        findViewById(R.id.statusTile).setOnClickListener(v -> CarLink.tap(this, this::showTip));
 
         msm = getSystemService(MediaSessionManager.class);
         listenerCn = new ComponentName(this, MediaListener.class);
@@ -1782,6 +1784,7 @@ public class MainActivity extends Activity {
             Tips.maybe(this, "swipe", "Müzik kutusunu sola kaydır: sonraki şarkı, sağa kaydır: önceki şarkı.");
         }, 5000);
         Shortcuts.render(this);
+        CarLink.onAppOpen(this);
         refreshParkBadge();
         renderCalls();
         arrangeQuick();

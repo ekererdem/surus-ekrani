@@ -21,6 +21,8 @@ final class Prefs {
     String carAddr() { return sp.getString("carAddr", ""); }
     String carName() { return sp.getString("carName", ""); }
     boolean autoOpen() { return sp.getBoolean("autoOpen", true); }
+    /** Araba telefonu kendisi bulmuyorsa Kopilot bağlanmayı denesin. */
+    boolean carLink() { return sp.getBoolean("carLink", true); }
     String units() { return "km"; }
     boolean carVolOn() { return sp.getBoolean("carVolOn", false); }
     int carVol() { return sp.getInt("carVol", 60); }

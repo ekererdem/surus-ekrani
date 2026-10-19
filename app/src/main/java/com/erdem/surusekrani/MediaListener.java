@@ -20,6 +20,7 @@ public class MediaListener extends NotificationListenerService {
     @Override
     public void onListenerConnected() {
         instance = this;
+        listenPower();
         resync();
         LegacyDnd.restore(this);
     }
@@ -27,9 +28,34 @@ public class MediaListener extends NotificationListenerService {
     @Override
     public void onListenerDisconnected() {
         instance = null;
+        try {
+            unregisterReceiver(power);
+        } catch (Exception ignored) {
+        }
         // HyperOS dinleyiciyi kapatabiliyor: yeniden bağlanmayı iste
         try {
             requestRebind(new android.content.ComponentName(this, MediaListener.class));
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** Telefon şarja takılınca (arabada) Kopilot arabaya bağlanmayı dener. */
+    private final android.content.BroadcastReceiver power = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context c, android.content.Intent in) {
+            CarLink.onPower(c, android.content.Intent.ACTION_POWER_CONNECTED.equals(in.getAction()));
+        }
+    };
+
+    private void listenPower() {
+        android.content.IntentFilter f = new android.content.IntentFilter(android.content.Intent.ACTION_POWER_CONNECTED);
+        f.addAction(android.content.Intent.ACTION_POWER_DISCONNECTED);
+        try {
+            unregisterReceiver(power);
+        } catch (Exception ignored) {
+        }
+        try {
+            registerReceiver(power, f, android.os.Build.VERSION.SDK_INT >= 33 ? android.content.Context.RECEIVER_NOT_EXPORTED : 0);
         } catch (Exception ignored) {
         }
     }

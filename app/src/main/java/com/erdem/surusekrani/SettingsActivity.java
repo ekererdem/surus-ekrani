@@ -120,6 +120,10 @@ public class SettingsActivity extends Activity {
             Toast.makeText(this, "Varsayılan düzen", Toast.LENGTH_SHORT).show();
         });
 
+        Switch carLink = findViewById(R.id.swCarLink);
+        carLink.setChecked(p.carLink());
+        carLink.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("carLink", on).apply());
+
         Switch autoOpen = findViewById(R.id.swAutoOpen);
         autoOpen.setChecked(p.autoOpen());
         autoOpen.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("autoOpen", on).apply());
