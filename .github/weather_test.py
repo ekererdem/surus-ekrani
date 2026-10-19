@@ -44,7 +44,7 @@ if mm:
 found = False
 for i in range(45):
     x = nodes()
-    m = re.search(r'text="(?:Bildirim kutusu|BİLDİRİM KUTUSU)"[^>]*bounds="\[\d+,(\d+)\]', x)
+    m = re.search(r'text="B[İI]LD[İI]R[İI]M KUTUSU"[^>]*bounds="\[\d+,(\d+)\]', x, re.I)
     if m:
         found = True
         if m and int(m.group(1)) > h * 0.3:
