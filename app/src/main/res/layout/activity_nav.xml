@@ -5,9 +5,8 @@
     android:layout_height="match_parent"
     android:background="@color/bg">
 
-    <!-- Harita koddan eklenir: Google (anahtar varsa) ya da OpenStreetMap -->
-    <FrameLayout
-        android:id="@+id/mapBox"
+    <org.osmdroid.views.MapView
+        android:id="@+id/navMap"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

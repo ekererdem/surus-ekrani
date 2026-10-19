@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Kopilot ile harita arasındaki tutamak çizgisi -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@color/muted" />
-    <corners android:radius="3dp" />
-</shape>

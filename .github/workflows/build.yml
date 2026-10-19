@@ -20,8 +20,6 @@ jobs:
           java-version: '17'
 
       - name: Derle
-        env:
-          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
           chmod +x gradlew
           ./gradlew :app:assembleDebug --no-daemon

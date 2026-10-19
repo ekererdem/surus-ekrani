@@ -21,8 +21,6 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Derle
-        env:
-          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
           chmod +x gradlew
           if ! ./gradlew assembleDebug --no-daemon > build.log 2>&1; then
@@ -50,7 +48,6 @@ jobs:
             adb exec-out screencap -p > shot-main.png || true
             python3 .github/park_test.py || true
             python3 .github/notif_test.py || true
-            python3 .github/map_test.py || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb exec-out screencap -p > shot-settings.png || true
             adb shell am start -n com.erdem.surusekrani/.FeaturesActivity ; sleep 4 ; adb shell am start -n com.erdem.surusekrani/.OnboardingActivity ; sleep 4
@@ -86,7 +83,6 @@ jobs:
           echo "::notice::drag $(cat drag.txt 2>/dev/null)"
           echo "::notice::park $(cat park.txt 2>/dev/null)"
           echo "::notice::notif $(cat notif.txt 2>/dev/null)"
-          echo "::notice::map $(cat map.txt 2>/dev/null)"
       - name: Ayarlar düzeni
         if: always()
         run: |

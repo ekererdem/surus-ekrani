@@ -42,10 +42,6 @@ public class MainActivity extends Activity {
 
     private Prefs p;
     private boolean compact;
-    /** Düzen: tam ekran, bölünmüş ekran, ya da yatayda harita uygulamanın içinde. */
-    private static final int K_FULL = 0, K_SPLIT = 1, K_MAP = 2;
-    private int kind;
-    private NavPanel navPanel;
     private Status status;
     private Wave wave;
     private static final int REQ_NOTE = 51;
@@ -105,10 +101,8 @@ public class MainActivity extends Activity {
         p = new Prefs(this);
         Places.migrate(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        kind = desiredKind();
-        compact = kind != K_FULL;
-        setContentView(kind == K_MAP ? R.layout.activity_main_land
-                : compact ? R.layout.activity_main_compact : R.layout.activity_main);
+        compact = isInMultiWindowMode();
+        setContentView(compact ? R.layout.activity_main_compact : R.layout.activity_main);
         if (compact) ((TextView) findViewById(R.id.clock)).setTextSize(38);
         status = new Status(this);
         // El sallama: 1 kez / 2 kez ne yapacağı Ayarlar'dan seçilir (varsayılan: sonraki şarkı / durdur-başlat)
@@ -138,12 +132,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Dokun: Google Haritalar yan yana açılır (Kopilot haritası seçiliyse uygulama içi). Basılı tut: uygulama içi.
-        findViewById(R.id.navTouch).setOnClickListener(v -> {
-            if (inAppNav()) openOwn(new Intent(this, NavActivity.class));
-            else Apps.openNavSplit(this, p, null);
-        });
-        if (kind == K_MAP) setupMapSplit();
+        // Dokun: Google Haritalar yan yana açılır. Basılı tut: uygulama içi navigasyon.
+        findViewById(R.id.navTouch).setOnClickListener(v -> Apps.openNavSplit(this, p, null));
         findViewById(R.id.navTouch).setOnLongClickListener(v -> {
             startActivity(new Intent(this, NavActivity.class));
             return true;
@@ -348,7 +338,7 @@ public class MainActivity extends Activity {
             b.setGravity(android.view.Gravity.CENTER);
             b.setPadding(Math.round(4 * d), Math.round(4 * d), Math.round(4 * d), Math.round(2 * d));
             b.setContentDescription(name + " için rota başlat");
-            b.setOnClickListener(v -> goTo(coord, name));
+            b.setOnClickListener(v -> goTo(coord));
             b.setOnLongClickListener(v -> { openOwn(new Intent(this, SettingsActivity.class)); return true; });
             placeViews.add(b);
         }
@@ -1705,17 +1695,12 @@ public class MainActivity extends Activity {
         return false;
     }
 
-    void goTo(String addr) { goTo(addr, null); }
-
-    void goTo(String addr, String name) {
+    void goTo(String addr) {
         if (addr.trim().isEmpty()) {
             Toast.makeText(this, "Önce Ayarlar'dan adres ekle", Toast.LENGTH_SHORT).show();
             openOwn(new Intent(this, SettingsActivity.class));
         } else {
-            if (navPanel != null) navPanel.goTo(addr, name); // harita yanımızda: rota orada başlar
-            else if (inAppNav()) openOwn(new Intent(this, NavActivity.class)
-                    .putExtra(NavActivity.EXTRA_DEST, addr).putExtra(NavActivity.EXTRA_NAME, name));
-            else Apps.openNavSplit(this, p, addr);
+            Apps.openNavSplit(this, p, addr);
             // Hava tuşu varış yerinin havasını göstersin
             getSharedPreferences("surus", MODE_PRIVATE).edit()
                     .putString("destCoord", addr).putLong("destAt", System.currentTimeMillis()).apply();
@@ -1732,7 +1717,7 @@ public class MainActivity extends Activity {
     }
 
     private final Runnable autoSplitRun = () -> {
-        if (!isFinishing() && !isDestroyed() && !isInMultiWindowMode() && !inAppNav()) {
+        if (!isFinishing() && !isDestroyed() && !isInMultiWindowMode()) {
             Apps.openNavSplit(this, p, null);
         }
     };
@@ -1740,7 +1725,7 @@ public class MainActivity extends Activity {
     /** Ekran bölünmüş değilse haritayı yanına aç. */
     private void autoSplit() {
         playBtn.removeCallbacks(autoSplitRun);
-        if (!p.autoSplit() || isInMultiWindowMode() || inAppNav()) return; // Kopilot haritası: bölme yok
+        if (!p.autoSplit() || isInMultiWindowMode()) return;
         playBtn.postDelayed(autoSplitRun, 700);
     }
 
@@ -1756,73 +1741,14 @@ public class MainActivity extends Activity {
     /** Bölünmüş ekranda harita kutusunu gizle; haritanın kendisi zaten yanda. */
     private void updateSplitUi() {
         View nav = findViewById(R.id.navFrame);
-        nav.setVisibility(kind == K_FULL ? View.VISIBLE : View.GONE);
-    }
-
-    private boolean inAppNav() { return "inapp".equals(p.nav()); }
-
-    private int desiredKind() {
-        if (isInMultiWindowMode()) return K_SPLIT;
-        if (inAppNav() && getResources().getConfiguration().orientation
-                == android.content.res.Configuration.ORIENTATION_LANDSCAPE) return K_MAP;
-        return K_FULL;
-    }
-
-    /** Yatay + Kopilot haritası: sağda harita, aradaki çizgi sürüklenerek pay ayarlanır (kaydedilir). */
-    private void setupMapSplit() {
-        View root = findViewById(R.id.landRoot);
-        ViewGroup host = findViewById(R.id.mapHost);
-        host.setClipToOutline(true);
-        navPanel = new NavPanel(this, host, true);
-        android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
-        root.post(() -> setLeftWidth(root.getWidth() * sp.getFloat("mapSplit", 0.4f)));
-        int[] at = new int[2];
-        findViewById(R.id.splitHandle).setOnTouchListener((v, e) -> {
-            switch (e.getActionMasked()) {
-                case android.view.MotionEvent.ACTION_DOWN:
-                    v.setPressed(true);
-                    v.getParent().requestDisallowInterceptTouchEvent(true);
-                    root.getLocationOnScreen(at);
-                    return true;
-                case android.view.MotionEvent.ACTION_MOVE:
-                    setLeftWidth(e.getRawX() - at[0] - v.getWidth() / 2f);
-                    return true;
-                case android.view.MotionEvent.ACTION_UP:
-                case android.view.MotionEvent.ACTION_CANCEL:
-                    v.setPressed(false);
-                    View left = findViewById(R.id.leftCol);
-                    if (root.getWidth() > 0)
-                        sp.edit().putFloat("mapSplit", left.getWidth() / (float) root.getWidth()).apply();
-                    findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
-                    return true;
-            }
-            return false;
-        });
-    }
-
-    private void setLeftWidth(float px) {
-        View root = findViewById(R.id.landRoot), left = findViewById(R.id.leftCol);
-        int w = root.getWidth();
-        if (w <= 0) return;
-        int width = Math.round(Math.max(w * 0.28f, Math.min(w * 0.62f, px)));
-        ViewGroup.LayoutParams lp = left.getLayoutParams();
-        if (lp.width == width) return;
-        lp.width = width;
-        left.setLayoutParams(lp);
-        findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (navPanel != null && navPanel.onBack()) return;
-        super.onBackPressed();
+        nav.setVisibility(isInMultiWindowMode() ? View.GONE : View.VISIBLE);
     }
 
     @Override
     public void onMultiWindowModeChanged(boolean inMultiWindow, android.content.res.Configuration cfg) {
         super.onMultiWindowModeChanged(inMultiWindow, cfg);
         if (!inMultiWindow) sOwnScreen = true; // elle tam ekrana geçildi, haritayı geri açma
-        if (desiredKind() != kind) {
+        if (inMultiWindow != compact) {
             recreate();
             return;
         }
@@ -1833,12 +1759,11 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         float wantScale = getSharedPreferences("surus", MODE_PRIVATE).getFloat("scale", 1f);
-        if (wantScale != appliedScale || desiredKind() != kind) {
+        if (wantScale != appliedScale || isInMultiWindowMode() != compact) {
             recreate();
             return;
         }
         updateSplitUi();
-        if (navPanel != null) navPanel.onResume();
         NotificationManager nm = getSystemService(NotificationManager.class);
         if (nm != null) nm.cancel(BtReceiver.NOTIF_ID);
 
@@ -1901,7 +1826,6 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         sResumed = false;
-        if (navPanel != null) navPanel.onPause();
         playBtn.removeCallbacks(autoSplitRun);
         status.pause();
         wave.stop();
@@ -1930,14 +1854,12 @@ public class MainActivity extends Activity {
         if (code == REQ_LOC) {
             status.pause();
             status.resume();
-            if (navPanel != null) navPanel.onPermission();
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (navPanel != null) navPanel.onDestroy();
         if (status != null) status.destroy();
         if (browser != null) try { browser.disconnect(); } catch (Exception ignored) { }
         if (waveTts != null) waveTts.shutdown();
