@@ -166,7 +166,45 @@ final class NavPanel {
         Button ext = root.findViewById(R.id.extBtn);
         ext.setText(embedded ? "Yandex'te aç" : Apps.navName(p.nav()));
         ext.setOnClickListener(v -> openExternal());
+        if (embedded) compactCards();
         setMode(Mode.BROWSE);
+    }
+
+    /** Gömülü harita küçük: yön kartı ve alt özet daha ince olsun ki harita görünsün. */
+    private void compactCards() {
+        turnCard.setPadding(dp(12), dp(8), dp(12), dp(8));
+        ViewGroup.LayoutParams al = turnArrow.getLayoutParams();
+        al.width = al.height = dp(48);
+        turnArrow.setLayoutParams(al);
+        turnDist.setTextSize(28);
+        turnText.setTextSize(15);
+        turnText.setMaxLines(1);
+        bottomPanel.setPadding(dp(12), dp(8), dp(8), dp(8));
+        summary.setTextSize(19);
+        ((ViewGroup.MarginLayoutParams) turnCard.getLayoutParams()).setMargins(dp(8), dp(8), dp(8), dp(8));
+        ((ViewGroup.MarginLayoutParams) bottomPanel.getLayoutParams()).setMargins(dp(8), dp(8), dp(8), dp(8));
+    }
+
+    /** Gömülüyken navigasyonda alt özet tek satır: "9,9 km · 11 dk · varış 09:59   [Bitir]". */
+    private void layoutBottom(Mode m) {
+        if (!embedded) return;
+        LinearLayout panel = (LinearLayout) bottomPanel;
+        View row = (View) mainBtn.getParent();
+        View ext = ((ViewGroup) row).findViewById(R.id.extBtn);
+        boolean nav = m == Mode.NAV;
+        panel.setOrientation(nav ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        panel.setGravity(nav ? Gravity.CENTER_VERTICAL : Gravity.NO_GRAVITY);
+        LinearLayout.LayoutParams sl = (LinearLayout.LayoutParams) summary.getLayoutParams();
+        sl.width = nav ? 0 : ViewGroup.LayoutParams.MATCH_PARENT;
+        sl.weight = nav ? 1f : 0f;
+        summary.setLayoutParams(sl);
+        LinearLayout.LayoutParams rl = (LinearLayout.LayoutParams) row.getLayoutParams();
+        rl.width = nav ? dp(108) : ViewGroup.LayoutParams.MATCH_PARENT;
+        rl.height = dp(nav ? 46 : 52);
+        rl.topMargin = nav ? 0 : dp(8);
+        rl.setMarginStart(nav ? dp(8) : 0);
+        row.setLayoutParams(rl);
+        ext.setVisibility(nav ? View.GONE : View.VISIBLE);
     }
 
     // ---------- Dışarıdan ----------
@@ -636,6 +674,7 @@ final class NavPanel {
         bottomPanel.setVisibility(m == Mode.BROWSE ? View.GONE : View.VISIBLE);
         destName.setVisibility(m == Mode.PREVIEW ? View.VISIBLE : View.GONE);
         mainBtn.setText(m == Mode.NAV ? "Bitir" : "Başlat");
+        layoutBottom(m);
         refreshBack();
         bottomPanel.post(() -> recenterBtn.setTranslationY(
                 bottomPanel.getVisibility() == View.VISIBLE ? -(bottomPanel.getHeight() + dp(12)) : 0));
