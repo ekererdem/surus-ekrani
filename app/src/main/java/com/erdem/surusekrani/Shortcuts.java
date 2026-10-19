@@ -85,11 +85,12 @@ final class Shortcuts {
         st.setOnLongClickListener(v -> { openEditor(a); return true; });
     }
 
-    private static final int GEAR_BG = 0x2A313A;
+    /** Ayarlar simgesinin zemini (açık) ve çark rengi (canlı mavi). */
+    private static final int GEAR_BG = 0xEEF2F7;
 
     /**
      * Ayarlar simgesi: yanındaki logolardan en dolu olanını kalıp alır (Xiaomi'de yuvarlatılmış kare ve
-     * etrafındaki boşluk dahil), aynı şekli koyu gri doldurup ortasına mavi çarkı çizer. Böylece telefon
+     * etrafındaki boşluk dahil), aynı şekli açık renkle doldurup ortasına mavi çarkı çizer. Böylece telefon
      * hangi simge şeklini kullanıyorsa Ayarlar da birebir o boyutta ve şekilde olur.
      */
     private static Drawable settingsIcon(Activity a, java.util.List<Drawable> logos) {
@@ -97,34 +98,19 @@ final class Shortcuts {
         int[] best = null;
         int bestCover = 0;
         for (Drawable d : logos) {
-            try {
-                Drawable c = d.getConstantState() != null
-                        ? d.getConstantState().newDrawable(a.getResources()).mutate() : d;
-                Rect old = new Rect(d.getBounds());
-                Bitmap b = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
-                c.setBounds(0, 0, s, s);
-                c.draw(new Canvas(b));
-                if (c == d) d.setBounds(old);
-                int[] px = new int[s * s];
-                b.getPixels(px, 0, s, 0, 0, s, s);
-                b.recycle();
-                int cover = 0;
-                for (int v : px) if ((v >>> 24) >= 128) cover++;
-                if (cover > bestCover) {
-                    bestCover = cover;
-                    best = px;
-                }
-            } catch (Exception ignored) {
+            int[] px = pixels(a, d, s);
+            if (px == null) continue;
+            int cover = 0;
+            for (int v : px) if ((v >>> 24) >= 128) cover++;
+            if (cover > bestCover) {
+                bestCover = cover;
+                best = px;
             }
         }
-        Drawable g = a.getDrawable(R.drawable.ic_settings).mutate();
-        g.setTint(a.getColor(R.color.rain));
-        if (best == null || bestCover < s * s * 0.35f) {
-            // Kalıp alınacak logo yok: telefonun kendi simge şablonu
-            return new android.graphics.drawable.AdaptiveIconDrawable(
-                    new android.graphics.drawable.ColorDrawable(0xFF000000 | GEAR_BG),
-                    new android.graphics.drawable.InsetDrawable(g, 0.29f));
-        }
+        android.util.Log.i("Kopilot", "ayarlar simgesi: " + logos.size() + " logo, en dolu %"
+                + (100 * bestCover / (s * s)));
+        if (best == null || bestCover < s * s * 0.2f) best = roundedSquare(s); // kalıp yoksa dolu yuvarlak kare
+
         // Şekli doldur: her satırda ilk ve son dolu nokta arası tam dolu, kenarlar logodaki yumuşaklıkta
         int[] out = new int[s * s];
         int minX = s, maxX = -1, minY = s, maxY = -1;
@@ -150,11 +136,59 @@ final class Shortcuts {
         }
         Bitmap bm = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
         bm.setPixels(out, 0, s, 0, 0, s, s);
+        Drawable g = a.getDrawable(R.drawable.ic_settings).mutate();
+        g.setTint(a.getColor(R.color.rain));
         int size = Math.round(Math.min(maxX - minX + 1, maxY - minY + 1) * 0.62f);
         int cx = (minX + maxX + 1) / 2, cy = (minY + maxY + 1) / 2;
         g.setBounds(cx - size / 2, cy - size / 2, cx - size / 2 + size, cy - size / 2 + size);
         g.draw(new Canvas(bm));
         return new BitmapDrawable(a.getResources(), bm);
+    }
+
+    /**
+     * Logoyu s x s piksele çiz. Telefon logoları ekran kartı belleğinde tutabiliyor (normal tuvale
+     * çizilemez); bu yüzden önce kayıt alıp ekran kartında çizdiriyoruz, sonra piksellerini okuyoruz.
+     */
+    private static int[] pixels(Activity a, Drawable d, int s) {
+        Drawable c = d.getConstantState() != null
+                ? d.getConstantState().newDrawable(a.getResources()).mutate() : d;
+        Rect old = new Rect(d.getBounds());
+        c.setBounds(0, 0, s, s);
+        Bitmap sw = null;
+        try {
+            android.graphics.Picture pic = new android.graphics.Picture();
+            c.draw(pic.beginRecording(s, s));
+            pic.endRecording();
+            Bitmap hw = Bitmap.createBitmap(pic);
+            sw = hw.copy(Bitmap.Config.ARGB_8888, false);
+            hw.recycle();
+        } catch (Throwable t) {
+            try {
+                sw = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
+                c.draw(new Canvas(sw));
+            } catch (Throwable t2) {
+                android.util.Log.w("Kopilot", "logo okunamadı: " + d.getClass().getName(), t2);
+                sw = null;
+            }
+        } finally {
+            if (c == d) d.setBounds(old);
+        }
+        if (sw == null) return null;
+        int[] px = new int[s * s];
+        sw.getPixels(px, 0, s, 0, 0, s, s);
+        sw.recycle();
+        return px;
+    }
+
+    private static int[] roundedSquare(int s) {
+        Bitmap b = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888);
+        android.graphics.Paint p = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        p.setColor(0xFF000000);
+        new Canvas(b).drawRoundRect(0, 0, s, s, s * 0.23f, s * 0.23f, p);
+        int[] px = new int[s * s];
+        b.getPixels(px, 0, s, 0, 0, s, s);
+        b.recycle();
+        return px;
     }
 
     private static void openEditor(Activity a) {

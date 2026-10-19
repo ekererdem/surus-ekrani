@@ -293,9 +293,8 @@ final class Status {
         btConnected = connected;
         checkCharge();
         btIcon.setVisibility(on ? View.VISIBLE : View.GONE);
-        // Her zaman mavi; arabaya bağlı değilken biraz soluk
         btIcon.setImageTintList(ColorStateList.valueOf(a.getColor(R.color.rain)));
-        btIcon.setAlpha(connected ? 1f : 0.7f);
+        btIcon.setAlpha(1f);
         btIcon.setContentDescription(connected ? "Bluetooth bağlı" : "Bluetooth açık");
     }
 

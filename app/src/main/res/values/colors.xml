@@ -11,10 +11,10 @@
     <!-- Vurgu rengi: logodaki altın sarısı (eskiden turkuaz) -->
     <color name="accent">#F5A623</color>
     <color name="low">#E5484D</color>
-    <color name="rain">#4FA3FF</color>
+    <color name="rain">#1E90FF</color>
     <color name="chg_low">#FF8A1F</color>
     <color name="chg_mid">#F5D90A</color>
-    <color name="chg_high">#3DD68C</color>
+    <color name="chg_high">#22D65E</color>
     <color name="alert_yellow">#F5D90A</color>
     <color name="alert_orange">#FF8A1F</color>
     <color name="accent_ink">#2B1A00</color>
