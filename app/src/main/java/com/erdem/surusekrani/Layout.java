@@ -29,7 +29,7 @@ final class Layout {
         switch (key) {
             case "weather": return "Hava durumu";
             case "notif": return "Bildirimler";
-            case "status": return "Telefon durumu";
+            case "status": return "Gösterge paneli";
             case "assist": return "Sesli komut";
             case "calls": return "Hızlı aramalar";
             case "places": return "Hızlı rotalar";
@@ -49,10 +49,10 @@ final class Layout {
             case "notif": return "WhatsApp mesajları, SMS'ler ve cevapsız aramalar burada toplanır. Yeni bir mesaj "
                     + "geldiğinde ekranın altında birkaç saniyeliğine mesajın kendisi görünür; telefonun yukarıdan "
                     + "inen bildirimi önünü kapatmaz. Kutuya dokunursan mesajların tamamını okursun, basılı tutarsan "
-                    + "doğrudan o sohbete geçersin. Beş dakika sonra kutuda sadece uygulamanın simgesi kalır.";
+                    + "doğrudan o sohbete geçersin. Okuduğun mesajlar birkaç saniye sonra kendiliğinden kapanır ve kutudan kalkar.";
             case "status": return "Çekimi, Bluetooth bağlantısını ve şarjı tek bakışta görürsün. Telefon şarj olurken "
                     + "şimşek doldukça turuncudan sarıya, sonra yeşile döner. Arabaya bağlıyken telefon şarj olmuyorsa "
-                    + "ve şarj %30'un altına düştüyse şimşek kırmızı yanıp sönerek kabloyu hatırlatır.";
+                    + "ve şarj %30'un altına düştüyse şimşek kırmızı yanıp sönerek kabloyu hatırlatır. Araban bağlı değilse kutuya dokun, Kopilot bağlanmayı dener.";
             case "assist": return "Dokunduğunda telefonun sesli asistanı açılır; elini direksiyondan ayırmadan arama "
                     + "yapabilir, mesaj gönderebilirsin. Basılı tutarsan sesli not alırsın: aklına geleni söyle, "
                     + "arabadan indiğinde sana hatırlatalım.";

@@ -32,7 +32,7 @@ public class FeaturesActivity extends Activity {
         Ui.item(this, box, "🌦️ Hava durumu", "Şimdi ve 1 saat sonrası. Hava kötüleşecekse sağ taraf sarı, turuncu ya da kırmızı çerçeveli. "
                 + "Hızlı rotayla gidince varış yerinin havası.");
         Ui.item(this, box, "💬 Bildirimler", "WhatsApp, SMS ve cevapsız aramalar. Yeni mesaj ekranın altında birkaç saniye görünür. Kutuya dokun: mesajların tamamı. Basılı tut: uygulamaya geç.");
-        Ui.item(this, box, "🔋 Telefon durumu", "Çekim, Bluetooth, şarj. Şarjdayken şimşek turuncu → sarı → yeşil dolar. Arabadayken şarj olmuyor ve şarj azsa şimşek kırmızı yanıp söner.");
+        Ui.item(this, box, "🔋 Gösterge paneli", "Çekim, Bluetooth, şarj. Şarjdayken şimşek turuncu → sarı → yeşil dolar. Arabadayken şarj olmuyor ve şarj azsa şimşek kırmızı yanıp söner. Araban bağlı değilse kutuya dokun, Kopilot bağlanmayı dener.");
 
         Ui.section(this, box, "Kendiliğinden");
         Ui.item(this, box, "🔵 Arabaya binince", "Araç Bluetooth'una bağlanınca uygulama açılır, müzik devam eder, ses seviyen ayarlanır.");

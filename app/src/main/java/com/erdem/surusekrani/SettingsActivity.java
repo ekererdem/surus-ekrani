@@ -552,6 +552,8 @@ public class SettingsActivity extends Activity {
             ic.setImageDrawable(layoutIcon(e.key));
             int pad = Math.round(9 * d);
             ic.setPadding(pad, pad, pad, pad);
+            // Gösterge paneli: çekim ve Bluetooth yan yana, yatayda daha çok yer
+            if ("status".equals(e.key)) ic.setPadding(Math.round(2 * d), pad, Math.round(2 * d), pad);
             row.addView(ic, new android.widget.LinearLayout.LayoutParams(Math.round(44 * d), Math.round(44 * d)));
 
             TextView name = new TextView(this);
@@ -617,16 +619,42 @@ public class SettingsActivity extends Activity {
         switch (key) {
             case "weather": return new WeatherIcon(2, true, -1);
             case "notif": res = R.drawable.ic_bell; color = R.color.accent; break;
-            case "status": res = R.drawable.ic_signal_4; color = R.color.accent; break;
+            case "status": {
+                android.graphics.drawable.Drawable sig = getDrawable(R.drawable.ic_signal_4).mutate();
+                sig.setTint(getColor(R.color.chg_high));
+                android.graphics.drawable.Drawable bt = getDrawable(R.drawable.ic_bluetooth).mutate();
+                bt.setTint(getColor(R.color.rain));
+                return sideBySide(sig, bt);
+            }
             case "assist": res = R.drawable.ic_mic; color = R.color.fg; break;
             case "calls": res = R.drawable.ic_phone; color = R.color.accent; break;
             case "places": res = R.drawable.ic_home; color = R.color.amber; break;
-            case "park": res = R.drawable.ic_car; color = R.color.fg; break;
+            case "park": return getDrawable(R.drawable.ic_car_parked).mutate(); // ana ekrandaki P'li araba
             default: res = R.drawable.ic_settings; color = R.color.rain; break;
         }
         android.graphics.drawable.Drawable dr = getDrawable(res).mutate();
         dr.setTint(getColor(color));
         return dr;
+    }
+
+    /** İki simge yan yana, ortada; kutuya sığacak en büyük kare boyunda. */
+    private static android.graphics.drawable.Drawable sideBySide(android.graphics.drawable.Drawable a,
+                                                                 android.graphics.drawable.Drawable b) {
+        return new android.graphics.drawable.Drawable() {
+            @Override public void draw(android.graphics.Canvas c) {
+                android.graphics.Rect r = getBounds();
+                int gap = Math.round(r.width() * 0.06f);
+                int s = Math.min(r.height(), (r.width() - gap) / 2);
+                int left = r.centerX() - (2 * s + gap) / 2, top = r.centerY() - s / 2;
+                a.setBounds(left, top, left + s, top + s);
+                b.setBounds(left + s + gap, top, left + 2 * s + gap, top + s);
+                a.draw(c);
+                b.draw(c);
+            }
+            @Override public void setAlpha(int alpha) { a.setAlpha(alpha); b.setAlpha(alpha); }
+            @Override public void setColorFilter(android.graphics.ColorFilter cf) { a.setColorFilter(cf); b.setColorFilter(cf); }
+            @Override public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
+        };
     }
 
     /** Çerçevesiz, yazısı ortalı küçük tuş (Üst/Alt, ▲, ▼). */
