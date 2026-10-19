@@ -18,6 +18,8 @@ codes = [3, 61, 80, 63, 2, 0]
 hr = ";".join("%d,%d,%d,1,%d,-1" % (now + 600 + i * 3600, 9 - i, codes[i], [0, 40, 70, 90, 10, 0][i]) for i in range(6))
 P = "/data/data/com.erdem.surusekrani/shared_prefs/surus.xml"
 sh("am force-stop com.erdem.surusekrani")
+time.sleep(1)
+sh("rm -f " + P + ".bak")  # yarım kalmış yazma yedeği tohumu ezmesin  # yarım kalmış yazma yedeği tohumu ezmesin
 sh("sed -i 's|<string name=\"wHr\">[^<]*</string>||; s|<long name=\"wAt\" value=\"[0-9]*\" />||' " + P)
 sh("sed -i 's|</map>|<string name=\"wHr\">" + hr + "</string><long name=\"wAt\" value=\"" + str(now * 1000) + "\" /></map>|' " + P)
 sh("am start -n com.erdem.surusekrani/.MainActivity")
