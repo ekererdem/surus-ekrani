@@ -45,6 +45,47 @@ final class Notifs {
 
     private Notifs() {}
 
+    /** Ayarlar'da her zaman listelenen mesajlaşma uygulamaları (telefonda yüklüyse). */
+    private static final String[] MESSENGERS = {
+            "com.whatsapp", "com.whatsapp.w4b", "org.telegram.messenger", "com.google.android.apps.messaging",
+            "com.android.mms", "com.facebook.orca", "com.instagram.android", "org.thoughtcrime.securesms",
+            "com.viber.voip", "com.google.android.dialer", "com.android.incallui"};
+
+    private static android.content.SharedPreferences sp(Context c) {
+        return c.getSharedPreferences("surus", Context.MODE_PRIVATE);
+    }
+
+    /** Bu uygulamanın mesajları kutuda görünsün mü (Ayarlar > Bildirim kutusu). */
+    static boolean allowed(Context c, String pkg) {
+        return !sp(c).getStringSet("notifOff", java.util.Collections.emptySet()).contains(pkg);
+    }
+
+    static void allow(Context c, String pkg, boolean on) {
+        java.util.Set<String> off = new java.util.HashSet<>(
+                sp(c).getStringSet("notifOff", java.util.Collections.emptySet()));
+        if (on) off.remove(pkg); else off.add(pkg);
+        sp(c).edit().putStringSet("notifOff", off).apply();
+        if (!on) MAIN.post(() -> {
+            if (ITEMS.values().removeIf(it -> pkg.equals(it.pkg)) && listener != null) listener.onNotifsChanged();
+        });
+    }
+
+    /** Ayarlar'da gösterilecek uygulamalar: bilinen mesajlaşma uygulamaları + mesaj göndermiş diğerleri. */
+    static List<String> candidates(Context c) {
+        java.util.LinkedHashSet<String> s = new java.util.LinkedHashSet<>(java.util.Arrays.asList(MESSENGERS));
+        s.addAll(sp(c).getStringSet("notifSeen", java.util.Collections.emptySet()));
+        return new ArrayList<>(s);
+    }
+
+    /** Mesaj bildirimi gönderen uygulamayı hatırla (Ayarlar'daki listede çıksın). */
+    private static void remember(Context c, String pkg) {
+        java.util.Set<String> seen = sp(c).getStringSet("notifSeen", java.util.Collections.emptySet());
+        if (seen.contains(pkg)) return;
+        java.util.Set<String> n = new java.util.HashSet<>(seen);
+        n.add(pkg);
+        sp(c).edit().putStringSet("notifSeen", n).apply();
+    }
+
     private static boolean relevant(Context c, StatusBarNotification sbn) {
         Notification n = sbn.getNotification();
         String pkg = sbn.getPackageName();
@@ -79,6 +120,8 @@ final class Notifs {
 
     static void posted(Context c, StatusBarNotification sbn, boolean allowBanner) {
         if (!relevant(c, sbn)) return;
+        remember(c, sbn.getPackageName());
+        if (!allowed(c, sbn.getPackageName())) return; // Ayarlar'da kapatılmış: telefonda normal bildirim olarak kalır
         Notification n = sbn.getNotification();
         CharSequence title = n.extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE);
         if (title == null) title = n.extras.getCharSequence(Notification.EXTRA_TITLE);

@@ -166,6 +166,8 @@ public class MainActivity extends Activity {
                 openOwn(new Intent(this, SettingsActivity.class)));
         // Pil/Bluetooth kutusuna dokun: araba bağlı değilse bağlanmayı dener, olmazsa Bluetooth ekranını açar
         findViewById(R.id.statusTile).setOnClickListener(v -> CarLink.tap(this, this::showTip));
+        // Hava kutusuna dokun: önümüzdeki 6 saat altta birkaç saniye görünür
+        findViewById(R.id.weatherTile).setOnClickListener(v -> showHourly());
 
         msm = getSystemService(MediaSessionManager.class);
         listenerCn = new ComponentName(this, MediaListener.class);
@@ -1455,6 +1457,81 @@ public class MainActivity extends Activity {
     }
 
     private final Runnable bannerHide = this::hideBanner;
+
+    /** Önümüzdeki 6 saatin havası: saat, simge, derece, yağış olasılığı. 8 saniye sonra ya da dokununca kapanır. */
+    private void showHourly() {
+        android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
+        String raw = sp.getString("wHr", "");
+        long now = System.currentTimeMillis() / 1000;
+        java.util.List<String[]> hours = new java.util.ArrayList<>();
+        if (System.currentTimeMillis() - sp.getLong("wAt", 0) < 3 * 3600 * 1000L) {
+            for (String h : raw.split(";")) {
+                String[] f = h.split(",");
+                if (f.length < 6) continue;
+                try {
+                    if (Long.parseLong(f[0]) > now) hours.add(f);
+                } catch (NumberFormatException ignored) {
+                }
+                if (hours.size() == 6) break;
+            }
+        }
+        if (hours.isEmpty()) {
+            showTip("Saatlik tahmin henüz gelmedi. Biraz sonra tekrar dokun.");
+            return;
+        }
+        ViewGroup content = findViewById(android.R.id.content);
+        if (content == null) return;
+        float d = getResources().getDisplayMetrics().density;
+        if (bannerView != null) { bannerView.removeCallbacks(bannerHide); content.removeView(bannerView); }
+        android.widget.LinearLayout strip = new android.widget.LinearLayout(this);
+        strip.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        strip.setBackgroundResource(R.drawable.tile_dark);
+        strip.setElevation(12 * d);
+        strip.setPadding(Math.round(8 * d), Math.round(10 * d), Math.round(8 * d), Math.round(10 * d));
+        java.text.SimpleDateFormat hm = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.US);
+        for (String[] f : hours) {
+            android.widget.LinearLayout col = new android.widget.LinearLayout(this);
+            col.setOrientation(android.widget.LinearLayout.VERTICAL);
+            col.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+            TextView time = new TextView(this);
+            time.setText(hm.format(new java.util.Date(Long.parseLong(f[0]) * 1000)));
+            time.setTextSize(13);
+            time.setTextColor(getColor(R.color.muted));
+            col.addView(time);
+            ImageView ic = new ImageView(this);
+            ic.setImageDrawable(new WeatherIcon(Integer.parseInt(f[2]), "1".equals(f[3]), Integer.parseInt(f[5])));
+            android.widget.LinearLayout.LayoutParams ilp = new android.widget.LinearLayout.LayoutParams(
+                    Math.round(34 * d), Math.round(34 * d));
+            ilp.topMargin = ilp.bottomMargin = Math.round(4 * d);
+            col.addView(ic, ilp);
+            TextView temp = new TextView(this);
+            temp.setText(f[1] + "°");
+            temp.setTextSize(19);
+            temp.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            temp.setTextColor(getColor(R.color.fg));
+            col.addView(temp);
+            // Yağış olasılığı: %20 ve üstüyse mavi, yoksa boş (sütunlar hizalı kalsın)
+            TextView rain = new TextView(this);
+            int pop = Integer.parseInt(f[4]);
+            rain.setText(pop >= 20 ? "%" + pop : " ");
+            rain.setTextSize(13);
+            rain.setTextColor(getColor(R.color.rain));
+            col.addView(rain);
+            strip.addView(col, new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        }
+        android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM);
+        int m = Math.round(16 * d);
+        lp.setMargins(m, m, m, m);
+        strip.setOnClickListener(v -> hideBanner());
+        strip.setContentDescription("Önümüzdeki saatlerin hava durumu");
+        content.addView(strip, lp);
+        bannerView = strip;
+        strip.setAlpha(0f);
+        strip.setTranslationY(40 * d);
+        strip.animate().alpha(1f).translationY(0).setDuration(200).start();
+        strip.postDelayed(bannerHide, 8000);
+    }
 
     /** İpucu şeridi: ekranın altında 9 saniye, dokununca kapanır. */
     private void showTip(String text) {

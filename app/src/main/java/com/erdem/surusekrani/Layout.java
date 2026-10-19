@@ -45,7 +45,8 @@ final class Layout {
             case "weather": return "Şu anki havayı ve bir saat sonrasını yan yana görürsün. Hava bozacaksa sağ taraf "
                     + "renkli bir çerçeveyle seni uyarır: sarı hafif yağmur ya da sis, turuncu yağmur ya da kar, "
                     + "kırmızı sağanak, yoğun kar ya da fırtına demek. Hızlı rotayla yola çıktığında sağ tarafta "
-                    + "gideceğin yerin, varacağın saatteki havası çıkar. Bilgiler 15 dakikada bir yenilenir.";
+                    + "gideceğin yerin, varacağın saatteki havası çıkar. Kutuya dokunursan önümüzdeki 6 saatin havası altta "
+                    + "birkaç saniyeliğine görünür. Bilgiler 15 dakikada bir yenilenir.";
             case "notif": return "WhatsApp mesajları, SMS'ler ve cevapsız aramalar burada toplanır. Yeni bir mesaj "
                     + "geldiğinde ekranın altında birkaç saniyeliğine mesajın kendisi görünür; telefonun yukarıdan "
                     + "inen bildirimi önünü kapatmaz. Kutuya dokunursan mesajların tamamını okursun, basılı tutarsan "

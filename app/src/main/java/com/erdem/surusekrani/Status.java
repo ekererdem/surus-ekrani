@@ -329,7 +329,7 @@ final class Status {
                 "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
                         + "&current=temperature_2m,weather_code,is_day,visibility"
                         + "&hourly=temperature_2m,weather_code,is_day,precipitation_probability,precipitation,visibility"
-                        + "&forecast_hours=4&timeformat=unixtime&timezone=auto",
+                        + "&forecast_hours=7&timeformat=unixtime&timezone=auto",
                 lat, lon);
         String dest = activeDest(lat, lon);
         io.execute(() -> {
@@ -347,11 +347,12 @@ final class Status {
                     org.json.JSONArray wc = hr.optJSONArray("weather_code");
                     org.json.JSONArray pp = hr.optJSONArray("precipitation_probability");
                     org.json.JSONArray pr = hr.optJSONArray("precipitation");
-                    for (int i = 0; wc != null && i < wc.length(); i++)
+                    // Uyarı için sadece önümüzdeki 4 saat (saatlik şerit 7 saat alır)
+                    for (int i = 0; wc != null && i < Math.min(4, wc.length()); i++)
                         sev = Math.max(sev, severity(wc.optInt(i, 0)));
                     boolean wet = false;
-                    for (int i = 0; pp != null && i < pp.length(); i++) if (pp.optInt(i, 0) >= 50) wet = true;
-                    for (int i = 0; pr != null && i < pr.length(); i++) if (pr.optDouble(i, 0) >= 0.3) wet = true;
+                    for (int i = 0; pp != null && i < Math.min(4, pp.length()); i++) if (pp.optInt(i, 0) >= 50) wet = true;
+                    for (int i = 0; pr != null && i < Math.min(4, pr.length()); i++) if (pr.optDouble(i, 0) >= 0.3) wet = true;
                     if (wet) sev = Math.max(sev, t <= 1 ? 3 : 2);
                 }
                 // Sağ bölüm: 1 saat sonrası (burada) ya da rota varsa varış yerinde varış saati
@@ -379,7 +380,8 @@ final class Status {
                     label = hhmm(target);
                 }
                 String hz = HAZARDS[sev];
-                SharedPreferences.Editor e = sp.edit().putInt("wT", t).putInt("wC", code).putBoolean("wD", day)
+                String hourly = hr == null ? "" : hourlyLine(hr);
+                SharedPreferences.Editor e = sp.edit().putString("wHr", hourly).putInt("wT", t).putInt("wC", code).putBoolean("wD", day)
                         .putInt("wV", vis).putString("wH", hz).putLong("wAt", System.currentTimeMillis());
                 if (later != null) e.putInt("lT", later[0]).putInt("lC", later[1])
                         .putBoolean("lD", later[2] == 1).putString("lL", label).putInt("lV", later[4])
@@ -459,6 +461,25 @@ final class Status {
                 dy == null ? 1 : dy.optInt(best, 1),
                 pr == null ? 0 : (int) Math.round(pr.optDouble(best, 0) * 10),
                 vi == null || vi.isNull(best) ? -1 : (int) vi.optDouble(best, -1)};
+    }
+
+    /** Saatlik şerit için: "zaman,derece,kod,gündüz,yağış olasılığı,görüş;…" */
+    private static String hourlyLine(JSONObject hr) {
+        org.json.JSONArray ti = hr.optJSONArray("time"), te = hr.optJSONArray("temperature_2m"),
+                wc = hr.optJSONArray("weather_code"), dy = hr.optJSONArray("is_day"),
+                pp = hr.optJSONArray("precipitation_probability"), vi = hr.optJSONArray("visibility");
+        if (ti == null || te == null || wc == null) return "";
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < ti.length(); i++) {
+            if (b.length() > 0) b.append(';');
+            b.append(ti.optLong(i)).append(',')
+                    .append(Math.round(te.optDouble(i))).append(',')
+                    .append(wc.optInt(i)).append(',')
+                    .append(dy == null ? 1 : dy.optInt(i, 1)).append(',')
+                    .append(pp == null ? 0 : pp.optInt(i, 0)).append(',')
+                    .append(vi == null || vi.isNull(i) ? -1 : (int) vi.optDouble(i, -1));
+        }
+        return b.toString();
     }
 
     private static String hhmm(long sec) {

@@ -120,6 +120,8 @@ public class SettingsActivity extends Activity {
             Toast.makeText(this, "Varsayılan düzen", Toast.LENGTH_SHORT).show();
         });
 
+        renderNotifApps();
+
         Switch btOnOpen = findViewById(R.id.swBtOnOpen);
         btOnOpen.setChecked(p.btOnOpen());
         btOnOpen.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("btOnOpen", on).apply());
@@ -635,6 +637,39 @@ public class SettingsActivity extends Activity {
         android.graphics.drawable.Drawable dr = getDrawable(res).mutate();
         dr.setTint(getColor(color));
         return dr;
+    }
+
+    /** Bildirim kutusunda hangi uygulamalar görünsün: yüklü olanlar, simgesi ve adıyla, birer anahtar. */
+    private void renderNotifApps() {
+        android.widget.LinearLayout box = findViewById(R.id.notifAppList);
+        if (box == null) return;
+        box.removeAllViews();
+        PackageManager pm = getPackageManager();
+        float d = getResources().getDisplayMetrics().density;
+        for (String pkg : Notifs.candidates(this)) {
+            android.content.pm.ApplicationInfo ai;
+            try {
+                ai = pm.getApplicationInfo(pkg, 0);
+            } catch (PackageManager.NameNotFoundException e) {
+                continue; // yüklü değil
+            }
+            Switch sw = new Switch(this, null, 0, R.style.Toggle);
+            sw.setText(pm.getApplicationLabel(ai));
+            android.graphics.drawable.Drawable ic = pm.getApplicationIcon(ai);
+            int s = Math.round(30 * d);
+            ic.setBounds(0, 0, s, s);
+            sw.setCompoundDrawablesRelative(ic, null, null, null);
+            sw.setCompoundDrawablePadding(Math.round(12 * d));
+            sw.setChecked(Notifs.allowed(this, pkg));
+            sw.setOnCheckedChangeListener((b, on) -> Notifs.allow(this, pkg, on));
+            box.addView(sw, new android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+        if (box.getChildCount() == 0) {
+            TextView t = new TextView(this, null, 0, R.style.Note);
+            t.setText("Mesaj gönderen uygulamalar burada listelenir.");
+            box.addView(t);
+        }
     }
 
     /** İki simge yan yana, ortada; kutuya sığacak en büyük kare boyunda. */
