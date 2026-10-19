@@ -138,7 +138,7 @@ final class Shortcuts {
         bm.setPixels(out, 0, s, 0, 0, s, s);
         Drawable g = a.getDrawable(R.drawable.ic_settings).mutate();
         g.setTint(a.getColor(R.color.rain));
-        int size = Math.round(Math.min(maxX - minX + 1, maxY - minY + 1) * 0.62f);
+        int size = Math.round(Math.min(maxX - minX + 1, maxY - minY + 1) * 0.72f);
         int cx = (minX + maxX + 1) / 2, cy = (minY + maxY + 1) / 2;
         g.setBounds(cx - size / 2, cy - size / 2, cx - size / 2 + size, cy - size / 2 + size);
         g.draw(new Canvas(bm));
