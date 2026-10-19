@@ -653,7 +653,8 @@ public class SettingsActivity extends Activity {
             } catch (PackageManager.NameNotFoundException e) {
                 continue; // yüklü değil
             }
-            Switch sw = new Switch(this, null, 0, R.style.Toggle);
+            // XML'den: telefonun anahtar görünümü + bizim Toggle stili (koddan kurunca açık/kapalı yazısı boş kalıp çöküyordu)
+            Switch sw = (Switch) getLayoutInflater().inflate(R.layout.item_toggle, box, false);
             sw.setText(pm.getApplicationLabel(ai));
             android.graphics.drawable.Drawable ic = pm.getApplicationIcon(ai);
             int s = Math.round(30 * d);
@@ -666,7 +667,9 @@ public class SettingsActivity extends Activity {
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
         }
         if (box.getChildCount() == 0) {
-            TextView t = new TextView(this, null, 0, R.style.Note);
+            TextView t = new TextView(this);
+            t.setTextSize(14);
+            t.setTextColor(getColor(R.color.muted));
             t.setText("Mesaj gönderen uygulamalar burada listelenir.");
             box.addView(t);
         }
