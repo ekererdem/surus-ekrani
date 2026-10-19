@@ -31,6 +31,11 @@ if m:
     time.sleep(1.5)
     shot("shot-notif-panel.png")
     res += " | panel: " + " / ".join(t.replace("&#10;", " | ")[:80] for t in re.findall(r'text="([^"]+)"', dump()) if "Ecem" in t or "Ekmek" in t)
+    time.sleep(9)  # panel kendiliğinden kapansın, okunan kutudan silinsin
+    x3 = dump()
+    shot("shot-notif-after.png")
+    res += " | 9 sn sonra: panel " + ("açık" if "Ekmek" in x3 else "kapandı") + ", kutu: " + \
+        " / ".join(t for t in re.findall(r'text="([^"]+)"', x3) if "Bildirim" in t or "Ecem" in t)
 res += " | log: " + " ; ".join(l[-80:] for l in log) + " | telefonda kalan: " + still
 print(res)
 open("notif.txt", "w").write(res)
