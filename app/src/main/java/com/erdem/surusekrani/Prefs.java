@@ -23,6 +23,8 @@ final class Prefs {
     boolean autoOpen() { return sp.getBoolean("autoOpen", true); }
     /** Araba telefonu kendisi bulmuyorsa Kopilot bağlanmayı denesin. */
     boolean carLink() { return sp.getBoolean("carLink", true); }
+    /** Kopilot açılınca Bluetooth kapalıysa açılsın. */
+    boolean btOnOpen() { return sp.getBoolean("btOnOpen", true); }
     String units() { return "km"; }
     boolean carVolOn() { return sp.getBoolean("carVolOn", false); }
     int carVol() { return sp.getInt("carVol", 60); }

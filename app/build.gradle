@@ -9,9 +9,11 @@ android {
     defaultConfig {
         applicationId 'com.erdem.surusekrani'
         minSdk 30
-        targetSdk 34
-        versionCode 129
-        versionName '13.8'
+        // 32: Android 13'ten itibaren 33+ hedefleyen uygulamalar Bluetooth'u kendisi açamıyor.
+        // Kopilot açılınca Bluetooth'u sessizce açabilmek için bilerek 32. (Play Store'a çıkarken 34+ gerekir.)
+        targetSdk 32
+        versionCode 130
+        versionName '13.9'
     }
 
     // Sabit imza: her derleme aynı anahtarla imzalanır, böylece yeni sürüm eskisinin üzerine kurulur.

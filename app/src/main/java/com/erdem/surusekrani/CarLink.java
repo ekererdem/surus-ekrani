@@ -77,11 +77,57 @@ final class CarLink {
         return System.currentTimeMillis() - at < 30000;
     }
 
-    /** Kopilot açılınca (en fazla dakikada bir). */
-    static void onAppOpen(Context c) {
-        if (!new Prefs(c).carLink()) return;
+    private static long lastEnable;
+
+    /**
+     * Bluetooth'u aç. Önce sessizce (uygulama Android 12 kurallarıyla derlendiği için izinli);
+     * telefon izin vermezse Android'in "Bluetooth açılsın mı?" sorusu çıkar. Açılınca arabaya seslenilir.
+     */
+    static void turnOn(Activity a) {
+        BluetoothAdapter ad = adapter(a);
+        if (ad == null || !perm(a)) return;
+        boolean ok = false;
+        try {
+            //noinspection deprecation
+            ok = ad.enable();
+        } catch (SecurityException e) {
+            Log.w(TAG, "Bluetooth sessiz açılamadı", e);
+        }
+        Log.i(TAG, "Bluetooth açılıyor: " + ok);
+        if (!ok) {
+            try {
+                a.startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+            } catch (Exception e) {
+                a.startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
+            }
+        }
+        if (new Prefs(a).carAddr().isEmpty()) return;
+        Context app = a.getApplicationContext();
+        H.postDelayed(() -> knock(app), 4000);
+        H.postDelayed(() -> knock(app), 12000);
+    }
+
+    /** Kopilot açılınca: Bluetooth kapalıysa aç (ayar açıksa); açıksa ve araba bağlı değilse seslen. */
+    static void onAppOpen(Activity a) {
+        Prefs p = new Prefs(a);
+        BluetoothAdapter ad = adapter(a);
+        boolean off;
+        try {
+            off = ad != null && !ad.isEnabled();
+        } catch (Exception e) {
+            off = false;
+        }
+        if (off) {
+            // Sen kapattıysan her dönüşte yeniden açmasın: en fazla 10 dakikada bir
+            if (p.btOnOpen() && System.currentTimeMillis() - lastEnable > 10 * 60 * 1000L) {
+                lastEnable = System.currentTimeMillis();
+                turnOn(a);
+            }
+            return;
+        }
+        if (!p.carLink()) return;
         if (System.currentTimeMillis() - lastKnock < 60000) return;
-        knock(c);
+        knock(a);
     }
 
     /** Telefon şarja takılınca: araba ekranı açılana kadar birkaç kez dene. */
@@ -111,14 +157,8 @@ final class CarLink {
         String car = p.carName().isEmpty() ? "Araban" : p.carName();
         if (!ad.isEnabled()) {
             // Bluetooth açılınca telefon son bağlandığı cihaza kendisi bağlanır; biz de seslenelim.
-            try {
-                a.startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
-            } catch (Exception e) {
-                a.startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
-            }
-            Context app = a.getApplicationContext();
-            H.postDelayed(() -> knock(app), 4000);
-            H.postDelayed(() -> knock(app), 12000);
+            say.accept("Bluetooth açılıyor…");
+            turnOn(a);
             return;
         }
         if (connected(a)) {

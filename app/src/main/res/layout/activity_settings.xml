@@ -49,7 +49,9 @@
             <TextView android:id="@+id/carChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:textSize="14sp" android:textStyle="bold" android:textColor="@color/amber" android:text="Değiştir" />
         </LinearLayout>
-        <Switch android:id="@+id/swCarLink" style="@style/Toggle" android:layout_marginTop="10dp"
+        <Switch android:id="@+id/swBtOnOpen" style="@style/Toggle" android:layout_marginTop="10dp"
+            android:text="Kopilot açılınca Bluetooth'u aç" />
+        <Switch android:id="@+id/swCarLink" style="@style/Toggle"
             android:text="Araba bağlanmazsa Kopilot bağlasın" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
             android:text="Araban telefonu kendiliğinden bulmuyorsa açık kalsın. Telefonu arabada şarja taktığında ya da Kopilot'u açtığında, Kopilot arabana bağlanmayı dener. Olmazsa pil ve Bluetooth'un göründüğü kutuya dokun; Bluetooth ekranı açılır, arabana oradan tek dokunuşla bağlanırsın." />
