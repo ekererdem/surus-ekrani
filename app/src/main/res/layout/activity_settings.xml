@@ -90,7 +90,7 @@
             <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
             <RadioButton android:id="@+id/rbInApp" style="@style/Option" android:text="Kopilot haritası (uygulamanın içinde)" />
         </RadioGroup>
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
+        <TextView android:id="@+id/navNote" style="@style/Note" android:layout_marginTop="0dp"
             android:text="Kopilot haritası: yatay ekranda harita Kopilot'un hemen yanında açılır, ekran bölmeye gerek kalmaz. Aradaki çizgiyi sürükleyerek haritanın ne kadar yer kaplayacağını sen ayarlarsın. Hızlı rota tuşları rotayı bu haritada başlatır, yön tarifini Türkçe sesli okur. OpenStreetMap verisi kullanır; canlı trafik bilgisi yoktur."/>
         <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="14dp"
             android:text="Açılınca haritayı yan yana başlat" />

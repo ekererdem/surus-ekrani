@@ -4,7 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -14,6 +14,12 @@ import android.media.AudioManager;
 import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,26 +29,15 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.osmdroid.config.Configuration;
-import org.osmdroid.config.IConfigurationProvider;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.CustomZoomButtonsController;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.Marker;
-import org.osmdroid.views.overlay.Polyline;
-import org.osmdroid.views.overlay.TilesOverlay;
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,7 +49,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Uygulama içi navigasyon (OpenStreetMap haritası, OSRM rotası, Türkçe sesli yön tarifi).
+ * Uygulama içi navigasyon: Google haritası ve trafiğe göre rota (anahtar varsa), yoksa OpenStreetMap + OSRM.
+ * Yön tarifi her iki durumda da Türkçe sesli okunur.
  * Hem tam ekran NavActivity'de hem ana ekranın içinde (yatayda haritanın yanında) kullanılır.
  */
 final class NavPanel {
@@ -67,8 +63,9 @@ final class NavPanel {
     private final Prefs p;
     private Mode mode = Mode.BROWSE;
 
-    private final MapView map;
-    private MyLocationNewOverlay myLoc;
+    private final MapLayer map;
+    private final boolean google;
+    private final View root;
     private final EditText searchBox;
     private final ListView results;
     private final LinearLayout quickRow;
@@ -87,8 +84,6 @@ final class NavPanel {
     private Route route;
     private Route.Place dest;
     private boolean autoStart, waitingForFix, rerouting, updating, destroyed;
-    private Polyline line;
-    private Marker destMarker;
     private final List<Route.Place> found = new ArrayList<>();
 
     private int cur;
@@ -104,14 +99,19 @@ final class NavPanel {
         this.a = a;
         this.embedded = embedded;
         p = new Prefs(a);
-        IConfigurationProvider cfg = Configuration.getInstance();
-        cfg.load(a, a.getSharedPreferences("osm", Context.MODE_PRIVATE));
-        cfg.setUserAgentValue(a.getPackageName());
-        File base = new File(a.getCacheDir(), "osm");
-        cfg.setOsmdroidBasePath(base);
-        cfg.setOsmdroidTileCache(new File(base, "tiles"));
-        View root = LayoutInflater.from(a).inflate(R.layout.activity_nav, host, false);
+        google = Gapi.ok(a);
+        root = LayoutInflater.from(a).inflate(R.layout.activity_nav, host, false);
         host.addView(root);
+        MapLayer m;
+        try {
+            m = Gapi.map(a) ? new GLayer(a) : new OsmLayer(a);
+        } catch (Throwable t) {
+            Log.w("Kopilot", "Google haritası açılamadı", t);
+            m = new OsmLayer(a);
+        }
+        map = m;
+        ((FrameLayout) root.findViewById(R.id.mapBox)).addView(map.view(),
+                new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         searchBox = root.findViewById(R.id.searchBox);
         results = root.findViewById(R.id.results);
@@ -127,7 +127,6 @@ final class NavPanel {
         destName = root.findViewById(R.id.destName);
         summary = root.findViewById(R.id.summary);
         mainBtn = root.findViewById(R.id.mainBtn);
-        map = root.findViewById(R.id.navMap);
 
         lm = a.getSystemService(LocationManager.class);
         setupMap();
@@ -164,7 +163,7 @@ final class NavPanel {
             else if (mode == Mode.NAV) stopNav();
         });
         Button ext = root.findViewById(R.id.extBtn);
-        ext.setText(embedded ? "Yandex'te aç" : Apps.navName(p.nav()));
+        ext.setText(embedded ? "Google Maps'te aç" : Apps.navName(p.nav()));
         ext.setOnClickListener(v -> openExternal());
         if (embedded) compactCards();
         setMode(Mode.BROWSE);
@@ -246,6 +245,7 @@ final class NavPanel {
         if (tts != null) tts.shutdown();
         releaseDuck();
         io.shutdownNow();
+        map.onDestroy();
     }
 
     void onPermission() { startUpdates(); }
@@ -278,29 +278,26 @@ final class NavPanel {
     // ---------- Harita ----------
 
     private void setupMap() {
-        map.setTileSource(TileSourceFactory.MAPNIK);
-        map.setMultiTouchControls(true);
-        map.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
-        map.setTilesScaledToDpi(true);
-        map.getMapOverlay().setColorFilter(TilesOverlay.INVERT_COLORS);
-        map.getController().setZoom(16.0);
-        map.getController().setCenter(new GeoPoint(39.92, 32.85));
-        map.setOnTouchListener((v, e) -> {
-            lastTouch = System.currentTimeMillis();
-            return false;
-        });
-
-        GpsMyLocationProvider provider = new GpsMyLocationProvider(a);
-        provider.addLocationSource(LocationManager.NETWORK_PROVIDER);
-        myLoc = new MyLocationNewOverlay(provider, map);
-        myLoc.enableFollowLocation();
-        map.getOverlays().add(myLoc);
-
+        map.setOnGesture(() -> lastTouch = System.currentTimeMillis());
         Location l = lastKnown();
         if (l != null) {
             last = l;
-            map.getController().setCenter(new GeoPoint(l.getLatitude(), l.getLongitude()));
+            map.show(new GeoPoint(l.getLatitude(), l.getLongitude()), 16.0);
+            map.onLocation(l);
+        } else {
+            map.show(new GeoPoint(39.92, 32.85), 16.0);
         }
+        root.addOnLayoutChangeListener((v, l1, t1, r1, b1, l2, t2, r2, b2) -> updatePadding());
+    }
+
+    /** Haritanın görünen kısmı: üstteki arama/yön kartı ile alttaki özetin arası. */
+    private void updatePadding() {
+        // Gezinirken sadece arama kutusu sayılır; hızlı rota düğmeleri ve liste haritayı itmesin.
+        int t = mode == Mode.NAV
+                ? (turnCard.getVisibility() == View.VISIBLE ? turnCard.getBottom() : 0)
+                : searchBar.getTop() + dp(64);
+        int b = bottomPanel.getVisibility() == View.VISIBLE ? root.getHeight() - bottomPanel.getTop() : 0;
+        map.setPadding(t, b);
     }
 
     /** Arama çubuğunun altında hızlı rotalar (Ayarlar'daki yerler). */
@@ -349,7 +346,7 @@ final class NavPanel {
     private void startUpdates() {
         if (!hasLocation() || updating) return;
         updating = true;
-        myLoc.enableMyLocation();
+        map.myLocation(true);
         try {
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locListener, Looper.getMainLooper());
         } catch (SecurityException | IllegalArgumentException ignored) {
@@ -362,7 +359,7 @@ final class NavPanel {
 
     private void stopUpdates() {
         updating = false;
-        myLoc.disableMyLocation();
+        map.myLocation(false);
         lm.removeUpdates(locListener);
     }
 
@@ -374,6 +371,7 @@ final class NavPanel {
             return;
         }
         last = loc;
+        map.onLocation(loc);
         if (waitingForFix && dest != null) {
             waitingForFix = false;
             requestRoute();
@@ -383,14 +381,14 @@ final class NavPanel {
 
     private GeoPoint here() {
         if (last != null) return new GeoPoint(last.getLatitude(), last.getLongitude());
-        return myLoc.getMyLocation();
+        return map.myLocationPoint();
     }
 
     private void recenter() {
         lastTouch = 0;
         GeoPoint h = here();
-        if (h != null) map.getController().animateTo(h);
-        if (mode != Mode.NAV) myLoc.enableFollowLocation();
+        if (h != null) map.animateTo(h);
+        if (mode != Mode.NAV) map.follow(true);
     }
 
     // ---------- Arama ----------
@@ -403,12 +401,21 @@ final class NavPanel {
         GeoPoint near = here();
         io.execute(() -> {
             try {
-                List<Route.Place> r = Route.search(q, near);
+                List<Route.Place> r = null;
+                if (google) {
+                    try {
+                        r = Gapi.search(a, q, near);
+                    } catch (Exception e) {
+                        Log.w("Kopilot", "Google arama olmadı, OSM'e geçiliyor", e);
+                    }
+                }
+                if (r == null || r.isEmpty()) r = Route.search(q, near);
+                List<Route.Place> res = r;
                 a.runOnUiThread(() -> {
                     if (destroyed) return;
-                    if (r.isEmpty()) { toast("Sonuç bulunamadı"); return; }
-                    if (pickFirst) { choose(r.get(0)); return; }
-                    showResults(r);
+                    if (res.isEmpty()) { toast("Sonuç bulunamadı"); return; }
+                    if (pickFirst) { choose(res.get(0)); return; }
+                    showResults(res);
                 });
             } catch (Exception e) {
                 a.runOnUiThread(() -> toast("Arama yapılamadı. İnternet bağlantını kontrol et."));
@@ -419,8 +426,18 @@ final class NavPanel {
     private void showResults(List<Route.Place> r) {
         found.clear();
         found.addAll(r);
-        List<String> names = new ArrayList<>();
-        for (Route.Place pl : r) names.add(pl.name);
+        List<CharSequence> names = new ArrayList<>();
+        for (Route.Place pl : r) {
+            SpannableStringBuilder sb = new SpannableStringBuilder(pl.name);
+            if (pl.addr != null && !pl.addr.isEmpty()) {
+                sb.setSpan(new StyleSpan(Typeface.BOLD), 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                int st = sb.length();
+                sb.append("\n").append(pl.addr);
+                sb.setSpan(new ForegroundColorSpan(a.getColor(R.color.muted)), st, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sb.setSpan(new RelativeSizeSpan(0.85f), st, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            names.add(sb);
+        }
         results.setAdapter(new ArrayAdapter<>(a, R.layout.item_result, names));
         results.setVisibility(View.VISIBLE);
         quickRow.setVisibility(View.GONE);
@@ -444,10 +461,20 @@ final class NavPanel {
             return;
         }
         Route.Place target = dest;
+        Location head = last;
         io.execute(() -> {
             try {
-                Route r = Route.fetch(from, target.point);
-                a.runOnUiThread(() -> onRoute(r));
+                Route r = null;
+                if (google) {
+                    try {
+                        r = Gapi.route(a, from, target.point, head);
+                    } catch (Exception e) {
+                        Log.w("Kopilot", "Google rota olmadı, OSRM'e geçiliyor", e);
+                    }
+                }
+                if (r == null) r = Route.fetch(from, target.point);
+                Route done = r;
+                a.runOnUiThread(() -> onRoute(done));
             } catch (Exception e) {
                 a.runOnUiThread(() -> {
                     rerouting = false;
@@ -476,46 +503,21 @@ final class NavPanel {
         destName.setText(dest.name);
         setSummary(r.distance, r.duration);
         setMode(Mode.PREVIEW);
-        myLoc.disableFollowLocation();
+        map.follow(false);
         if (autoStart) { // hızlı rota: önizlemeyi atla, hemen sür
             autoStart = false;
             startNav();
             return;
         }
-        map.post(() -> {
-            try {
-                map.zoomToBoundingBox(BoundingBox.fromGeoPoints(r.points).increaseByScale(1.3f), true);
-            } catch (Exception ignored) {
-            }
-        });
+        map.fitRoute(r.points);
     }
 
     private void drawRoute() {
-        clearRoute();
-        line = new Polyline();
-        line.setPoints(route.points);
-        Paint paint = line.getOutlinePaint();
-        paint.setColor(a.getColor(R.color.accent));
-        paint.setStrokeWidth(dp(8));
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeJoin(Paint.Join.ROUND);
-        int idx = map.getOverlays().indexOf(myLoc);
-        map.getOverlays().add(Math.max(0, idx), line);
-
-        destMarker = new Marker(map);
-        destMarker.setPosition(dest.point);
-        destMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        destMarker.setInfoWindow(null);
-        map.getOverlays().add(destMarker);
-        map.invalidate();
+        map.showRoute(route, dest.point);
     }
 
     private void clearRoute() {
-        if (line != null) map.getOverlays().remove(line);
-        if (destMarker != null) map.getOverlays().remove(destMarker);
-        line = null;
-        destMarker = null;
-        map.invalidate();
+        map.clearRoute();
     }
 
     // ---------- Navigasyon ----------
@@ -530,8 +532,8 @@ final class NavPanel {
         lastTouch = 0;
         offCount = 0;
         spokenFor = -1;
-        myLoc.disableFollowLocation();
-        map.getController().setZoom(17.5);
+        map.follow(false);
+        map.navMode(true);
         speak("Rota başlıyor");
         if (last != null) navUpdate(last);
     }
@@ -542,7 +544,7 @@ final class NavPanel {
         route = null;
         dest = null;
         clearRoute();
-        map.setMapOrientation(0);
+        map.navMode(false);
         searchBox.setText("");
         setMode(Mode.BROWSE);
         recenter();
@@ -553,8 +555,7 @@ final class NavPanel {
         GeoPoint h = new GeoPoint(loc.getLatitude(), loc.getLongitude());
 
         if (System.currentTimeMillis() - lastTouch > 8000) {
-            map.getController().animateTo(h);
-            if (loc.hasBearing() && loc.getSpeed() > 2) map.setMapOrientation(-loc.getBearing());
+            map.drive(h, loc.hasBearing() && loc.getSpeed() > 2 ? loc.getBearing() : Float.NaN);
         }
 
         // Rotadan çıkıldıysa yeniden hesapla
@@ -585,7 +586,8 @@ final class NavPanel {
 
         String what = Route.instruction(next);
         turnDist.setText(Route.shortDist(d, miles()));
-        turnText.setText(next.name.isEmpty() || arrive ? what : what + " · " + next.name);
+        if (!arrive && next.text != null && !next.text.isEmpty()) turnText.setText(next.text);
+        else turnText.setText(next.name.isEmpty() || arrive ? what : what + " · " + next.name);
         if (arrive) {
             turnArrow.setImageResource(R.drawable.ic_nav);
             turnArrow.setRotation(0);
@@ -677,8 +679,11 @@ final class NavPanel {
         mainBtn.setText(m == Mode.NAV ? "Bitir" : "Başlat");
         layoutBottom(m);
         refreshBack();
-        bottomPanel.post(() -> recenterBtn.setTranslationY(
-                bottomPanel.getVisibility() == View.VISIBLE ? -(bottomPanel.getHeight() + dp(12)) : 0));
+        bottomPanel.post(() -> {
+            recenterBtn.setTranslationY(
+                    bottomPanel.getVisibility() == View.VISIBLE ? -(bottomPanel.getHeight() + dp(12)) : 0);
+            updatePadding();
+        });
     }
 
     /** Gömülüyken geri oku sadece geri dönülecek bir şey varken görünür. */

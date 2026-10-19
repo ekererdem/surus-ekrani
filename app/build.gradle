@@ -10,8 +10,10 @@ android {
         applicationId 'com.erdem.surusekrani'
         minSdk 30
         targetSdk 34
-        versionCode 123
-        versionName '13.2'
+        versionCode 124
+        versionName '13.3'
+        // Google Haritalar anahtarı: GitHub'da gizli ayar (MAPS_API_KEY), kodda durmaz.
+        manifestPlaceholders = [mapsKey: (System.getenv('MAPS_API_KEY') ?: (project.findProperty('MAPS_API_KEY') ?: ''))]
     }
 
     // Sabit imza: her derleme aynı anahtarla imzalanır, böylece yeni sürüm eskisinin üzerine kurulur.
@@ -42,4 +44,5 @@ android {
 
 dependencies {
     implementation 'org.osmdroid:osmdroid-android:6.1.20'
+    implementation 'com.google.android.gms:play-services-maps:19.0.0'
 }

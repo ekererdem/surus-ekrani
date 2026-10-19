@@ -23,19 +23,43 @@ final class Route {
     static final class Place {
         final String name;
         final GeoPoint point;
-        Place(String name, GeoPoint point) { this.name = name; this.point = point; }
+        /** Listede adın altında gösterilen kısa adres (yoksa null). */
+        final String addr;
+        Place(String name, GeoPoint point) { this(name, point, null); }
+        Place(String name, GeoPoint point, String addr) { this.name = name; this.point = point; this.addr = addr; }
     }
 
     static final class Step {
         GeoPoint at;
         String type = "", modifier = "", name = "";
+        /** Google'ın hazır yön cümlesi (OSRM'de boş). */
+        String text = "";
         int exit;
         double distance;
     }
 
     final List<GeoPoint> points = new ArrayList<>();
     final List<Step> steps = new ArrayList<>();
+    /** Google trafik bilgisi: {ilk nokta, son nokta, seviye 0 akıcı / 1 yavaş / 2 sıkışık}. */
+    final List<int[]> traffic = new ArrayList<>();
     double distance, duration;
+
+    /** Çizgiyi trafik durumuna göre parçalara böler: {ilk, son, seviye}; bilgi olmayan yerde seviye -1. */
+    List<int[]> spans() {
+        List<int[]> out = new ArrayList<>();
+        int n = points.size();
+        if (n < 2) return out;
+        int at = 0;
+        for (int[] t : traffic) {
+            int s = Math.max(t[0], at), e = Math.min(t[1], n - 1);
+            if (e <= s) continue;
+            if (s > at) out.add(new int[]{at, s, -1});
+            out.add(new int[]{s, e, t[2]});
+            at = e;
+        }
+        if (at < n - 1) out.add(new int[]{at, n - 1, -1});
+        return out;
+    }
 
     // ---------- Ağ ----------
 
