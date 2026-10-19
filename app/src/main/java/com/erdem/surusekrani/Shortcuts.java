@@ -73,7 +73,7 @@ final class Shortcuts {
         g.setTint(a.getColor(R.color.rain));
         gear.setImageDrawable(new android.graphics.drawable.AdaptiveIconDrawable(
                 new android.graphics.drawable.ColorDrawable(0xFF2A313A),
-                new android.graphics.drawable.InsetDrawable(g, 0.33f)));
+                new android.graphics.drawable.InsetDrawable(g, 0.29f)));
         st.setContentDescription("Ayarlar");
         st.setOnClickListener(v -> {
             MainActivity.sOwnScreen = true;
@@ -122,7 +122,8 @@ final class Shortcuts {
             a.getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true);
             t.setBackgroundResource(tv.resourceId);
             t.setPadding(0, dp(a, 6), 0, dp(a, 6));
-            t.addView(icon, new LinearLayout.LayoutParams(dp(a, 58), dp(a, 58)));
+            // Genişlik payı kadar, en fazla 58dp kare; dar ekranda logo kesilmeden küçülür
+            t.addView(icon, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(a, 58)));
         }
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
