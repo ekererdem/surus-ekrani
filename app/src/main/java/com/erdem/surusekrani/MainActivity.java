@@ -1269,8 +1269,8 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Bildirimlerin tam hali, ekranın altında (en yeni üstte). Dokun: kapanır.
-     * Bir bildirime basılı tut: o uygulamaya geçer. "Temizle": ana ekrandan kaldırır (telefonda kalır).
+     * Bildirimlerin tam hali, ekranın altında (en yeni üstte). 8 saniye sonra ya da dokununca kapanır ve
+     * okunanlar kutudan silinir. Bir bildirime basılı tut: o uygulamaya geçer.
      */
     private void showFullNotifs() {
         List<Notifs.Item> l = Notifs.list();
@@ -1328,7 +1328,7 @@ public class MainActivity extends Activity {
                     0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
             tlp.setMarginStart(Math.round(12 * d));
             row.addView(t, tlp);
-            row.setOnClickListener(v -> hideBanner());
+            row.setOnClickListener(v -> panel.performClick());
             row.setOnLongClickListener(v -> { hideBanner(); openNotif(it); Notifs.hide(it.key); return true; });
             if (i > 0) {
                 View line = new View(this);
@@ -1357,7 +1357,18 @@ public class MainActivity extends Activity {
         foot.addView(clear);
         panel.addView(foot);
 
-        panel.setOnClickListener(v -> hideBanner());
+        // Kapanınca okunanlar kutudan silinir (telefonda kalırlar)
+        Runnable done = () -> {
+            if (bannerView == panel) hideBanner();
+            Notifs.seen(l);
+        };
+        panel.setOnClickListener(v -> { panel.removeCallbacks(done); done.run(); });
+        // Listeyi kaydırırken kapanmasın: her dokunuşta süre baştan başlar
+        sv.setOnTouchListener((v, e) -> {
+            panel.removeCallbacks(done);
+            panel.postDelayed(done, 8000);
+            return false;
+        });
         android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM);
         int m = Math.round(16 * d);
@@ -1367,7 +1378,7 @@ public class MainActivity extends Activity {
         panel.setAlpha(0f);
         panel.setTranslationY(40 * d);
         panel.animate().alpha(1f).translationY(0).setDuration(200).start();
-        panel.postDelayed(bannerHide, 30000);
+        panel.postDelayed(done, 8000);
     }
 
     private void openNotif(Notifs.Item it) {
@@ -1480,7 +1491,7 @@ public class MainActivity extends Activity {
         }).start();
     }
 
-    /** Bildirim kutusunu dakikada bir yenile (5 dk sonra sadece simgeye dönsün). */
+    /** Bildirim kutusunu yarım dakikada bir yenile. */
     private final Runnable notifTick = new Runnable() {
         @Override public void run() {
             renderNotifs();
@@ -1509,23 +1520,6 @@ public class MainActivity extends Activity {
             return;
         }
         Notifs.Item it = l.get(0);
-        // 5 dakikadan eskiyse sadece uygulama simgesi (ve kaç bildirim olduğu) kalır
-        if (System.currentTimeMillis() - it.when > 5 * 60 * 1000L) {
-            icon.setVisibility(it.icon != null ? View.VISIBLE : View.GONE);
-            if (it.icon != null) { icon.setImageDrawable(it.icon); icon.setImageTintList(null); }
-            ((android.widget.LinearLayout.LayoutParams) text.getLayoutParams()).setMarginStart(
-                    Math.round(6 * getResources().getDisplayMetrics().density));
-            text.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START);
-            text.setText(l.size() > 1 ? "+" + (l.size() - 1) : "");
-            text.setTextColor(getColor(R.color.muted));
-            // simge ortada dursun
-            ((android.widget.LinearLayout) tile).setGravity(android.view.Gravity.CENTER);
-            text.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            setNotifClicks(tile, it);
-            tile.setContentDescription(it.who + ", " + it.app);
-            return;
-        }
         ((android.widget.LinearLayout) tile).setGravity(android.view.Gravity.CENTER_VERTICAL);
         if (text.getLayoutParams().width != 0) {
             android.widget.LinearLayout.LayoutParams tl = new android.widget.LinearLayout.LayoutParams(

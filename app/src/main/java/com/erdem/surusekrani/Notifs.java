@@ -40,6 +40,8 @@ final class Notifs {
     /** Bizim kaldırdığımız bildirimler: "kaldırıldı" haberi gelince kutudan silinmesin. */
     private static final java.util.Set<String> SWALLOWED =
             java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+    /** Kutuda okunup kapatılanlar (anahtar → bildirim zamanı): telefonda dursa da kutuya geri gelmesin. */
+    private static final Map<String, Long> SEEN = java.util.Collections.synchronizedMap(new java.util.HashMap<>());
 
     private Notifs() {}
 
@@ -69,6 +71,7 @@ final class Notifs {
     /** "Temizle": kutuyu tamamen boşalt. */
     static void clearAll() {
         MAIN.post(() -> {
+            for (Item it : ITEMS.values()) SEEN.put(it.key, it.when);
             ITEMS.clear();
             if (listener != null) listener.onNotifsChanged();
         });
@@ -87,6 +90,11 @@ final class Notifs {
         Parcelable[] msgs = n.extras.getParcelableArray(Notification.EXTRA_MESSAGES);
         it.count = msgs != null && msgs.length > 0 ? msgs.length : Math.max(1, n.number);
         it.when = sbn.getPostTime();
+        Long seenAt = SEEN.get(it.key);
+        if (seenAt != null) {
+            if (it.when <= seenAt) return; // okunmuş; yeni mesaj gelince yine gösterilir
+            SEEN.remove(it.key);
+        }
         it.missedCall = Notification.CATEGORY_MISSED_CALL.equals(n.category);
         // Son mesajın metni (alttaki kısa bilgi şeridi için)
         CharSequence txt = null;
@@ -179,7 +187,23 @@ final class Notifs {
 
     /** Ana ekranda gizle (bildirim telefonda kalır). */
     static void hide(String key) {
-        if (ITEMS.remove(key) != null && listener != null) listener.onNotifsChanged();
+        Item it = ITEMS.remove(key);
+        if (it != null) SEEN.put(key, it.when);
+        if (it != null && listener != null) listener.onNotifsChanged();
+    }
+
+    /** Okundu: kutudan kaldır (bildirim telefonda kalır, yeni mesaj gelince yine görünür). */
+    static void seen(List<Item> items) {
+        boolean changed = false;
+        for (Item it : items) {
+            SEEN.put(it.key, it.when);
+            Item cur = ITEMS.get(it.key);
+            if (cur != null && cur.when <= it.when) {
+                ITEMS.remove(it.key);
+                changed = true;
+            }
+        }
+        if (changed && listener != null) listener.onNotifsChanged();
     }
 
     /** En yeniden eskiye. */
