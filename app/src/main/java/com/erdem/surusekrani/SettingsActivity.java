@@ -647,16 +647,22 @@ public class SettingsActivity extends Activity {
         PackageManager pm = getPackageManager();
         float d = getResources().getDisplayMetrics().density;
         for (String pkg : Notifs.candidates(this)) {
-            android.content.pm.ApplicationInfo ai;
+            CharSequence label;
+            android.graphics.drawable.Drawable ic;
             try {
-                ai = pm.getApplicationInfo(pkg, 0);
+                android.content.pm.ApplicationInfo ai = pm.getApplicationInfo(pkg, 0);
+                label = pm.getApplicationLabel(ai);
+                ic = pm.getApplicationIcon(ai);
             } catch (PackageManager.NameNotFoundException e) {
-                continue; // yüklü değil
+                // Telefon bu uygulamayı bize göstermiyor ama mesaj göndermiş: hatırlanan adıyla
+                label = Notifs.label(this, pkg);
+                if (label == null) continue; // yüklü değil
+                ic = getDrawable(R.drawable.ic_bell).mutate();
+                ic.setTint(getColor(R.color.accent));
             }
             // XML'den: telefonun anahtar görünümü + bizim Toggle stili (koddan kurunca açık/kapalı yazısı boş kalıp çöküyordu)
             Switch sw = (Switch) getLayoutInflater().inflate(R.layout.item_toggle, box, false);
-            sw.setText(pm.getApplicationLabel(ai));
-            android.graphics.drawable.Drawable ic = pm.getApplicationIcon(ai);
+            sw.setText(label);
             int s = Math.round(30 * d);
             ic.setBounds(0, 0, s, s);
             sw.setCompoundDrawablesRelative(ic, null, null, null);

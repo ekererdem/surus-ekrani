@@ -77,13 +77,29 @@ final class Notifs {
         return new ArrayList<>(s);
     }
 
-    /** Mesaj bildirimi gönderen uygulamayı hatırla (Ayarlar'daki listede çıksın). */
-    private static void remember(Context c, String pkg) {
+    /** Mesaj bildirimi gönderen uygulamayı adıyla hatırla (Ayarlar'daki listede çıksın). */
+    private static void remember(Context c, StatusBarNotification sbn) {
+        String pkg = sbn.getPackageName();
         java.util.Set<String> seen = sp(c).getStringSet("notifSeen", java.util.Collections.emptySet());
         if (seen.contains(pkg)) return;
         java.util.Set<String> n = new java.util.HashSet<>(seen);
         n.add(pkg);
-        sp(c).edit().putStringSet("notifSeen", n).apply();
+        android.content.SharedPreferences.Editor e = sp(c).edit().putStringSet("notifSeen", n);
+        // Adı bildirimin içindeki uygulama bilgisinden (telefon bu uygulamayı bize göstermese de)
+        Object o = sbn.getNotification().extras.get("android.appInfo");
+        if (o instanceof android.content.pm.ApplicationInfo) {
+            try {
+                e.putString("notifLabel." + pkg, c.getPackageManager()
+                        .getApplicationLabel((android.content.pm.ApplicationInfo) o).toString());
+            } catch (Exception ignored) {
+            }
+        }
+        e.apply();
+    }
+
+    /** Ayarlar için: hatırlanan uygulama adı (yoksa null). */
+    static String label(Context c, String pkg) {
+        return sp(c).getString("notifLabel." + pkg, null);
     }
 
     private static boolean relevant(Context c, StatusBarNotification sbn) {
@@ -120,7 +136,7 @@ final class Notifs {
 
     static void posted(Context c, StatusBarNotification sbn, boolean allowBanner) {
         if (!relevant(c, sbn)) return;
-        remember(c, sbn.getPackageName());
+        remember(c, sbn);
         if (!allowed(c, sbn.getPackageName())) return; // Ayarlar'da kapatılmış: telefonda normal bildirim olarak kalır
         Notification n = sbn.getNotification();
         CharSequence title = n.extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE);
