@@ -33,8 +33,8 @@
         <View android:layout_width="match_parent" android:layout_height="1dp"
             android:layout_marginTop="28dp" android:background="#22FFFFFF" />
 
-        <!-- Araba -->
-        <TextView style="@style/SectionTitle" android:text="Araç Bluetooth bağlantısı" />
+        <!-- Araba ve Bluetooth: hepsi tek bölümde -->
+        <TextView style="@style/SectionTitle" android:text="Araba ve Bluetooth" />
         <!-- Seçili araba düğmenin içinde; sağda "Değiştir" -->
         <LinearLayout android:id="@+id/carBtn" android:layout_width="match_parent" android:layout_height="60dp"
             android:layout_marginTop="10dp" android:orientation="horizontal" android:gravity="center_vertical"
@@ -49,12 +49,11 @@
             <TextView android:id="@+id/carChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:textSize="14sp" android:textStyle="bold" android:textColor="@color/amber" android:text="Değiştir" />
         </LinearLayout>
-        <Switch android:id="@+id/swAutoOpen" style="@style/Toggle" android:layout_marginTop="10dp"
-            android:text="Bağlanınca otomatik aç" />
-        <Switch android:id="@+id/swAutoPlay" style="@style/Toggle"
-            android:text="Bağlanınca müziği devam ettir" />
-        <Switch android:id="@+id/swCarVol" style="@style/Toggle"
-            android:text="Bağlanınca müzik sesini ayarla" />
+
+        <TextView style="@style/SubTitle" android:text="Arabaya bağlanınca" />
+        <Switch android:id="@+id/swAutoOpen" style="@style/Toggle" android:text="Kopilot'u aç" />
+        <Switch android:id="@+id/swAutoPlay" style="@style/Toggle" android:text="Müziği devam ettir" />
+        <Switch android:id="@+id/swCarVol" style="@style/Toggle" android:text="Müzik sesini ayarla" />
         <LinearLayout
             android:id="@+id/carVolRow"
             android:layout_width="match_parent"
@@ -79,21 +78,10 @@
                 android:textColor="@color/fg" />
         </LinearLayout>
 
-        <View android:layout_width="match_parent" android:layout_height="1dp"
-            android:layout_marginTop="28dp" android:background="#22FFFFFF" />
-
-        <!-- Bluetooth'u açıp kapatma, arabaya bağlanma -->
-        <TextView style="@style/SectionTitle" android:text="Bluetooth ayarları" />
-        <Switch android:id="@+id/swBtOnOpen" style="@style/Toggle" android:layout_marginTop="10dp"
-            android:text="Kopilot açılınca Bluetooth'u aç" />
-        <Switch android:id="@+id/swBtOff" style="@style/Toggle"
-            android:text="Arabadan inince Bluetooth'u kapat" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Arabayla bağlantı koptuktan bir dakika sonra Bluetooth kapanır. Kısa bir mola verip arabayı hemen yeniden çalıştırırsan kapanmaz. Saat ya da kulaklık gibi başka bir cihaz bağlıysa da dokunmaz." />
-        <Switch android:id="@+id/swCarLink" style="@style/Toggle" android:layout_marginTop="10dp"
-            android:text="Araba bağlanmazsa Kopilot bağlasın" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Araban telefonu kendiliğinden bulmuyorsa açık kalsın. Telefonu arabada şarja taktığında ya da Kopilot'u açtığında, Kopilot arabana bağlanmayı dener. Olmazsa pil ve Bluetooth'un göründüğü kutuya dokun; Bluetooth ekranı açılır, arabana oradan tek dokunuşla bağlanırsın." />
+        <TextView style="@style/SubTitle" android:text="Bluetooth" />
+        <Switch android:id="@+id/swBtOnOpen" style="@style/Toggle" android:text="Kopilot açılınca aç" />
+        <Switch android:id="@+id/swBtOff" style="@style/Toggle" android:text="Arabadan inince kapat" />
+        <Switch android:id="@+id/swCarLink" style="@style/Toggle" android:text="Araba bağlanmazsa Kopilot bağlasın" />
 
         <View android:layout_width="match_parent" android:layout_height="1dp"
             android:layout_marginTop="28dp" android:background="#22FFFFFF" />

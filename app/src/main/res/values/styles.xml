@@ -68,6 +68,17 @@
         <item name="android:layout_marginBottom">10dp</item>
     </style>
 
+    <!-- Bölüm içindeki küçük ara başlık (ör. "Arabaya bağlanınca") -->
+    <style name="SubTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">18dp</item>
+        <item name="android:layout_marginBottom">2dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/muted</item>
+    </style>
+
     <style name="Note">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

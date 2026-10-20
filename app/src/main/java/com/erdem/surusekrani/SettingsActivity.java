@@ -122,6 +122,12 @@ public class SettingsActivity extends Activity {
 
         renderNotifApps();
 
+        // Kısa açıklamalar anahtarın altında, küçük ve gri
+        subLine(R.id.swBtOff, "Arabadan inince kapat",
+                "Bir dakika sonra kapanır; kulaklık ya da saat bağlıysa dokunmaz.");
+        subLine(R.id.swCarLink, "Araba bağlanmazsa Kopilot bağlasın",
+                "Şarja takınca ya da Kopilot'u açınca dener. Olmazsa Gösterge paneline dokun.");
+
         Switch btOnOpen = findViewById(R.id.swBtOnOpen);
         btOnOpen.setChecked(p.btOnOpen());
         btOnOpen.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("btOnOpen", on).apply());
@@ -641,6 +647,17 @@ public class SettingsActivity extends Activity {
         android.graphics.drawable.Drawable dr = getDrawable(res).mutate();
         dr.setTint(getColor(color));
         return dr;
+    }
+
+    /** Anahtarın yazısı: üstte başlık, altında küçük gri açıklama. */
+    private void subLine(int id, String title, String sub) {
+        Switch sw = findViewById(id);
+        android.text.SpannableStringBuilder b = new android.text.SpannableStringBuilder(title);
+        int st = b.length();
+        b.append("\n").append(sub);
+        b.setSpan(new android.text.style.RelativeSizeSpan(0.8f), st, b.length(), 0);
+        b.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, b.length(), 0);
+        sw.setText(b);
     }
 
     /** Bildirim kutusunda hangi uygulamalar görünsün: yüklü olanlar, simgesi ve adıyla, birer anahtar. */
