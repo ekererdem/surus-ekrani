@@ -100,7 +100,7 @@ final class Layout {
             if (find(l, KEYS[i]) != null) continue;
             boolean on = !"assist".equals(KEYS[i]) || sp(c).getBoolean("assistBtn", true);
             Entry prev = i > 0 ? find(l, KEYS[i - 1]) : null;
-            Entry e = new Entry(KEYS[i], prev != null ? prev.row : DEF_ROW[i], on);
+            Entry e = new Entry(KEYS[i], DEF_ROW[i], on);
             if (prev != null) l.add(l.indexOf(prev) + 1, e); else l.add(e);
         }
         return l;
