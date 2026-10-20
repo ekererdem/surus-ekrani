@@ -1145,6 +1145,7 @@ public class MainActivity extends Activity {
 
 
     private void renderMusic() {
+        renderActions();
         MediaMetadata m = ctrl == null ? null : ctrl.getMetadata();
         if (m == null) {
             seek.setProgress(0);
@@ -1154,7 +1155,7 @@ public class MainActivity extends Activity {
             songTitle.setText("Müzik");
             songArtist.setText(hasListenerAccess()
                     ? Apps.musicName(p.music()) + " · açmak için dokun"
-                    : "Şarkıyı görmek için Ayarlar → 4. Bildirim erişimi");
+                    : "Şarkıyı görmek için Ayarlar → İzinler → Bildirim erişimi");
             AudioManager am = getSystemService(AudioManager.class);
             boolean active = am != null && am.isMusicActive();
             playBtn.setImageResource(active ? R.drawable.ic_pause : R.drawable.ic_play);
@@ -1218,6 +1219,75 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             tile.setBackgroundTintList(null);
         }
+    }
+
+    private String actionsKey = "";
+
+    /**
+     * Müzik uygulamasının telefona açtığı kendi tuşları (Spotify: beğen, öneriyi kaldır, karıştır…).
+     * Uygulama hangi tuşları veriyorsa onlar görünür; dokununca uygulama açılmadan işini yapar.
+     * (Oynat tuşuna dokunmaz; sadece o anki oturumun kendi tuşlarını gönderir.)
+     */
+    private void renderActions() {
+        android.widget.LinearLayout box = findViewById(R.id.musicActions);
+        if (box == null) return;
+        MediaController c = ctrl;
+        PlaybackState s = c == null ? null : c.getPlaybackState();
+        List<PlaybackState.CustomAction> acts = s == null ? null : s.getCustomActions();
+        StringBuilder key = new StringBuilder(c == null ? "" : c.getPackageName());
+        if (acts != null) for (PlaybackState.CustomAction a : acts) key.append('|').append(a.getAction()).append(a.getIcon());
+        if (key.toString().equals(actionsKey)) return;
+        actionsKey = key.toString();
+        box.removeAllViews();
+        if (c == null || acts == null || acts.isEmpty()) {
+            box.setVisibility(View.GONE);
+            return;
+        }
+        android.content.res.Resources res;
+        try {
+            res = getPackageManager().getResourcesForApplication(c.getPackageName());
+        } catch (Exception e) {
+            box.setVisibility(View.GONE);
+            return;
+        }
+        StringBuilder names = new StringBuilder();
+        float d = getResources().getDisplayMetrics().density;
+        android.util.TypedValue tv = new android.util.TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true);
+        for (PlaybackState.CustomAction a : acts) {
+            names.append(a.getName()).append(" (").append(a.getAction()).append("); ");
+            if (box.getChildCount() >= 4) continue;
+            android.graphics.drawable.Drawable icon;
+            try {
+                icon = res.getDrawable(a.getIcon(), null).mutate();
+            } catch (Exception e) {
+                continue;
+            }
+            ImageButton b = new ImageButton(this);
+            b.setImageDrawable(icon);
+            b.setImageTintList(ColorStateList.valueOf(getColor(R.color.fg)));
+            b.setBackgroundResource(tv.resourceId);
+            b.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            int pad = Math.round(5 * d);
+            b.setPadding(pad, pad, pad, pad);
+            b.setContentDescription(a.getName());
+            String action = a.getAction();
+            Bundle extras = a.getExtras();
+            CharSequence name = a.getName();
+            b.setOnClickListener(v -> {
+                MediaController now = ctrl;
+                if (now != null && now.getPackageName().equals(c.getPackageName()))
+                    now.getTransportControls().sendCustomAction(action, extras);
+            });
+            b.setOnLongClickListener(v -> { showTip(String.valueOf(name)); return true; });
+            android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                    Math.round(38 * d), Math.round(34 * d));
+            lp.setMarginStart(Math.round(4 * d));
+            lp.setMarginEnd(Math.round(4 * d));
+            box.addView(b, lp);
+        }
+        android.util.Log.i("Kopilot", "müzik uygulamasının tuşları (" + c.getPackageName() + "): " + names);
+        box.setVisibility(box.getChildCount() > 0 ? View.VISIBLE : View.GONE);
     }
 
     private void showArtPlaceholder() {
