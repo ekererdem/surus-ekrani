@@ -696,10 +696,12 @@ public class SettingsActivity extends Activity {
                 Accent.set(this, idx);
                 recreate();
             });
+            // Satırı eşit paylaşan hücrelerin ortasında (dar ekranda taşmasın)
             int s = Math.round((i == cur ? 44 : 38) * d);
-            android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(s, s);
-            lp.setMarginEnd(Math.round(14 * d));
-            row.addView(dot, lp);
+            android.widget.FrameLayout cell = new android.widget.FrameLayout(this);
+            cell.addView(dot, new android.widget.FrameLayout.LayoutParams(s, s, android.view.Gravity.CENTER));
+            row.addView(cell, new android.widget.LinearLayout.LayoutParams(0,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, 1f));
         }
     }
 
