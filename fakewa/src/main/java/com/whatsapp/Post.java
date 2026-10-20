@@ -22,6 +22,22 @@ public class Post extends BroadcastReceiver {
         }
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         nm.createNotificationChannel(new NotificationChannel("msg", "Mesajlar", NotificationManager.IMPORTANCE_HIGH));
+        // Test: telefon uygulaması gibi cevapsız arama bildirimi (kişi + tel: numarası + Geri ara tuşu)
+        String missed = in.getStringExtra("missed");
+        if (missed != null) {
+            Person caller = new Person.Builder().setName(missed).setUri("tel:+905551112233").build();
+            PendingIntent cb = PendingIntent.getBroadcast(c, 1, new Intent(c, Post.class), PendingIntent.FLAG_IMMUTABLE);
+            Notification mn = new Notification.Builder(c, "msg")
+                    .setSmallIcon(android.R.drawable.sym_call_missed)
+                    .setContentTitle(missed)
+                    .setContentText("Cevapsız arama")
+                    .setCategory(Notification.CATEGORY_MISSED_CALL)
+                    .addPerson(caller)
+                    .addAction(new Notification.Action.Builder(null, "Geri ara", cb).build())
+                    .build();
+            nm.notify(777, mn);
+            return;
+        }
         Person me = new Person.Builder().setName("Ben").build();
         Person p = new Person.Builder().setName(who).build();
         Notification.MessagingStyle st = new Notification.MessagingStyle(me);

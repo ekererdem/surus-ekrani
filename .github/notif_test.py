@@ -43,7 +43,7 @@ open("notif.txt", "w").write(res)
 # Cevapsız arama düğmesi
 sh("am", "start", "-n", "com.erdem.surusekrani/.MainActivity")
 time.sleep(2)
-sh("cmd notification post -c missed_call -t 'Ahmet Yılmaz' missedtag 'Cevapsız arama'")
+sh("am broadcast -n com.whatsapp/.Post --es missed 'Ahmet Yılmaz'")
 time.sleep(3)
 x = dump()
 m = re.search(r'resource-id="com\.erdem\.surusekrani:id/missedBtn"[^>]*', x)
