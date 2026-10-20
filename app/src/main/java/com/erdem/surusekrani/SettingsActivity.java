@@ -126,6 +126,10 @@ public class SettingsActivity extends Activity {
         btOnOpen.setChecked(p.btOnOpen());
         btOnOpen.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("btOnOpen", on).apply());
 
+        Switch btOff = findViewById(R.id.swBtOff);
+        btOff.setChecked(p.btOffOnLeave());
+        btOff.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("btOff", on).apply());
+
         Switch carLink = findViewById(R.id.swCarLink);
         carLink.setChecked(p.carLink());
         carLink.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("carLink", on).apply());

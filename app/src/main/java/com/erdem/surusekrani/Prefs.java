@@ -25,6 +25,8 @@ final class Prefs {
     boolean carLink() { return sp.getBoolean("carLink", true); }
     /** Kopilot açılınca Bluetooth kapalıysa açılsın. */
     boolean btOnOpen() { return sp.getBoolean("btOnOpen", true); }
+    /** Arabayla bağlantı kopunca (1 dk sonra) Bluetooth kapansın. */
+    boolean btOffOnLeave() { return sp.getBoolean("btOff", true); }
     String units() { return "km"; }
     boolean carVolOn() { return sp.getBoolean("carVolOn", false); }
     int carVol() { return sp.getInt("carVol", 60); }

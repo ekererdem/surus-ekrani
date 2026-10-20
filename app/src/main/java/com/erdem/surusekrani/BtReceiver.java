@@ -19,6 +19,10 @@ public class BtReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context c, Intent in) {
         String action = in.getAction();
+        if (CarLink.ACTION_OFF.equals(action)) { // arabadan ineli bir dakika oldu
+            CarLink.offNow(c);
+            return;
+        }
         boolean connected = BluetoothDevice.ACTION_ACL_CONNECTED.equals(action);
         boolean disconnected = BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action);
         if (!connected && !disconnected) return;
@@ -37,9 +41,11 @@ public class BtReceiver extends BroadcastReceiver {
         // Park yeri artık sadece düğmeye basınca kaydedilir
         if (disconnected) {
             if (CarLink.justKnocked(c)) return; // Kopilot'un arabaya seslenmesinden kalan kısa bağlantı
+            CarLink.scheduleOff(c); // ayar açıksa bir dakika sonra Bluetooth kapanır
             Notes.remindIfPending(c); // yolda alınan sesli notları hatırlat
             return;
         }
+        CarLink.cancelOff(c); // kısa moladan sonra yeniden bağlandı: Bluetooth açık kalsın
         if (p.carVolOn()) setCarVolume(c, p.carVol());
         if (!p.autoOpen()) return;
 

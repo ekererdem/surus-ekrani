@@ -49,6 +49,7 @@ jobs:
             python3 .github/park_test.py || true
             python3 .github/notif_test.py || true
             python3 .github/weather_test.py || true
+            adb shell am broadcast -n com.erdem.surusekrani/.BtReceiver -a com.erdem.surusekrani.BT_OFF || true ; sleep 2
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb exec-out screencap -p > shot-settings.png || true
             adb shell am start -n com.erdem.surusekrani/.FeaturesActivity ; sleep 4 ; adb shell am start -n com.erdem.surusekrani/.OnboardingActivity ; sleep 4

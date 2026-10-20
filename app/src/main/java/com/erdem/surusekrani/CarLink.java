@@ -71,6 +71,54 @@ final class CarLink {
         }
     }
 
+    static final String ACTION_OFF = "com.erdem.surusekrani.BT_OFF";
+
+    private static android.app.PendingIntent offIntent(Context c) {
+        Intent i = new Intent(c, BtReceiver.class).setAction(ACTION_OFF);
+        return android.app.PendingIntent.getBroadcast(c, 41, i,
+                android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /** Arabadan inince: bir dakika sonra Bluetooth'u kapat (araba o arada yeniden bağlanırsa iptal). */
+    static void scheduleOff(Context c) {
+        if (!new Prefs(c).btOffOnLeave()) return;
+        android.app.AlarmManager am = c.getSystemService(android.app.AlarmManager.class);
+        if (am == null) return;
+        am.setAndAllowWhileIdle(android.app.AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + 60_000, offIntent(c));
+        Log.i(TAG, "araba koptu: 1 dk sonra Bluetooth kapanacak");
+    }
+
+    static void cancelOff(Context c) {
+        android.app.AlarmManager am = c.getSystemService(android.app.AlarmManager.class);
+        if (am != null) am.cancel(offIntent(c));
+    }
+
+    /** Zamanı gelince: araba ya da başka bir cihaz (kulaklık, saat) bağlı değilse Bluetooth'u kapat. */
+    static void offNow(Context c) {
+        Prefs p = new Prefs(c);
+        BluetoothAdapter ad = adapter(c);
+        if (!p.btOffOnLeave() || ad == null || !perm(c)) return;
+        try {
+            if (!ad.isEnabled()) return;
+            if (ad.getProfileConnectionState(BluetoothProfile.A2DP) != BluetoothProfile.STATE_DISCONNECTED
+                    || ad.getProfileConnectionState(BluetoothProfile.HEADSET) != BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "Bluetooth kapatılmadı: bir ses cihazı bağlı");
+                return;
+            }
+            BluetoothManager bm = c.getSystemService(BluetoothManager.class);
+            if (bm != null && !bm.getConnectedDevices(BluetoothProfile.GATT).isEmpty()) {
+                Log.i(TAG, "Bluetooth kapatılmadı: saat/bileklik gibi bir cihaz bağlı");
+                return;
+            }
+            //noinspection deprecation
+            boolean ok = ad.disable();
+            Log.i(TAG, "arabadan inildi, Bluetooth kapatıldı: " + ok);
+        } catch (SecurityException e) {
+            Log.w(TAG, "Bluetooth kapatılamadı", e);
+        }
+    }
+
     /** Son sesleniş az önce mi oldu (o sırada kopan kısa bağlantı "arabadan indin" sayılmasın). */
     static boolean justKnocked(Context c) {
         long at = c.getSharedPreferences("surus", Context.MODE_PRIVATE).getLong("knockAt", 0);
