@@ -1237,6 +1237,19 @@ public class MainActivity extends Activity {
         }
         String title = m.getString(MediaMetadata.METADATA_KEY_TITLE);
         String artist = m.getString(MediaMetadata.METADATA_KEY_ARTIST);
+        // Nereden çalıyor: Spotify bazen şarkıcının yanına yazar ("… • Akıllı Mix'ten"), yoksa sıranın adı
+        String from = null;
+        if (artist != null) {
+            int dot = artist.indexOf(" • ");
+            if (dot > 0) {
+                from = artist.substring(dot + 3).trim();
+                artist = artist.substring(0, dot).trim();
+            }
+        }
+        if (from == null || from.isEmpty()) {
+            CharSequence q = ctrl.getQueueTitle();
+            if (q != null && q.toString().trim().length() > 0) from = fromSuffix(q.toString().trim());
+        }
         // Şarkı ve şarkıcı yan yana tek satırda (altta uygulamanın tuşlarına yer kalsın)
         android.text.SpannableStringBuilder line = new android.text.SpannableStringBuilder(title == null ? "" : title);
         if (artist != null && !artist.isEmpty()) {
@@ -1247,8 +1260,9 @@ public class MainActivity extends Activity {
             line.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.NORMAL), st, line.length(), 0);
         }
         songTitle.setText(line);
-        songArtist.setText(artist == null ? "" : artist);
-        songArtist.setVisibility(View.GONE);
+        // Altında küçük: "Beğenilen Şarkılar'dan", "Akıllı Mix'ten"
+        songArtist.setText(from == null ? "" : from);
+        songArtist.setVisibility(from == null || from.isEmpty() ? View.GONE : View.VISIBLE);
 
         Bitmap art = m.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
         if (art == null) art = m.getBitmap(MediaMetadata.METADATA_KEY_ART);
@@ -1378,6 +1392,22 @@ public class MainActivity extends Activity {
         box.setVisibility(box.getChildCount() > 0 ? View.VISIBLE : View.GONE);
     }
 
+    /** "Beğenilen Şarkılar" → "Beğenilen Şarkılar'dan" (Türkçe ses uyumuyla); rakamla bitiyorsa olduğu gibi. */
+    static String fromSuffix(String name) {
+        String n = name.trim();
+        if (n.isEmpty()) return n;
+        String low = n.toLowerCase(new java.util.Locale("tr", "TR"));
+        char last = low.charAt(low.length() - 1);
+        if (!Character.isLetter(last)) return n;
+        char v = 'e';
+        for (int i = low.length() - 1; i >= 0; i--) {
+            if ("aıoueiöü".indexOf(low.charAt(i)) >= 0) { v = low.charAt(i); break; }
+        }
+        boolean back = "aıou".indexOf(v) >= 0;
+        boolean hard = "çfhkpsştx".indexOf(last) >= 0;
+        return n + "'" + (hard ? "t" : "d") + (back ? "an" : "en");
+    }
+
     /** Dar ekranda (dikey) tuşlar sürelerin yerini kapatmasın: genişliği satıra göre ayarla. */
     private void fitActions() {
         android.widget.LinearLayout box = findViewById(R.id.musicActions);
@@ -1397,7 +1427,7 @@ public class MainActivity extends Activity {
     }
 
     private void showArtPlaceholder() {
-        int pad = Math.round(32 * getResources().getDisplayMetrics().density);
+        int pad = Math.round(24 * getResources().getDisplayMetrics().density);
         musicArt.setPadding(pad, pad, pad, pad);
         musicArt.setScaleType(ImageView.ScaleType.FIT_CENTER);
         musicArt.setImageResource(R.drawable.ic_music);
