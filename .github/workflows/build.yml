@@ -3,6 +3,8 @@ name: APK derle
 on:
   push:
     branches: [main]
+    # Sadece README ya da ekran görüntüsü değişince APK'yı yeniden derleme
+    paths-ignore: ['README.md', 'docs/**']
   workflow_dispatch:
 
 permissions:
