@@ -69,8 +69,8 @@ print(" | ".join(res))
 open("weather.txt", "w").write(" | ".join(res))
 
 # Ayarlar'ın en altı: İzinler bölümü
-sh("input keyevent 4")
-time.sleep(2)
+sh("am start -n com.erdem.surusekrani/.SettingsActivity")
+time.sleep(3)
 for i in range(30):
     sh("input swipe %d %d %d %d 200" % (w // 2, int(h * 0.85), w // 2, int(h * 0.15)))
 time.sleep(1.5)
