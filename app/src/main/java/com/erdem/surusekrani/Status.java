@@ -313,6 +313,19 @@ final class Status {
         }
     }
 
+    private long etaUsed;
+
+    /** Navigasyonun varış saati değişince (3 dakikadan fazla) ya da yol bitince havayı yenile. */
+    void onNavEta(long eta) {
+        if (eta <= 0) {
+            if (etaUsed != 0) { etaUsed = 0; refreshWeather(); }
+            return;
+        }
+        if (Math.abs(eta - etaUsed) < 3 * 60_000L) return;
+        etaUsed = eta;
+        refreshWeather();
+    }
+
     /** Yeni rota başlayınca hemen yenile. */
     void refreshWeather() {
         lastWeather = 0;
@@ -363,7 +376,10 @@ final class Status {
                     try {
                         String[] d = dest.split(",");
                         double dl = Double.parseDouble(d[0].trim()), dn = Double.parseDouble(d[1].trim());
-                        long arrive = System.currentTimeMillis() / 1000 + driveSeconds(lat, lon, dl, dn);
+                        // Varış saati: navigasyon ne diyorsa o (trafikli); bilinmiyorsa kendi tahminimiz
+                        long navEta = NavState.etaAt;
+                        long arrive = navEta > System.currentTimeMillis()
+                                ? navEta / 1000 : System.currentTimeMillis() / 1000 + driveSeconds(lat, lon, dl, dn);
                         int hours = (int) Math.min(48, (arrive - System.currentTimeMillis() / 1000) / 3600 + 2);
                         JSONObject dw = new JSONObject(Route.get(String.format(Locale.US,
                                 "https://api.open-meteo.com/v1/forecast?latitude=%.3f&longitude=%.3f"
@@ -374,6 +390,14 @@ final class Status {
                     } catch (Exception ignored) {
                         later = null;
                     }
+                }
+                // Rota uygulamadan başlatılmadıysa varış yeri bilinmez; yakın yolda (1 saate kadar)
+                // varış saatindeki havayı bulunduğun yerin tahmininden göster
+                long navEta = NavState.etaAt;
+                if (later == null && hr != null && navEta > System.currentTimeMillis()
+                        && navEta - System.currentTimeMillis() <= 3600_000L) {
+                    later = pick(hr, navEta / 1000);
+                    if (later != null) label = "Varış " + hhmm(navEta / 1000);
                 }
                 if (later == null && hr != null) {
                     later = pick(hr, target);

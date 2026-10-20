@@ -84,7 +84,8 @@ public class MediaListener extends NotificationListenerService {
 
     private static boolean isNav(StatusBarNotification sbn) {
         String pkg = sbn.getPackageName();
-        if (!Apps.MAPS.equals(pkg) && !Apps.WAZE.equals(pkg)) return false;
+        if (!Apps.MAPS.equals(pkg) && !Apps.WAZE.equals(pkg) && !Apps.YANDEX.equals(pkg)
+                && !"ru.yandex.yandexnavi".equals(pkg)) return false;
         Notification n = sbn.getNotification();
         return Notification.CATEGORY_NAVIGATION.equals(n.category)
                 || (n.flags & Notification.FLAG_ONGOING_EVENT) != 0;
@@ -107,7 +108,19 @@ public class MediaListener extends NotificationListenerService {
             } catch (Exception ignored) {
             }
         }
-        NavState.update(sbn.getPackageName(), title, text, sub, icon);
+        // Varış saati: bildirimdeki tüm yazılara bak (uygulamaya göre farklı yerde durur)
+        StringBuilder all = new StringBuilder();
+        for (String k : new String[]{Notification.EXTRA_TITLE, Notification.EXTRA_TEXT, Notification.EXTRA_SUB_TEXT,
+                Notification.EXTRA_BIG_TEXT, Notification.EXTRA_INFO_TEXT, Notification.EXTRA_SUMMARY_TEXT,
+                Notification.EXTRA_TITLE_BIG}) {
+            String v = str(e.getCharSequence(k));
+            if (!v.isEmpty()) all.append(v).append(" | ");
+        }
+        CharSequence[] lines = e.getCharSequenceArray(Notification.EXTRA_TEXT_LINES);
+        if (lines != null) for (CharSequence l : lines) all.append(str(l)).append(" | ");
+        long eta = NavState.parseEta(all.toString(), System.currentTimeMillis());
+        android.util.Log.i("Kopilot", "yol tarifi bildirimi (" + sbn.getPackageName() + "): " + all + " → varış " + eta);
+        NavState.update(sbn.getPackageName(), title, text, sub, icon, eta);
     }
 
     private static String str(CharSequence c) {

@@ -192,6 +192,7 @@ public class MainActivity extends Activity {
     }
 
     private void renderNav() {
+        status.onNavEta(NavState.active ? NavState.etaAt : 0);
         if (NavState.active) {
             navTitle.setText(NavState.title.isEmpty() ? NavState.text : NavState.title);
             navSub.setText(join(NavState.title.isEmpty() ? "" : NavState.text, NavState.eta));
