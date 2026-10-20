@@ -128,6 +128,8 @@ public class SettingsActivity extends Activity {
         missed.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("notifMissed", on).apply());
 
         // Kısa açıklamalar anahtarın altında, küçük ve gri
+        subLine(R.id.swBtOffHide, "Kopilot alta alınınca kapat",
+                "Yarım dakika sonra kapanır; araba, kulaklık ya da saat bağlıysa dokunmaz.");
         subLine(R.id.swBtOff, "Arabadan inince kapat",
                 "Bir dakika sonra kapanır; kulaklık ya da saat bağlıysa dokunmaz.");
         subLine(R.id.swCarLink, "Araba bağlanmazsa Kopilot bağlasın",
@@ -136,6 +138,10 @@ public class SettingsActivity extends Activity {
         Switch btOnOpen = findViewById(R.id.swBtOnOpen);
         btOnOpen.setChecked(p.btOnOpen());
         btOnOpen.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("btOnOpen", on).apply());
+
+        Switch btOffHide = findViewById(R.id.swBtOffHide);
+        btOffHide.setChecked(p.btOffOnHide());
+        btOffHide.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("btOffHide", on).apply());
 
         Switch btOff = findViewById(R.id.swBtOff);
         btOff.setChecked(p.btOffOnLeave());

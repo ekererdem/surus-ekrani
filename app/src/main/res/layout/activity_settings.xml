@@ -84,6 +84,7 @@
 
         <TextView style="@style/SubTitle" android:text="Bluetooth" />
         <Switch android:id="@+id/swBtOnOpen" style="@style/Toggle" android:text="Kopilot açılınca aç" />
+        <Switch android:id="@+id/swBtOffHide" style="@style/Toggle" android:text="Kopilot alta alınınca kapat" />
         <Switch android:id="@+id/swBtOff" style="@style/Toggle" android:text="Arabadan inince kapat" />
         <Switch android:id="@+id/swCarLink" style="@style/Toggle" android:text="Araba bağlanmazsa Kopilot bağlasın" />
 

@@ -98,6 +98,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CarLink.watchApp(getApplication()); // alta alınınca Bluetooth'u kapatmak için
         p = new Prefs(this);
         Places.migrate(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

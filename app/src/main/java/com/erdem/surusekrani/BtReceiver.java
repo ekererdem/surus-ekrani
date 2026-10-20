@@ -23,6 +23,10 @@ public class BtReceiver extends BroadcastReceiver {
             CarLink.offNow(c);
             return;
         }
+        if (CarLink.ACTION_OFF_HIDE.equals(action)) { // Kopilot alta alınalı yarım dakika oldu
+            CarLink.offAfterHide(c);
+            return;
+        }
         boolean connected = BluetoothDevice.ACTION_ACL_CONNECTED.equals(action);
         boolean disconnected = BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action);
         if (!connected && !disconnected) return;

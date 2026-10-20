@@ -94,11 +94,80 @@ final class CarLink {
         if (am != null) am.cancel(offIntent(c));
     }
 
+    // ---------- Kopilot alta alınınca ----------
+
+    static final String ACTION_OFF_HIDE = "com.erdem.surusekrani.BT_OFF_HIDE";
+    private static final long HIDE_DELAY = 30_000;
+    /** Ekranda (başlamış) Kopilot ekranı sayısı: ana ekran, Ayarlar, uygulama seçimi… */
+    private static int started;
+    private static boolean watching;
+
+    private static android.app.PendingIntent hideIntent(Context c) {
+        Intent i = new Intent(c, BtReceiver.class).setAction(ACTION_OFF_HIDE);
+        return android.app.PendingIntent.getBroadcast(c, 42, i,
+                android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /**
+     * Kopilot'un hiçbir ekranı görünmez olunca (alta alındı ya da kapatıldı) yarım dakika sonra Bluetooth'u kapat;
+     * o arada Kopilot'a dönülürse iptal. Ana ekran açılırken bir kez kurulur.
+     */
+    static void watchApp(android.app.Application app) {
+        if (watching) return;
+        watching = true;
+        app.registerActivityLifecycleCallbacks(new android.app.Application.ActivityLifecycleCallbacks() {
+            @Override public void onActivityStarted(Activity a) {
+                if (started++ == 0) {
+                    android.app.AlarmManager am = app.getSystemService(android.app.AlarmManager.class);
+                    if (am != null) am.cancel(hideIntent(app));
+                }
+            }
+            @Override public void onActivityStopped(Activity a) {
+                if (started > 0) started--;
+                if (started == 0 && !a.isChangingConfigurations()) scheduleHideOff(app);
+            }
+            @Override public void onActivityCreated(Activity a, android.os.Bundle b) { }
+            @Override public void onActivityResumed(Activity a) { }
+            @Override public void onActivityPaused(Activity a) { }
+            @Override public void onActivitySaveInstanceState(Activity a, android.os.Bundle b) { }
+            @Override public void onActivityDestroyed(Activity a) { }
+        });
+    }
+
+    private static void scheduleHideOff(Context c) {
+        if (!new Prefs(c).btOffOnHide()) return;
+        BluetoothAdapter ad = adapter(c);
+        try {
+            if (ad == null || !ad.isEnabled()) return;
+        } catch (Exception e) {
+            return;
+        }
+        android.app.AlarmManager am = c.getSystemService(android.app.AlarmManager.class);
+        if (am == null) return;
+        long at = SystemClock.elapsedRealtime() + HIDE_DELAY;
+        if (android.os.Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()) {
+            am.setExactAndAllowWhileIdle(android.app.AlarmManager.ELAPSED_REALTIME_WAKEUP, at, hideIntent(c));
+        } else {
+            am.setAndAllowWhileIdle(android.app.AlarmManager.ELAPSED_REALTIME_WAKEUP, at, hideIntent(c));
+        }
+        Log.i(TAG, "Kopilot alta alındı: yarım dakika sonra Bluetooth kapanacak");
+    }
+
+    /** Zamanı gelince: Kopilot hâlâ alttaysa ve hiçbir cihaz bağlı değilse kapat. */
+    static void offAfterHide(Context c) {
+        if (!new Prefs(c).btOffOnHide() || started > 0) return;
+        disableIfIdle(c, "Kopilot alta alındı");
+    }
+
     /** Zamanı gelince: araba ya da başka bir cihaz (kulaklık, saat) bağlı değilse Bluetooth'u kapat. */
     static void offNow(Context c) {
-        Prefs p = new Prefs(c);
+        if (!new Prefs(c).btOffOnLeave()) return;
+        disableIfIdle(c, "arabadan inildi");
+    }
+
+    private static void disableIfIdle(Context c, String why) {
         BluetoothAdapter ad = adapter(c);
-        if (!p.btOffOnLeave() || ad == null || !perm(c)) return;
+        if (ad == null || !perm(c)) return;
         try {
             if (!ad.isEnabled()) return;
             if (ad.getProfileConnectionState(BluetoothProfile.A2DP) != BluetoothProfile.STATE_DISCONNECTED
@@ -113,7 +182,7 @@ final class CarLink {
             }
             //noinspection deprecation
             boolean ok = ad.disable();
-            Log.i(TAG, "arabadan inildi, Bluetooth kapatıldı: " + ok);
+            Log.i(TAG, why + ", Bluetooth kapatıldı: " + ok);
         } catch (SecurityException e) {
             Log.w(TAG, "Bluetooth kapatılamadı", e);
         }
