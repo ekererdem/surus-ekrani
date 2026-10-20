@@ -1381,7 +1381,7 @@ public class MainActivity extends Activity {
             b.setImageTintList(ColorStateList.valueOf(getColor(R.color.fg)));
             b.setBackgroundResource(tv.resourceId);
             b.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            int pad = Math.round(8 * d);
+            int pad = Math.round(7 * d);
             b.setPadding(pad, pad, pad, pad);
             b.setContentDescription(a.getName());
             String action = a.getAction();
@@ -1394,7 +1394,7 @@ public class MainActivity extends Activity {
             });
             b.setOnLongClickListener(v -> { showTip(String.valueOf(name)); return true; });
             android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
-                    Math.round(56 * d), Math.round(46 * d));
+                    Math.round(52 * d), Math.round(40 * d));
             lp.setMarginStart(Math.round(3 * d));
             lp.setMarginEnd(Math.round(3 * d));
             box.addView(b, lp);
@@ -1430,7 +1430,7 @@ public class MainActivity extends Activity {
             int n = box.getChildCount();
             int room = row.getWidth() - Math.round(84 * d); // iki taraftaki süreler
             if (row.getWidth() == 0 || n == 0) return;
-            int w = Math.max(Math.round(36 * d), Math.min(Math.round(56 * d), room / n - Math.round(6 * d)));
+            int w = Math.max(Math.round(36 * d), Math.min(Math.round(52 * d), room / n - Math.round(6 * d)));
             for (int i = 0; i < n; i++) {
                 android.widget.LinearLayout.LayoutParams lp = (android.widget.LinearLayout.LayoutParams) box.getChildAt(i).getLayoutParams();
                 if (lp.width != w) { lp.width = w; box.getChildAt(i).setLayoutParams(lp); }
