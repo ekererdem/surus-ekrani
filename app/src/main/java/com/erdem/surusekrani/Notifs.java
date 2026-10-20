@@ -27,6 +27,8 @@ final class Notifs {
         int count;
         long when;
         boolean missedCall;
+        /** Sohbet mesajı mı (değilse kutuda "bildirim" yazar). */
+        boolean msg;
         /** Telefonun bildirimini biz kaldırdık (ekrandayken yukarıdan kaymasın diye); kutuda kalır. */
         boolean swallowed;
         PendingIntent open;
@@ -45,61 +47,37 @@ final class Notifs {
 
     private Notifs() {}
 
-    /** Ayarlar'da her zaman listelenen mesajlaşma uygulamaları (telefonda yüklüyse). */
-    private static final String[] MESSENGERS = {
+    /** Hiç seçim yapılmadıysa kutuya gelen uygulamalar: bilinen mesajlaşma uygulamaları. */
+    private static final String[] DEFAULT_APPS = {
             "com.whatsapp", "com.whatsapp.w4b", "org.telegram.messenger", "com.google.android.apps.messaging",
             "com.android.mms", "com.facebook.orca", "com.instagram.android", "org.thoughtcrime.securesms",
-            "com.viber.voip", "com.google.android.dialer", "com.android.incallui"};
+            "com.viber.voip"};
 
     private static android.content.SharedPreferences sp(Context c) {
         return c.getSharedPreferences("surus", Context.MODE_PRIVATE);
     }
 
-    /** Bu uygulamanın mesajları kutuda görünsün mü (Ayarlar > Bildirim kutusu). */
-    static boolean allowed(Context c, String pkg) {
-        return !sp(c).getStringSet("notifOff", java.util.Collections.emptySet()).contains(pkg);
+    /** Bildirimleri kutuya gelen uygulamalar (Ayarlar > Bildirim kutusu > Uygulama seç). */
+    static java.util.Set<String> selected(Context c) {
+        java.util.Set<String> s = sp(c).getStringSet("notifApps", null);
+        if (s != null) return s;
+        java.util.Set<String> d = new java.util.HashSet<>(java.util.Arrays.asList(DEFAULT_APPS));
+        // Önceki sürümde kapatılanlar kapalı kalsın
+        d.removeAll(sp(c).getStringSet("notifOff", java.util.Collections.emptySet()));
+        return d;
     }
 
-    static void allow(Context c, String pkg, boolean on) {
-        java.util.Set<String> off = new java.util.HashSet<>(
-                sp(c).getStringSet("notifOff", java.util.Collections.emptySet()));
-        if (on) off.remove(pkg); else off.add(pkg);
-        sp(c).edit().putStringSet("notifOff", off).apply();
-        if (!on) MAIN.post(() -> {
-            if (ITEMS.values().removeIf(it -> pkg.equals(it.pkg)) && listener != null) listener.onNotifsChanged();
+    static void setSelected(Context c, java.util.Set<String> apps) {
+        sp(c).edit().putStringSet("notifApps", new java.util.HashSet<>(apps)).apply();
+        MAIN.post(() -> {
+            if (ITEMS.values().removeIf(it -> !it.missedCall && !apps.contains(it.pkg)) && listener != null)
+                listener.onNotifsChanged();
         });
     }
 
-    /** Ayarlar'da gösterilecek uygulamalar: bilinen mesajlaşma uygulamaları + mesaj göndermiş diğerleri. */
-    static List<String> candidates(Context c) {
-        java.util.LinkedHashSet<String> s = new java.util.LinkedHashSet<>(java.util.Arrays.asList(MESSENGERS));
-        s.addAll(sp(c).getStringSet("notifSeen", java.util.Collections.emptySet()));
-        return new ArrayList<>(s);
-    }
-
-    /** Mesaj bildirimi gönderen uygulamayı adıyla hatırla (Ayarlar'daki listede çıksın). */
-    private static void remember(Context c, StatusBarNotification sbn) {
-        String pkg = sbn.getPackageName();
-        java.util.Set<String> seen = sp(c).getStringSet("notifSeen", java.util.Collections.emptySet());
-        if (seen.contains(pkg)) return;
-        java.util.Set<String> n = new java.util.HashSet<>(seen);
-        n.add(pkg);
-        android.content.SharedPreferences.Editor e = sp(c).edit().putStringSet("notifSeen", n);
-        // Adı bildirimin içindeki uygulama bilgisinden (telefon bu uygulamayı bize göstermese de)
-        Object o = sbn.getNotification().extras.get("android.appInfo");
-        if (o instanceof android.content.pm.ApplicationInfo) {
-            try {
-                e.putString("notifLabel." + pkg, c.getPackageManager()
-                        .getApplicationLabel((android.content.pm.ApplicationInfo) o).toString());
-            } catch (Exception ignored) {
-            }
-        }
-        e.apply();
-    }
-
-    /** Ayarlar için: hatırlanan uygulama adı (yoksa null). */
-    static String label(Context c, String pkg) {
-        return sp(c).getString("notifLabel." + pkg, null);
+    /** Cevapsız aramalar kutuya gelsin mi. */
+    static boolean missedCalls(Context c) {
+        return sp(c).getBoolean("notifMissed", true);
     }
 
     private static boolean relevant(Context c, StatusBarNotification sbn) {
@@ -108,9 +86,23 @@ final class Notifs {
         if (pkg.equals(c.getPackageName())) return false;
         if ((n.flags & Notification.FLAG_ONGOING_EVENT) != 0) return false;
         if ((n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) return false;
-        if (pkg.startsWith("com.whatsapp")) return true;
-        return Notification.CATEGORY_MESSAGE.equals(n.category)
-                || Notification.CATEGORY_MISSED_CALL.equals(n.category);
+        if (Notification.CATEGORY_MISSED_CALL.equals(n.category)) return missedCalls(c);
+        // Müzik, indirme, sistem, yol tarifi gibi bildirimler kutuya gelmez
+        String cat = n.category == null ? "" : n.category;
+        switch (cat) {
+            case Notification.CATEGORY_TRANSPORT:
+            case Notification.CATEGORY_PROGRESS:
+            case Notification.CATEGORY_SERVICE:
+            case Notification.CATEGORY_SYSTEM:
+            case Notification.CATEGORY_NAVIGATION:
+            case Notification.CATEGORY_CALL:
+            case Notification.CATEGORY_ALARM:
+            case Notification.CATEGORY_STOPWATCH:
+            case Notification.CATEGORY_LOCATION_SHARING:
+                return false;
+            default:
+                return selected(c).contains(pkg);
+        }
     }
 
     static void posted(Context c, StatusBarNotification sbn) {
@@ -136,8 +128,6 @@ final class Notifs {
 
     static void posted(Context c, StatusBarNotification sbn, boolean allowBanner) {
         if (!relevant(c, sbn)) return;
-        remember(c, sbn);
-        if (!allowed(c, sbn.getPackageName())) return; // Ayarlar'da kapatılmış: telefonda normal bildirim olarak kalır
         Notification n = sbn.getNotification();
         CharSequence title = n.extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE);
         if (title == null) title = n.extras.getCharSequence(Notification.EXTRA_TITLE);
@@ -155,6 +145,8 @@ final class Notifs {
             SEEN.remove(it.key);
         }
         it.missedCall = Notification.CATEGORY_MISSED_CALL.equals(n.category);
+        it.msg = Notification.CATEGORY_MESSAGE.equals(n.category) || it.pkg.startsWith("com.whatsapp")
+                || (msgs != null && msgs.length > 0);
         // Son mesajın metni (alttaki kısa bilgi şeridi için)
         CharSequence txt = null;
         if (msgs != null && msgs.length > 0 && msgs[msgs.length - 1] instanceof android.os.Bundle)

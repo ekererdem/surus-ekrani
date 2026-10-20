@@ -56,7 +56,14 @@ for i in range(45):
     sh("input swipe %d %d %d %d 900" % (w // 2, int(h * 0.75), w // 2, int(h * 0.4)))
     time.sleep(0.8)
 shot("shot-notifapps.png")
-res.append("ayarlar: " + ("bulundu " if found else "bulunamadı ") +
-           " / ".join(t for t in re.findall(r'text="([^"]+)"', nodes()) if "WhatsApp" in t or "Mesaj" in t)[:150])
+x = nodes()
+res.append("ayarlar: " + ("bulundu" if found else "bulunamadı"))
+m = re.search(r'resource-id="com\.erdem\.surusekrani:id/notifAppsBtn"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', x)
+if m:
+    x1, y1, x2, y2 = map(int, m.groups())
+    sh("input tap %d %d" % ((x1 + x2) // 2, (y1 + y2) // 2))
+    time.sleep(3)
+    shot("shot-notifpicker.png")
+    res.append("seçim: " + " / ".join(t for t in re.findall(r'text="([^"]+)"', nodes()) if t.startswith("✓"))[:150])
 print(" | ".join(res))
 open("weather.txt", "w").write(" | ".join(res))

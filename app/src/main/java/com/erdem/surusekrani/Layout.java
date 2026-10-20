@@ -47,7 +47,8 @@ final class Layout {
                     + "kırmızı sağanak, yoğun kar ya da fırtına demek. Hızlı rotayla yola çıktığında sağ tarafta "
                     + "gideceğin yerin, varacağın saatteki havası çıkar. Kutuya dokunursan önümüzdeki 6 saatin havası altta "
                     + "birkaç saniyeliğine görünür. Bilgiler 15 dakikada bir yenilenir.";
-            case "notif": return "WhatsApp mesajları, SMS'ler ve cevapsız aramalar burada toplanır. Yeni bir mesaj "
+            case "notif": return "Seçtiğin uygulamaların bildirimleri (WhatsApp, SMS…) ve cevapsız aramalar burada "
+                    + "toplanır; hangi uygulamaların geleceğini Ayarlar'daki Bildirim kutusu bölümünden seçersin. Yeni bir mesaj "
                     + "geldiğinde ekranın altında birkaç saniyeliğine mesajın kendisi görünür; telefonun yukarıdan "
                     + "inen bildirimi önünü kapatmaz. Kutuya dokunursan mesajların tamamını okursun, basılı tutarsan "
                     + "doğrudan o sohbete geçersin. Okuduğun mesajlar birkaç saniye sonra kendiliğinden kapanır ve kutudan kalkar.";

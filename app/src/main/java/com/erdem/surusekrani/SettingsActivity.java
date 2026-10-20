@@ -120,7 +120,12 @@ public class SettingsActivity extends Activity {
             Toast.makeText(this, "Varsayılan düzen", Toast.LENGTH_SHORT).show();
         });
 
-        renderNotifApps();
+        // Bildirim kutusu: uygulama seçimi ayrı ekranda; cevapsız aramalar anahtarı
+        findViewById(R.id.notifAppsBtn).setOnClickListener(v ->
+                startActivity(new Intent(this, NotifAppsActivity.class)));
+        Switch missed = findViewById(R.id.swMissed);
+        missed.setChecked(Notifs.missedCalls(this));
+        missed.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("notifMissed", on).apply());
 
         // Kısa açıklamalar anahtarın altında, küçük ve gri
         subLine(R.id.swBtOff, "Arabadan inince kapat",
@@ -200,6 +205,7 @@ public class SettingsActivity extends Activity {
         super.onResume();
         refreshStatus();
         renderApps();
+        renderNotifApps();
         Places.cleanup(this);
         renderPlaces();
     }
@@ -660,46 +666,40 @@ public class SettingsActivity extends Activity {
         sw.setText(b);
     }
 
-    /** Bildirim kutusunda hangi uygulamalar görünsün: yüklü olanlar, simgesi ve adıyla, birer anahtar. */
+    /** Bildirim kutusu satırı: seçili uygulamaların simgeleri (en fazla 6, fazlası "+N"). */
     private void renderNotifApps() {
-        android.widget.LinearLayout box = findViewById(R.id.notifAppList);
-        if (box == null) return;
-        box.removeAllViews();
+        android.widget.LinearLayout icons = findViewById(R.id.notifAppsIcons);
+        if (icons == null) return;
+        icons.removeAllViews();
         PackageManager pm = getPackageManager();
         float d = getResources().getDisplayMetrics().density;
-        for (String pkg : Notifs.candidates(this)) {
-            CharSequence label;
-            android.graphics.drawable.Drawable ic;
+        java.util.List<android.graphics.drawable.Drawable> list = new java.util.ArrayList<>();
+        for (String pkg : Notifs.selected(this)) {
             try {
-                android.content.pm.ApplicationInfo ai = pm.getApplicationInfo(pkg, 0);
-                label = pm.getApplicationLabel(ai);
-                ic = pm.getApplicationIcon(ai);
-            } catch (PackageManager.NameNotFoundException e) {
-                // Telefon bu uygulamayı bize göstermiyor ama mesaj göndermiş: hatırlanan adıyla
-                label = Notifs.label(this, pkg);
-                if (label == null) continue; // yüklü değil
-                ic = getDrawable(R.drawable.ic_bell).mutate();
-                ic.setTint(getColor(R.color.accent));
+                list.add(pm.getApplicationIcon(pkg));
+            } catch (PackageManager.NameNotFoundException ignored) {
+                // yüklü değil
             }
-            // XML'den: telefonun anahtar görünümü + bizim Toggle stili (koddan kurunca açık/kapalı yazısı boş kalıp çöküyordu)
-            Switch sw = (Switch) getLayoutInflater().inflate(R.layout.item_toggle, box, false);
-            sw.setText(label);
-            int s = Math.round(30 * d);
-            ic.setBounds(0, 0, s, s);
-            sw.setCompoundDrawablesRelative(ic, null, null, null);
-            sw.setCompoundDrawablePadding(Math.round(12 * d));
-            sw.setChecked(Notifs.allowed(this, pkg));
-            sw.setOnCheckedChangeListener((b, on) -> Notifs.allow(this, pkg, on));
-            box.addView(sw, new android.widget.LinearLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
         }
-        if (box.getChildCount() == 0) {
-            TextView t = new TextView(this);
-            t.setTextSize(14);
-            t.setTextColor(getColor(R.color.muted));
-            t.setText("Mesaj gönderen uygulamalar burada listelenir.");
-            box.addView(t);
+        int show = Math.min(6, list.size());
+        for (int i = 0; i < show; i++) {
+            android.widget.ImageView iv = new android.widget.ImageView(this);
+            iv.setImageDrawable(list.get(i));
+            android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                    Math.round(30 * d), Math.round(30 * d));
+            if (i > 0) lp.setMarginStart(Math.round(8 * d));
+            icons.addView(iv, lp);
         }
+        TextView more = new TextView(this);
+        more.setTextSize(15);
+        more.setTextColor(getColor(list.isEmpty() ? R.color.fg : R.color.muted));
+        more.setText(list.isEmpty() ? "Uygulama seç" : list.size() > show ? "+" + (list.size() - show) : "");
+        android.widget.LinearLayout.LayoutParams mp = new android.widget.LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        mp.setMarginStart(list.isEmpty() ? 0 : Math.round(8 * d));
+        icons.addView(more, mp);
+        findViewById(R.id.notifAppsChange).setVisibility(list.isEmpty() ? View.GONE : View.VISIBLE);
+        findViewById(R.id.notifAppsBtn).setContentDescription(list.size() + " uygulama seçili. Değiştirmek için dokun.");
     }
 
     /** İki simge yan yana, ortada; kutuya sığacak en büyük kare boyunda. */

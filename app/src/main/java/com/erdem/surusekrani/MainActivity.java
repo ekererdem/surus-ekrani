@@ -1612,7 +1612,8 @@ public class MainActivity extends Activity {
             icon.setImageDrawable(it.icon);
             icon.setImageTintList(null);
         }
-        String what = it.missedCall ? "cevapsız arama" : it.count > 1 ? it.count + " mesaj" : "mesaj";
+        String unit = it.msg ? "mesaj" : "bildirim";
+        String what = it.missedCall ? "cevapsız arama" : it.count > 1 ? it.count + " " + unit : unit;
         String time = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(new java.util.Date(it.when));
         String sub = (it.app == null || it.app.isEmpty() ? "" : it.app + " · ") + what + " · " + time
                 + (l.size() > 1 ? "  +" + (l.size() - 1) : "");
