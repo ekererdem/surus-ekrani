@@ -39,3 +39,16 @@ if m:
 res += " | log: " + " ; ".join(l[-80:] for l in log) + " | telefonda kalan: " + still
 print(res)
 open("notif.txt", "w").write(res)
+
+# Cevapsız arama düğmesi
+sh("am", "start", "-n", "com.erdem.surusekrani/.MainActivity")
+time.sleep(2)
+sh("cmd notification post -c missed_call -t 'Ahmet Yılmaz' missedtag 'Cevapsız arama'")
+time.sleep(3)
+x = dump()
+m = re.search(r'resource-id="com\.erdem\.surusekrani:id/missedBtn"[^>]*', x)
+mt = re.search(r'text="([^"]*)"[^>]*resource-id="com\.erdem\.surusekrani:id/missedBtn"', x)
+shot("shot-missed.png")
+res2 = "cevapsız düğme: " + ((mt.group(1).replace("&#10;", " | ")) if mt else ("var" if m else "yok"))
+print(res2)
+open("notif.txt", "a").write(" | " + res2)

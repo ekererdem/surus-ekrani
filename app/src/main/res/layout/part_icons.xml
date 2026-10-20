@@ -160,6 +160,11 @@
             android:id="@+id/call5Btn"
             style="@style/QuickText"
             android:visibility="gone" />
+        <!-- Cevapsız arama varsa görünür: arayanın adı, dokununca geri ara -->
+        <TextView
+            android:id="@+id/missedBtn"
+            style="@style/QuickText"
+            android:visibility="gone" />
     </LinearLayout>
 
     <LinearLayout

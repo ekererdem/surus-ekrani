@@ -265,7 +265,7 @@ public class MainActivity extends Activity {
     static final int[] CALLS = {R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
     private static final int[] QUICK = {
             R.id.statusTile, R.id.weatherTile, R.id.notifTile, R.id.parkBtn, R.id.assistBtn, R.id.settingsBtn,
-            R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn};
+            R.id.call1Btn, R.id.call2Btn, R.id.call3Btn, R.id.call4Btn, R.id.call5Btn, R.id.missedBtn};
     private final java.util.List<View> placeViews = new java.util.ArrayList<>();
 
     /** Düğmeleri Ayarlar'daki düzene göre iki sıraya dizer; kapalı olanlar gizli bir kapta bekler. */
@@ -299,6 +299,7 @@ public class MainActivity extends Activity {
                 case "assist": addQuick(row, views.get(R.id.assistBtn)); used.add(R.id.assistBtn); break;
                 case "park": addQuick(row, views.get(R.id.parkBtn)); used.add(R.id.parkBtn); break;
                 case "settings": addQuick(row, views.get(R.id.settingsBtn)); used.add(R.id.settingsBtn); break;
+                case "missed": addQuick(row, views.get(R.id.missedBtn)); used.add(R.id.missedBtn); break;
                 case "calls":
                     for (int id : CALLS) { addQuick(row, views.get(id)); used.add(id); }
                     break;
@@ -944,6 +945,71 @@ public class MainActivity extends Activity {
 
     private void renderCalls() {
         for (int i = 0; i < CALLS.length; i++) bindCall(CALLS[i], "call" + (i + 1));
+        renderMissed();
+    }
+
+    /**
+     * Cevapsız arama varsa: kırmızı telefon ve arayanın adıyla bir düğme. Dokun: geri ara (3 sn iptal süresi).
+     * Basılı tut: düğmeyi kaldır. Cevapsız arama yokken görünmez.
+     */
+    private void renderMissed() {
+        TextView b = findViewById(R.id.missedBtn);
+        if (b == null) return;
+        Notifs.Missed m = Notifs.missed(this);
+        int was = b.getVisibility();
+        if (m == null) {
+            b.setVisibility(View.GONE);
+        } else {
+            b.setVisibility(View.VISIBLE);
+            String who = m.who.trim();
+            String first = who.matches("[+0-9 ()\\-]{5,}") ? who : who.split("\\s+")[0];
+            float pd = getResources().getDisplayMetrics().density;
+            android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
+            int psz = Math.round(16 * pd);
+            ph.setBounds(0, 0, psz, psz);
+            ph.setTint(getColor(R.color.low));
+            android.text.SpannableStringBuilder t = new android.text.SpannableStringBuilder(" \n" + first);
+            t.setSpan(new android.text.style.ImageSpan(ph, android.text.style.DynamicDrawableSpan.ALIGN_BOTTOM),
+                    0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            b.setSingleLine(false);
+            b.setMaxLines(2);
+            b.setText(t);
+            b.setIncludeFontPadding(false);
+            b.setGravity(android.view.Gravity.CENTER);
+            b.setLineSpacing(2 * pd, 1f);
+            b.setTextSize(15);
+            b.setTextColor(getColor(R.color.fg));
+            b.setPadding(Math.round(4 * pd), 0, Math.round(4 * pd), 0);
+            b.setContentDescription(first + " cevapsız arama, geri ara");
+            b.setOnClickListener(v -> {
+                if (m.number != null && !m.number.isEmpty()) {
+                    confirmCall(first, m.number);
+                } else if (m.callBack != null) {
+                    sendIntent(m.callBack);
+                    Notifs.dismissMissed(this);
+                    renderMissed();
+                } else {
+                    Toast.makeText(this, "Numara bulunamadı", Toast.LENGTH_SHORT).show();
+                }
+            });
+            b.setOnLongClickListener(v -> { Notifs.dismissMissed(this); renderMissed(); return true; });
+        }
+        if (was != b.getVisibility()) findViewById(R.id.iconsGrid).post(() -> { squareQuick(); fitQuickIcons(); });
+    }
+
+    private void sendIntent(android.app.PendingIntent pi) {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 34) {
+                android.app.ActivityOptions o = android.app.ActivityOptions.makeBasic();
+                o.setPendingIntentBackgroundActivityStartMode(
+                        android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+                pi.send(this, 0, null, null, null, null, o.toBundle());
+            } else {
+                pi.send();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Aranamadı", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void bindCall(int id, String key) {
@@ -1047,6 +1113,13 @@ public class MainActivity extends Activity {
     }
 
     private void call(String num) {
+        // Cevapsız aramadaki kişi geri arandıysa düğmesi kalksın
+        Notifs.Missed mc = Notifs.missed(this);
+        if (mc != null && !mc.number.isEmpty()) {
+            String a = mc.number.replaceAll("[^0-9]", ""), b = num.replaceAll("[^0-9]", "");
+            int k = Math.min(9, Math.min(a.length(), b.length()));
+            if (k >= 7 && a.endsWith(b.substring(b.length() - k))) { Notifs.dismissMissed(this); renderMissed(); }
+        }
         android.net.Uri tel = android.net.Uri.parse("tel:" + num);
         if (checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
             startActivity(new Intent(Intent.ACTION_CALL, tel).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -1153,6 +1226,7 @@ public class MainActivity extends Activity {
             durationTv.setText("0:00");
             showArtPlaceholder();
             songTitle.setText("Müzik");
+            songArtist.setVisibility(View.VISIBLE);
             songArtist.setText(hasListenerAccess()
                     ? Apps.musicName(p.music()) + " · açmak için dokun"
                     : "Şarkıyı görmek için Ayarlar → İzinler → Bildirim erişimi");
@@ -1163,8 +1237,18 @@ public class MainActivity extends Activity {
         }
         String title = m.getString(MediaMetadata.METADATA_KEY_TITLE);
         String artist = m.getString(MediaMetadata.METADATA_KEY_ARTIST);
-        songTitle.setText(title == null ? "" : title);
+        // Şarkı ve şarkıcı yan yana tek satırda (altta uygulamanın tuşlarına yer kalsın)
+        android.text.SpannableStringBuilder line = new android.text.SpannableStringBuilder(title == null ? "" : title);
+        if (artist != null && !artist.isEmpty()) {
+            int st = line.length();
+            line.append(line.length() > 0 ? "  ·  " : "").append(artist);
+            line.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, line.length(), 0);
+            line.setSpan(new android.text.style.RelativeSizeSpan(0.8f), st, line.length(), 0);
+            line.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.NORMAL), st, line.length(), 0);
+        }
+        songTitle.setText(line);
         songArtist.setText(artist == null ? "" : artist);
+        songArtist.setVisibility(View.GONE);
 
         Bitmap art = m.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
         if (art == null) art = m.getBitmap(MediaMetadata.METADATA_KEY_ART);
@@ -1257,6 +1341,9 @@ public class MainActivity extends Activity {
         for (PlaybackState.CustomAction a : acts) {
             names.append(a.getName()).append(" (").append(a.getAction()).append("); ");
             if (box.getChildCount() >= 4) continue;
+            // Radyo tuşu istenmedi
+            String id = (a.getAction() + " " + a.getName()).toLowerCase(new java.util.Locale("tr", "TR"));
+            if (id.contains("radio") || id.contains("radyo")) continue;
             android.graphics.drawable.Drawable icon;
             try {
                 icon = res.getDrawable(a.getIcon(), null).mutate();
@@ -1268,7 +1355,7 @@ public class MainActivity extends Activity {
             b.setImageTintList(ColorStateList.valueOf(getColor(R.color.fg)));
             b.setBackgroundResource(tv.resourceId);
             b.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            int pad = Math.round(5 * d);
+            int pad = Math.round(8 * d);
             b.setPadding(pad, pad, pad, pad);
             b.setContentDescription(a.getName());
             String action = a.getAction();
@@ -1281,13 +1368,32 @@ public class MainActivity extends Activity {
             });
             b.setOnLongClickListener(v -> { showTip(String.valueOf(name)); return true; });
             android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
-                    Math.round(38 * d), Math.round(34 * d));
-            lp.setMarginStart(Math.round(4 * d));
-            lp.setMarginEnd(Math.round(4 * d));
+                    Math.round(56 * d), Math.round(46 * d));
+            lp.setMarginStart(Math.round(3 * d));
+            lp.setMarginEnd(Math.round(3 * d));
             box.addView(b, lp);
         }
+        fitActions();
         android.util.Log.i("Kopilot", "müzik uygulamasının tuşları (" + c.getPackageName() + "): " + names);
         box.setVisibility(box.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    /** Dar ekranda (dikey) tuşlar sürelerin yerini kapatmasın: genişliği satıra göre ayarla. */
+    private void fitActions() {
+        android.widget.LinearLayout box = findViewById(R.id.musicActions);
+        if (box == null || box.getChildCount() == 0) return;
+        View row = (View) box.getParent();
+        row.post(() -> {
+            float d = getResources().getDisplayMetrics().density;
+            int n = box.getChildCount();
+            int room = row.getWidth() - Math.round(84 * d); // iki taraftaki süreler
+            if (row.getWidth() == 0 || n == 0) return;
+            int w = Math.max(Math.round(36 * d), Math.min(Math.round(56 * d), room / n - Math.round(6 * d)));
+            for (int i = 0; i < n; i++) {
+                android.widget.LinearLayout.LayoutParams lp = (android.widget.LinearLayout.LayoutParams) box.getChildAt(i).getLayoutParams();
+                if (lp.width != w) { lp.width = w; box.getChildAt(i).setLayoutParams(lp); }
+            }
+        });
     }
 
     private void showArtPlaceholder() {
@@ -1935,7 +2041,7 @@ public class MainActivity extends Activity {
 
         NavState.listener = this::renderNav;
         renderNav();
-        Notifs.listener = this::renderNotifs;
+        Notifs.listener = () -> { renderNotifs(); renderMissed(); };
         // Bildirim dinleyicisi kapanmışsa yeniden bağla, açıksa mevcut bildirimleri tazele
         if (hasListenerAccess()) {
             if (MediaListener.instance != null) MediaListener.instance.resync();

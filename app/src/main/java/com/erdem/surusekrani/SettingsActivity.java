@@ -642,6 +642,7 @@ public class SettingsActivity extends Activity {
             }
             case "assist": res = R.drawable.ic_mic; color = R.color.fg; break;
             case "calls": res = R.drawable.ic_phone; color = R.color.accent; break;
+            case "missed": res = R.drawable.ic_phone; color = R.color.low; break;
             case "places": res = R.drawable.ic_home; color = R.color.amber; break;
             case "park": return getDrawable(R.drawable.ic_car_parked).mutate(); // ana ekrandaki P'li araba
             default: res = R.drawable.ic_settings; color = R.color.rain; break;

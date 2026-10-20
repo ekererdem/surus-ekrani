@@ -112,6 +112,91 @@ final class Notifs {
                 || sel.contains("com.google.android.dialer") || sel.contains("com.android.dialer");
     }
 
+    // ---------- Son cevapsız arama (ana ekrandaki "geri ara" düğmesi) ----------
+
+    static final class Missed {
+        String key, who, number;
+        long when;
+        /** Telefon uygulamasının bildirimdeki "Geri ara" tuşu (numara bulunamazsa). */
+        PendingIntent callBack;
+    }
+
+    private static Missed missed;
+
+    /** Bekleyen son cevapsız arama (12 saatten eskiyse yok sayılır); yoksa null. */
+    static Missed missed(Context c) {
+        if (missed == null) {
+            android.content.SharedPreferences p = sp(c);
+            String who = p.getString("missedWho", "");
+            if (who.isEmpty()) return null;
+            Missed m = new Missed();
+            m.who = who;
+            m.number = p.getString("missedNum", "");
+            m.when = p.getLong("missedAt", 0);
+            m.key = p.getString("missedKey", "");
+            missed = m;
+        }
+        if (System.currentTimeMillis() - missed.when > 12 * 3600_000L) return null;
+        return missed;
+    }
+
+    static void dismissMissed(Context c) {
+        missed = null;
+        sp(c).edit().remove("missedWho").remove("missedNum").remove("missedAt").remove("missedKey").apply();
+    }
+
+    /** Cevapsız arama bildiriminden arayanın adı, numarası ve "Geri ara" tuşu. */
+    private static void rememberMissed(Context c, StatusBarNotification sbn) {
+        Notification n = sbn.getNotification();
+        if ((n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) return; // "2 cevapsız arama" özeti değil, kişi
+        String title = str(n.extras.getCharSequence(Notification.EXTRA_TITLE));
+        String text = str(n.extras.getCharSequence(Notification.EXTRA_TEXT));
+        String who = null, number = null;
+        // Bildirimdeki kişi: adı ve "tel:" numarası
+        java.util.ArrayList<?> people = null;
+        try {
+            Object o = n.extras.get(Notification.EXTRA_PEOPLE_LIST);
+            if (o instanceof java.util.ArrayList) people = (java.util.ArrayList<?>) o;
+        } catch (Exception ignored) {
+        }
+        if (people != null && !people.isEmpty() && people.get(0) instanceof android.app.Person) {
+            android.app.Person p = (android.app.Person) people.get(0);
+            if (p.getName() != null) who = p.getName().toString().trim();
+            String uri = p.getUri();
+            if (uri != null && uri.startsWith("tel:")) number = android.net.Uri.decode(uri.substring(4));
+        }
+        if (who == null || who.isEmpty()) {
+            // Başlık "Cevapsız arama" ise kişi alt satırdadır
+            boolean generic = title.toLowerCase(new java.util.Locale("tr", "TR")).matches(".*(cevapsız|missed|kaçırılan).*");
+            who = generic ? text : title;
+        }
+        if (who == null || who.isEmpty()) return;
+        if ((number == null || number.isEmpty()) && who.matches("[+0-9 ()\\-]{5,}")) number = who.replaceAll("[^+0-9]", "");
+        PendingIntent back = null;
+        if (n.actions != null) {
+            for (Notification.Action a : n.actions) {
+                String t = a.title == null ? "" : a.title.toString().toLowerCase(new java.util.Locale("tr", "TR"));
+                if ((t.contains("ara") || t.contains("call")) && !t.contains("mesaj") && !t.contains("message")
+                        && !t.contains("sms")) { back = a.actionIntent; break; }
+            }
+        }
+        Missed m = new Missed();
+        m.key = sbn.getKey();
+        m.who = who;
+        m.number = number == null ? "" : number;
+        m.when = sbn.getPostTime();
+        m.callBack = back;
+        if (missed != null && missed.when > m.when) return; // daha yenisi zaten var
+        missed = m;
+        sp(c).edit().putString("missedWho", m.who).putString("missedNum", m.number)
+                .putLong("missedAt", m.when).putString("missedKey", m.key).apply();
+        MAIN.post(() -> { if (listener != null) listener.onNotifsChanged(); });
+    }
+
+    private static String str(CharSequence s) {
+        return s == null ? "" : s.toString().trim();
+    }
+
     private static boolean relevant(Context c, StatusBarNotification sbn) {
         Notification n = sbn.getNotification();
         String pkg = sbn.getPackageName();
@@ -162,6 +247,12 @@ final class Notifs {
     }
 
     static void posted(Context c, StatusBarNotification sbn, boolean allowBanner) {
+        if (Notification.CATEGORY_MISSED_CALL.equals(sbn.getNotification().category)) {
+            try {
+                rememberMissed(c, sbn);
+            } catch (Exception ignored) {
+            }
+        }
         if (!relevant(c, sbn)) return;
         Notification n = sbn.getNotification();
         CharSequence title = n.extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE);
@@ -266,6 +357,13 @@ final class Notifs {
     static void removed(StatusBarNotification sbn) {
         String key = sbn.getKey();
         if (SWALLOWED.remove(key)) return; // biz kaldırdık, kutuda kalsın
+        // Cevapsız arama telefonda kapatıldıysa (geri arandı ya da silindi) düğme de kalksın
+        if (missed != null && key.equals(missed.key)) {
+            missed = null;
+            Context app = MediaListener.instance;
+            if (app != null) dismissMissed(app);
+            MAIN.post(() -> { if (listener != null) listener.onNotifsChanged(); });
+        }
         MAIN.post(() -> {
             if (ITEMS.remove(key) != null && listener != null) listener.onNotifsChanged();
         });

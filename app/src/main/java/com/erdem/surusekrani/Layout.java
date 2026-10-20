@@ -20,8 +20,8 @@ final class Layout {
     }
 
     // Ayarlar düğmesi artık en alttaki uygulama kısayollarının en sağında (Shortcuts); burada yok.
-    static final String[] KEYS = {"weather", "notif", "status", "assist", "calls", "places", "park"};
-    private static final int[] DEF_ROW = {1, 1, 1, 2, 2, 2, 2};
+    static final String[] KEYS = {"weather", "notif", "status", "assist", "calls", "missed", "places", "park"};
+    private static final int[] DEF_ROW = {1, 1, 1, 2, 2, 2, 2, 2};
 
     private Layout() {}
 
@@ -32,6 +32,7 @@ final class Layout {
             case "status": return "Gösterge paneli";
             case "assist": return "Sesli komut";
             case "calls": return "Hızlı aramalar";
+            case "missed": return "Cevapsız arama";
             case "places": return "Hızlı rotalar";
             case "park": return "Arabam nerede";
             case "settings": return "Ayarlar";
@@ -61,6 +62,9 @@ final class Layout {
             case "calls": return "En sık aradığın kişiler. Dokunduğunda üç saniye içinde arama başlar; yanlışlıkla "
                     + "bastıysan iptal etmeye vaktin olur. Basılı tutarsan o kişiye WhatsApp'tan \"Yoldayım\" "
                     + "mesajıyla anlık konumunu gönderirsin.";
+            case "missed": return "Cevapsız bir araman olunca burada arayanın adıyla bir düğme belirir. Dokununca "
+                    + "geri ararsın; arama başlamadan önce üç saniye iptal süren olur. Basılı tutarsan düğme kalkar. "
+                    + "Cevapsız arama yokken görünmez.";
             case "places": return "Ev, iş gibi sık gittiğin yerler. Dokunduğunda seçtiğin harita uygulamasında rota "
                     + "hemen başlar, adres yazmana gerek kalmaz.";
             case "park": return "Arabadan inmeden düğmeye kısaca basılı tut, park ettiğin yer kaydedilsin; istersen "
@@ -90,11 +94,14 @@ final class Layout {
             int row = colon < 0 ? 2 : ("1".equals(part.substring(colon + 1)) ? 1 : 2);
             if (index(key) >= 0 && find(l, key) == null) l.add(new Entry(key, row, on));
         }
-        // Eksik olanları varsayılan yerleriyle ekle (eski sürümden geçiş dahil)
+        // Eksik olanları varsayılan yerleriyle ekle (eski sürümden geçiş dahil); yeni düğme,
+        // listede kendinden önce gelen düğmenin hemen arkasına girer
         for (int i = 0; i < KEYS.length; i++) {
             if (find(l, KEYS[i]) != null) continue;
             boolean on = !"assist".equals(KEYS[i]) || sp(c).getBoolean("assistBtn", true);
-            l.add(new Entry(KEYS[i], DEF_ROW[i], on));
+            Entry prev = i > 0 ? find(l, KEYS[i - 1]) : null;
+            Entry e = new Entry(KEYS[i], prev != null ? prev.row : DEF_ROW[i], on);
+            if (prev != null) l.add(l.indexOf(prev) + 1, e); else l.add(e);
         }
         return l;
     }
