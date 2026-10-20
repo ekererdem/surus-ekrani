@@ -150,6 +150,18 @@ public class MainActivity extends Activity {
         });
         playBtn.setOnClickListener(v -> togglePlay());
         musicArt = findViewById(R.id.musicArt);
+        // Kapak, yanındaki ilerleme çubuğu + tuşlar kadar yüksek ve kare olsun (altı üstü boş kalmasın)
+        View controls = findViewById(R.id.musicControls);
+        if (controls != null) controls.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            View body = (View) v.getParent();
+            int h = Math.min(b - t, Math.round(body.getWidth() * 0.42f));
+            ViewGroup.LayoutParams lp = musicArt.getLayoutParams();
+            if (h > 0 && (lp.width != h || lp.height != h)) {
+                lp.width = h;
+                lp.height = h;
+                v.post(() -> musicArt.setLayoutParams(lp));
+            }
+        });
         musicArt.setClipToOutline(true);
         musicArt.setOnClickListener(v -> Apps.openMusic(this, p));
 
