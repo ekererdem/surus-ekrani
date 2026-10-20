@@ -27,7 +27,7 @@
 
         <LinearLayout android:id="@+id/featuresBtn" style="@style/RowCard" android:layout_marginTop="12dp">
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
-                android:src="@drawable/ic_info" android:tint="@color/accent" android:contentDescription="@null" />
+                android:src="@drawable/ic_info" android:tint="?attr/kAccent" android:contentDescription="@null" />
             <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                 android:layout_marginStart="14dp" android:textSize="16sp" android:textColor="@color/fg"
                 android:text="Neler yapabilirim?" />
@@ -45,13 +45,13 @@
             android:background="@drawable/btn_outline" android:clickable="true" android:focusable="true"
             android:paddingStart="14dp" android:paddingEnd="14dp">
             <ImageView android:id="@+id/carIcon" android:layout_width="24dp" android:layout_height="24dp"
-                android:src="@drawable/ic_bluetooth" android:tint="@color/accent" android:contentDescription="Bluetooth" />
+                android:src="@drawable/ic_bluetooth" android:tint="?attr/kAccent" android:contentDescription="Bluetooth" />
             <TextView android:id="@+id/carName" android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:layout_marginStart="12dp"
                 android:textSize="16sp" android:textColor="@color/fg" android:singleLine="true"
                 android:ellipsize="end" android:text="Arabayı seç" />
             <TextView android:id="@+id/carChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textSize="14sp" android:textStyle="bold" android:textColor="@color/amber" android:text="Değiştir" />
+                android:textSize="14sp" android:textStyle="bold" android:textColor="?attr/kAccent" android:text="Değiştir" />
         </LinearLayout>
 
         <TextView style="@style/SubTitle" android:text="Arabaya bağlanınca" />
@@ -70,9 +70,9 @@
                 android:layout_height="40dp"
                 android:layout_weight="1"
                 android:max="100"
-                android:progressTint="@color/accent"
+                android:progressTint="?attr/kAccent"
                 android:progressBackgroundTint="@color/line"
-                android:thumbTint="@color/accent" />
+                android:thumbTint="?attr/kAccent" />
             <TextView
                 android:id="@+id/carVolText"
                 android:layout_width="56dp"
@@ -151,7 +151,7 @@
         <TextView android:id="@+id/layoutReset" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_gravity="end" android:layout_marginTop="8dp" android:padding="8dp"
             android:background="?android:attr/selectableItemBackground"
-            android:textSize="14sp" android:textColor="@color/amber" android:text="Varsayılan düzene dön" />
+            android:textSize="14sp" android:textColor="?attr/kAccent" android:text="Varsayılan düzene dön" />
 
         <TextView style="@style/SectionTitle" android:text="Bildirim kutusu" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
@@ -165,8 +165,18 @@
                 android:layout_height="match_parent" android:orientation="horizontal" android:gravity="center_vertical" />
             <TextView android:id="@+id/notifAppsChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginStart="8dp" android:textSize="14sp" android:textStyle="bold"
-                android:textColor="@color/amber" android:text="Değiştir" />
+                android:textColor="?attr/kAccent" android:text="Değiştir" />
         </LinearLayout>
+
+        <TextView style="@style/SectionTitle" android:text="Vurgu rengi" />
+        <TextView android:id="@+id/accentNote" style="@style/Note" android:layout_marginTop="0dp" />
+        <LinearLayout
+            android:id="@+id/accentRow"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical" />
 
         <TextView style="@style/SectionTitle" android:text="Ekran ölçeği" />
         <TextView style="@style/Note" android:layout_marginTop="0dp"
@@ -182,9 +192,9 @@
                 android:layout_height="40dp"
                 android:layout_weight="1"
                 android:max="10"
-                android:progressTint="@color/accent"
+                android:progressTint="?attr/kAccent"
                 android:progressBackgroundTint="@color/line"
-                android:thumbTint="@color/accent" />
+                android:thumbTint="?attr/kAccent" />
             <TextView
                 android:id="@+id/scaleText"
                 android:layout_width="64dp"
@@ -215,11 +225,11 @@
             <TextView android:id="@+id/notesBtn" android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:padding="8dp"
                 android:background="?android:attr/selectableItemBackground"
-                android:textSize="14sp" android:textColor="@color/amber" android:text="Sesli notlarım" />
+                android:textSize="14sp" android:textColor="?attr/kAccent" android:text="Sesli notlarım" />
             <TextView android:id="@+id/tipsReset" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:padding="8dp"
                 android:background="?android:attr/selectableItemBackground"
-                android:textSize="14sp" android:textColor="@color/amber" android:text="İpuçlarını yeniden göster" />
+                android:textSize="14sp" android:textColor="?attr/kAccent" android:text="İpuçlarını yeniden göster" />
         </LinearLayout>
 
         <View style="@style/Divider" />
@@ -235,7 +245,18 @@
 
         <Button android:id="@+id/backBtn" style="@style/OutlineBtn" android:textSize="16sp" android:layout_width="match_parent"
             android:layout_marginTop="32dp" android:background="@drawable/tile_accent"
-            android:textColor="@color/accent_ink" android:text="Geri dön" />
+            android:textColor="?attr/kAccentInk" android:text="Geri dön" />
+        <!-- Yeni sürüm varsa görünür: dokununca APK iner -->
+        <LinearLayout android:id="@+id/updateBtn" style="@style/RowCard" android:layout_marginTop="16dp"
+            android:visibility="gone">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_info" android:tint="?attr/kAccent" android:contentDescription="@null" />
+            <TextView android:id="@+id/updateText" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:layout_marginStart="14dp"
+                android:textSize="16sp" android:textColor="@color/fg" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="15sp" android:textStyle="bold" android:textColor="?attr/kAccent" android:text="İndir" />
+        </LinearLayout>
         <TextView android:id="@+id/versionText" style="@style/Note" android:gravity="center"
             android:layout_marginTop="12dp" />
     </LinearLayout>

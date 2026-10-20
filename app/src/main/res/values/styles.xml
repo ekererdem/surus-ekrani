@@ -9,6 +9,41 @@
         <item name="android:colorAccent">@color/accent</item>
         <item name="android:textColorPrimary">@color/fg</item>
         <item name="android:textColorSecondary">@color/muted</item>
+        <item name="kAccent">@color/accent</item>
+        <item name="kAccentInk">@color/accent_ink</item>
+        <item name="kAccentSoft">#80F5A623</item>
+    </style>
+
+    <!-- Vurgu rengi seçenekleri (Altın = AppTheme) -->
+    <style name="AppTheme.Teal">
+        <item name="android:colorAccent">#22C3B5</item>
+        <item name="kAccent">#22C3B5</item>
+        <item name="kAccentInk">#062A27</item>
+        <item name="kAccentSoft">#8022C3B5</item>
+    </style>
+    <style name="AppTheme.Blue">
+        <item name="android:colorAccent">#3B82F6</item>
+        <item name="kAccent">#3B82F6</item>
+        <item name="kAccentInk">#FFFFFF</item>
+        <item name="kAccentSoft">#803B82F6</item>
+    </style>
+    <style name="AppTheme.Green">
+        <item name="android:colorAccent">#22C55E</item>
+        <item name="kAccent">#22C55E</item>
+        <item name="kAccentInk">#062B14</item>
+        <item name="kAccentSoft">#8022C55E</item>
+    </style>
+    <style name="AppTheme.Coral">
+        <item name="android:colorAccent">#F2545B</item>
+        <item name="kAccent">#F2545B</item>
+        <item name="kAccentInk">#FFFFFF</item>
+        <item name="kAccentSoft">#80F2545B</item>
+    </style>
+    <style name="AppTheme.Purple">
+        <item name="android:colorAccent">#8B5CF6</item>
+        <item name="kAccent">#8B5CF6</item>
+        <item name="kAccentInk">#FFFFFF</item>
+        <item name="kAccentSoft">#808B5CF6</item>
     </style>
 
     <style name="TileTitle">
@@ -60,7 +95,7 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">14sp</item>
-        <item name="android:textColor">@color/amber</item>
+        <item name="android:textColor">?attr/kAccent</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:letterSpacing">0.1</item>
@@ -131,7 +166,7 @@
         <item name="android:layout_height">52dp</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/fg</item>
-        <item name="android:buttonTint">@color/accent</item>
+        <item name="android:buttonTint">?attr/kAccent</item>
     </style>
 
     <style name="Toggle">

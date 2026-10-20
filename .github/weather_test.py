@@ -80,3 +80,25 @@ if m and int(m.group(1)) > h * 0.2:
     sh("input swipe %d %d %d %d 600" % (w // 2, int(m.group(1)), w // 2, int(h * 0.08)))
     time.sleep(1.5)
 shot("shot-perms.png")
+
+# Vurgu rengi: Ayarlar'da Turkuaz'a dokun, ana ekranın görüntüsünü al
+sh("am start -n com.erdem.surusekrani/.SettingsActivity")
+time.sleep(3)
+tapped = False
+for i in range(40):
+    x = nodes()
+    m = re.search(r'content-desc="Turkuaz[^"]*"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', x)
+    if m:
+        x1, y1, x2, y2 = map(int, m.groups())
+        if y2 < h * 0.9:
+            sh("input tap %d %d" % ((x1 + x2) // 2, (y1 + y2) // 2))
+            tapped = True
+            time.sleep(3)
+            shot("shot-accent-settings.png")
+            break
+    sh("input swipe %d %d %d %d 900" % (w // 2, int(h * 0.75), w // 2, int(h * 0.45)))
+    time.sleep(0.8)
+sh("am start -n com.erdem.surusekrani/.MainActivity")
+time.sleep(4)
+shot("shot-accent.png")
+open("weather.txt", "a").write(" | renk: " + ("turkuaz seçildi" if tapped else "yuvarlak bulunamadı"))

@@ -46,6 +46,8 @@ public class MainActivity extends Activity {
     private Wave wave;
     private static final int REQ_NOTE = 51;
     private float appliedScale = 1f;
+    /** Bu ekran hangi vurgu rengiyle açıldı (Ayarlar'da değişince yeniden açılır). */
+    private int appliedAccent;
 
     /** Ayarlar'daki "Ekran ölçeği"ni uygular: tüm ekranı küçültür ya da büyütür. */
     @Override
@@ -97,6 +99,8 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Accent.apply(this);
+        appliedAccent = Accent.index(this);
         super.onCreate(savedInstanceState);
         CarLink.watchApp(getApplication()); // alta alınınca Bluetooth'u kapatmak için
         p = new Prefs(this);
@@ -220,7 +224,7 @@ public class MainActivity extends Activity {
             navSub.setVisibility(View.VISIBLE);
         }
         navIcon.setImageResource(R.drawable.ic_nav);
-        navIcon.setImageTintList(ColorStateList.valueOf(getColor(R.color.accent_ink)));
+        navIcon.setImageTintList(ColorStateList.valueOf(Accent.color(this, R.color.accent_ink)));
     }
 
     private static String join(String a, String b) {
@@ -350,7 +354,7 @@ public class MainActivity extends Activity {
             android.graphics.drawable.Drawable ic = getDrawable(Places.iconRes(Places.icon(this, i))).mutate();
             int sz = Math.round(26 * d);
             ic.setBounds(0, 0, sz, sz);
-            ic.setTint(getColor(R.color.amber));
+            ic.setTint(Accent.color(this, R.color.amber));
             b.setCompoundDrawablesRelative(null, ic, null, null);
             b.setCompoundDrawablePadding(Math.round(1 * d));
             b.setIncludeFontPadding(false);
@@ -699,7 +703,7 @@ public class MainActivity extends Activity {
         b.setClickable(true);
         b.setFocusable(true);
         b.setBackgroundResource(primary ? R.drawable.tile_accent : R.drawable.btn_outline);
-        b.setTextColor(getColor(primary ? R.color.accent_ink : R.color.fg));
+        b.setTextColor(Accent.color(this, primary ? R.color.accent_ink : R.color.fg));
         return b;
     }
 
@@ -788,7 +792,7 @@ public class MainActivity extends Activity {
         View lead;
         if (mode == 0) {
             android.widget.ProgressBar pb = new android.widget.ProgressBar(this);
-            pb.setIndeterminateTintList(ColorStateList.valueOf(getColor(R.color.accent)));
+            pb.setIndeterminateTintList(ColorStateList.valueOf(Accent.color(this, R.color.accent)));
             lead = pb;
         } else {
             ImageView ic = new ImageView(this);
@@ -808,7 +812,7 @@ public class MainActivity extends Activity {
         TextView title = new TextView(this);
         android.text.SpannableStringBuilder tb = new android.text.SpannableStringBuilder(t1);
         tb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, t1.length(), 0);
-        if (t1.startsWith("✓")) tb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.accent)), 0, 1, 0);
+        if (t1.startsWith("✓")) tb.setSpan(new android.text.style.ForegroundColorSpan(Accent.color(this, R.color.accent)), 0, 1, 0);
         int st = tb.length();
         tb.append("\n").append(t2);
         tb.setSpan(new android.text.style.RelativeSizeSpan(0.78f), st, tb.length(), 0);
@@ -855,7 +859,7 @@ public class MainActivity extends Activity {
             nr.addView(et, new android.widget.LinearLayout.LayoutParams(0, Math.round(52 * d), 1f));
             android.widget.ImageButton mic = new android.widget.ImageButton(this);
             mic.setImageResource(R.drawable.ic_mic);
-            mic.setImageTintList(ColorStateList.valueOf(getColor(R.color.accent)));
+            mic.setImageTintList(ColorStateList.valueOf(Accent.color(this, R.color.accent)));
             mic.setBackgroundResource(R.drawable.btn_outline);
             mic.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             mic.setPadding(Math.round(13 * d), Math.round(13 * d), Math.round(13 * d), Math.round(13 * d));
@@ -1042,7 +1046,7 @@ public class MainActivity extends Activity {
         android.graphics.drawable.Drawable ph = getDrawable(R.drawable.ic_phone).mutate();
         int psz = Math.round(16 * pd);
         ph.setBounds(0, 0, psz, psz);
-        ph.setTint(getColor(R.color.accent));
+        ph.setTint(Accent.color(this, R.color.accent));
         android.text.SpannableStringBuilder t = new android.text.SpannableStringBuilder(" \n" + first);
         t.setSpan(new android.text.style.ImageSpan(ph, android.text.style.DynamicDrawableSpan.ALIGN_BOTTOM),
                 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -1573,7 +1577,7 @@ public class MainActivity extends Activity {
         clear.setText("Temizle");
         clear.setTextSize(15);
         clear.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-        clear.setTextColor(getColor(R.color.amber));
+        clear.setTextColor(Accent.color(this, R.color.amber));
         clear.setPadding(Math.round(14 * d), Math.round(10 * d), Math.round(4 * d), Math.round(10 * d));
         clear.setOnClickListener(v -> { hideBanner(); Notifs.clearAll(); });
         foot.addView(clear);
@@ -2053,7 +2057,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         float wantScale = getSharedPreferences("surus", MODE_PRIVATE).getFloat("scale", 1f);
-        if (wantScale != appliedScale || isInMultiWindowMode() != compact) {
+        if (wantScale != appliedScale || isInMultiWindowMode() != compact || Accent.index(this) != appliedAccent) {
             recreate();
             return;
         }

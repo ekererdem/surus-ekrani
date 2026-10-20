@@ -48,6 +48,7 @@ public class AppsActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Accent.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_apps);
         pm = getPackageManager();
@@ -206,7 +207,7 @@ public class AppsActivity extends Activity {
             float alpha = editing && !selected ? 0.35f : 1f;
             icon.setAlpha(alpha);
             label.setAlpha(alpha);
-            label.setTextColor(getColor(editing && selected ? R.color.accent : R.color.fg));
+            label.setTextColor(Accent.color(AppsActivity.this, editing && selected ? R.color.accent : R.color.fg));
             return cell;
         }
     }

@@ -39,6 +39,7 @@ public class NotifAppsActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Accent.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_apps);
         pm = getPackageManager();
@@ -123,7 +124,7 @@ public class NotifAppsActivity extends Activity {
             float alpha = on ? 1f : 0.35f;
             icon.setAlpha(alpha);
             label.setAlpha(alpha);
-            label.setTextColor(getColor(on ? R.color.accent : R.color.fg));
+            label.setTextColor(Accent.color(NotifAppsActivity.this, on ? R.color.accent : R.color.fg));
             cell.setContentDescription(labels.get(p) + (on ? ", seçili" : ", seçili değil"));
             return cell;
         }

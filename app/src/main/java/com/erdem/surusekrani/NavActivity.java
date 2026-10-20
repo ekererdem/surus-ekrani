@@ -89,6 +89,7 @@ public class NavActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Accent.apply(this);
         super.onCreate(savedInstanceState);
         p = new Prefs(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -350,7 +351,7 @@ public class NavActivity extends Activity {
         line = new Polyline();
         line.setPoints(route.points);
         Paint paint = line.getOutlinePaint();
-        paint.setColor(getColor(R.color.accent));
+        paint.setColor(Accent.color(this, R.color.accent));
         paint.setStrokeWidth(dp(8));
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeJoin(Paint.Join.ROUND);

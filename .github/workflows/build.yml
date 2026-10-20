@@ -37,16 +37,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           R=repos/${{ github.repository }}/releases
+          # Uygulamanın "güncelleme var mı" kontrolü bu satırdan sürümü okur
+          VN=$(grep -oP "versionName '\K[^']+" app/build.gradle)
+          VC=$(grep -oP "versionCode \K[0-9]+" app/build.gradle)
+          NOTES="Sürüm $VN ($VC) · Son derleme: $GITHUB_SHA"
           # Eskiden sürüm silinip etiketiyle yeniden kuruluyordu; GitHub eski etiketi geç silince yeni sürüm
           # taslağa düşüyor ve indirme linki bozuluyordu. Artık sürüm silinmez, sadece APK değiştirilir.
           for id in $(gh api $R --jq '.[] | select(.draft) | .id'); do gh api -X DELETE $R/$id || true; done
           git tag -f latest "$GITHUB_SHA"
           git push -f origin refs/tags/latest
           if ! gh api $R/tags/latest >/dev/null 2>&1; then
-            gh release create latest --title "Sürüş Ekranı" --notes "Son derleme: $GITHUB_SHA" --verify-tag
+            gh release create latest --title "Kopilot" --notes "$NOTES" --verify-tag
           fi
           gh release upload latest SurusEkrani.apk --clobber
-          gh release edit latest --draft=false --latest --notes "Son derleme: $GITHUB_SHA"
+          gh release edit latest --draft=false --latest --title "Kopilot" --notes "$NOTES"
           for i in 1 2 3 4 5 6; do
             sleep 5
             if gh api $R/tags/latest --jq '.assets[] | select(.name=="SurusEkrani.apk") | .state' | grep -q uploaded; then

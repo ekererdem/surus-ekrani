@@ -24,6 +24,7 @@ public class OnboardingActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle b) {
+        Accent.apply(this);
         super.onCreate(b);
         MainActivity.sOwnScreen = true;
         render();

@@ -37,6 +37,7 @@ public class SettingsActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Accent.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         // Kenar boşluğu: çentik/kamera payının sadece yarısı kadar bırak, ekranı daha iyi kullan
@@ -64,6 +65,7 @@ public class SettingsActivity extends Activity {
                     getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
         } catch (Exception ignored) {
         }
+        checkUpdate();
 
 
 
@@ -119,6 +121,8 @@ public class SettingsActivity extends Activity {
             renderLayout();
             Toast.makeText(this, "Varsayılan düzen", Toast.LENGTH_SHORT).show();
         });
+
+        renderAccent();
 
         // Bildirim kutusu: uygulama seçimi ayrı ekranda; cevapsız aramalar anahtarı
         findViewById(R.id.notifAppsBtn).setOnClickListener(v ->
@@ -248,7 +252,7 @@ public class SettingsActivity extends Activity {
     private View itemRow(int iconRes, int iconColor, String text, View.OnClickListener onIcon,
                          View.OnClickListener onRename, View.OnClickListener onDelete) {
         android.graphics.drawable.Drawable dr = getDrawable(iconRes).mutate();
-        dr.setTint(getColor(iconColor));
+        dr.setTint(Accent.color(this, iconColor));
         return itemRow(dr, text, onIcon, "İsim ver", onRename, "Sil", onDelete);
     }
 
@@ -292,7 +296,7 @@ public class SettingsActivity extends Activity {
 
         TextView rename = smallBtn(aText, Math.round(76 * d));
         rename.setTextSize(14);
-        rename.setTextColor(getColor(R.color.amber));
+        rename.setTextColor(Accent.color(this, R.color.amber));
         rename.setOnClickListener(onA);
         row.addView(rename);
 
@@ -583,7 +587,7 @@ public class SettingsActivity extends Activity {
 
             TextView rowBtn = smallBtn(e.row == 1 ? "Üst sıra" : "Alt sıra", Math.round(76 * d));
             rowBtn.setTextSize(14);
-            rowBtn.setTextColor(getColor(R.color.amber));
+            rowBtn.setTextColor(Accent.color(this, R.color.amber));
             rowBtn.setOnClickListener(v -> {
                 e.row = e.row == 1 ? 2 : 1;
                 Layout.save(this, l);
@@ -601,7 +605,7 @@ public class SettingsActivity extends Activity {
             } else {
                 vis = smallBtn(e.on ? "Gizle" : "Göster", Math.round(64 * d));
                 vis.setTextSize(14);
-                vis.setTextColor(getColor(e.on ? R.color.low : R.color.accent));
+                vis.setTextColor(Accent.color(this, e.on ? R.color.low : R.color.accent));
                 vis.setOnClickListener(v -> {
                     e.on = !e.on;
                     Layout.save(this, l);
@@ -648,8 +652,55 @@ public class SettingsActivity extends Activity {
             default: res = R.drawable.ic_settings; color = R.color.rain; break;
         }
         android.graphics.drawable.Drawable dr = getDrawable(res).mutate();
-        dr.setTint(getColor(color));
+        dr.setTint(Accent.color(this, color));
         return dr;
+    }
+
+    /** GitHub'da daha yeni sürüm varsa en altta "Yeni sürüm var · İndir"; yoksa sürümün yanında "Güncel". */
+    private void checkUpdate() {
+        TextView ver = findViewById(R.id.versionText);
+        String base = ver.getText().toString();
+        Update.check(this, (name, code) -> {
+            if (name == null) return; // internet yoksa sessiz
+            if (code > Update.current(this)) {
+                ((TextView) findViewById(R.id.updateText)).setText("Yeni sürüm var: " + name);
+                View b = findViewById(R.id.updateBtn);
+                b.setVisibility(View.VISIBLE);
+                b.setOnClickListener(v -> safeStart(new Intent(Intent.ACTION_VIEW, Uri.parse(Update.APK))));
+            } else {
+                ver.setText(base + " · Güncel");
+            }
+        });
+    }
+
+    /** Vurgu rengi: renk yuvarlakları; seçili olanın etrafı beyaz halka. Dokununca ekran o renkle açılır. */
+    private void renderAccent() {
+        android.widget.LinearLayout row = findViewById(R.id.accentRow);
+        if (row == null) return;
+        row.removeAllViews();
+        int cur = Accent.index(this);
+        ((TextView) findViewById(R.id.accentNote)).setText("Düğmeler, çubuklar ve başlıklar bu renkte olur. Seçili: "
+                + Accent.NAMES[cur] + ".");
+        float d = getResources().getDisplayMetrics().density;
+        for (int i = 0; i < Accent.KEYS.length; i++) {
+            View dot = new View(this);
+            android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+            g.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+            g.setColor(Accent.COLORS[i]);
+            g.setStroke(Math.round(3 * d), i == cur ? getColor(R.color.fg) : 0x00000000);
+            dot.setBackground(g);
+            dot.setContentDescription(Accent.NAMES[i] + (i == cur ? ", seçili" : ""));
+            int idx = i;
+            dot.setOnClickListener(v -> {
+                if (idx == Accent.index(this)) return;
+                Accent.set(this, idx);
+                recreate();
+            });
+            int s = Math.round((i == cur ? 44 : 38) * d);
+            android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(s, s);
+            lp.setMarginEnd(Math.round(14 * d));
+            row.addView(dot, lp);
+        }
     }
 
     /** Anahtarın yazısı: üstte başlık, altında küçük gri açıklama. */
@@ -781,7 +832,7 @@ public class SettingsActivity extends Activity {
         int s = title.length() + 1;
         sb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), 0, title.length(), 0);
         sb.setSpan(new android.text.style.RelativeSizeSpan(0.85f), 0, title.length(), 0);
-        sb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.accent)), s, sb.length(), 0);
+        sb.setSpan(new android.text.style.ForegroundColorSpan(Accent.color(this, R.color.accent)), s, sb.length(), 0);
         t.setText(sb);
         t.setEnabled(on);
         t.setAlpha(on ? 1f : 0.4f);
@@ -922,7 +973,7 @@ public class SettingsActivity extends Activity {
         ((TextView) findViewById(R.id.carName)).setText(hasCar ? p.carName() : "Arabayı seç");
         findViewById(R.id.carChange).setVisibility(hasCar ? View.VISIBLE : View.GONE);
         ((android.widget.ImageView) findViewById(R.id.carIcon)).setImageTintList(
-                android.content.res.ColorStateList.valueOf(getColor(hasCar ? R.color.accent : R.color.muted)));
+                android.content.res.ColorStateList.valueOf(Accent.color(this, hasCar ? R.color.accent : R.color.muted)));
         renderPermissions();
     }
 
@@ -971,7 +1022,7 @@ public class SettingsActivity extends Activity {
             link.setText("Uygulama bilgisini aç");
             link.setTextSize(14);
             link.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-            link.setTextColor(getColor(R.color.amber));
+            link.setTextColor(Accent.color(this, R.color.amber));
             link.setPadding(0, dp(8), dp(8), dp(8));
             link.setOnClickListener(v -> safeStart(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     Uri.parse("package:" + getPackageName()))));
@@ -992,11 +1043,11 @@ public class SettingsActivity extends Activity {
                 getLayoutInflater().inflate(R.layout.item_perm, list, false);
         android.widget.ImageView ic = row.findViewById(R.id.permIcon);
         ic.setImageResource(icon);
-        ic.setImageTintList(android.content.res.ColorStateList.valueOf(getColor(state == 0 ? R.color.amber : R.color.accent)));
+        ic.setImageTintList(android.content.res.ColorStateList.valueOf(Accent.color(this, state == 0 ? R.color.amber : R.color.accent)));
         ((TextView) row.findViewById(R.id.permTitle)).setText(title);
         ((TextView) row.findViewById(R.id.permSub)).setText(sub);
         TextView chip = row.findViewById(R.id.permState);
-        int color = getColor(state == 1 ? R.color.chg_high : state == 0 ? R.color.amber : R.color.muted);
+        int color = Accent.color(this, state == 1 ? R.color.chg_high : state == 0 ? R.color.amber : R.color.muted);
         chip.setText(state == 1 ? "Açık" : state == 0 ? "Aç" : "Ayarla");
         chip.setTextColor(color);
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();

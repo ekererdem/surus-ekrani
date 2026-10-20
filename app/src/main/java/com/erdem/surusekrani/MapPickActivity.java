@@ -39,6 +39,7 @@ public class MapPickActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Accent.apply(this);
         super.onCreate(savedInstanceState);
         IConfigurationProvider cfg = Configuration.getInstance();
         cfg.load(this, getSharedPreferences("osm", MODE_PRIVATE));

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Vurgu rengi (Ayarlar > Görünüm): tema başına değişir -->
+    <attr name="kAccent" format="color" />
+    <!-- Vurgu renginin üstündeki yazı/simge rengi -->
+    <attr name="kAccentInk" format="color" />
+    <!-- Anahtar yolu gibi soluk vurgu -->
+    <attr name="kAccentSoft" format="color" />
+</resources>

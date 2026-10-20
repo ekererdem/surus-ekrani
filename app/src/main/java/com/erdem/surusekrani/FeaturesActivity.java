@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 public class FeaturesActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
+        Accent.apply(this);
         super.onCreate(b);
         LinearLayout box = Ui.page(this, "Neler yapabilirim?");
 

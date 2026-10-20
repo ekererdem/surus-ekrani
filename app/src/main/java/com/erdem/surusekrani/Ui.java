@@ -50,7 +50,7 @@ final class Ui {
         t.setTextSize(17);
         t.setLetterSpacing(0.08f);
         t.setTypeface(Typeface.DEFAULT_BOLD);
-        t.setTextColor(a.getColor(R.color.amber));
+        t.setTextColor(Accent.color(a, R.color.amber));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.topMargin = dp(a, 26);
         lp.bottomMargin = dp(a, 6);
@@ -106,7 +106,7 @@ final class Ui {
         b.setIncludeFontPadding(false);
         if (primary) {
             b.setBackgroundResource(R.drawable.tile_accent);
-            b.setTextColor(a.getColor(R.color.accent_ink));
+            b.setTextColor(Accent.color(a, R.color.accent_ink));
         } else {
             b.setBackgroundResource(R.drawable.btn_outline);
         }

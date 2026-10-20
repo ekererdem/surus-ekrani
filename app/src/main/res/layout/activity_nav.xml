@@ -53,7 +53,7 @@
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
                 android:src="@drawable/ic_search"
-                android:tint="@color/amber"
+                android:tint="?attr/kAccent"
                 android:contentDescription="Ara" />
         </LinearLayout>
 
@@ -104,7 +104,7 @@
             android:layout_width="72dp"
             android:layout_height="72dp"
             android:src="@drawable/ic_arrow"
-            android:tint="@color/accent_ink"
+            android:tint="?attr/kAccentInk"
             android:contentDescription="@null" />
         <LinearLayout
             android:layout_width="0dp"
@@ -119,7 +119,7 @@
                 android:fontFamily="sans-serif-condensed"
                 android:textStyle="bold"
                 android:textSize="40sp"
-                android:textColor="@color/accent_ink"
+                android:textColor="?attr/kAccentInk"
                 android:includeFontPadding="false" />
             <TextView
                 android:id="@+id/turnText"
@@ -127,7 +127,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@color/accent_ink"
+                android:textColor="?attr/kAccentInk"
                 android:maxLines="2"
                 android:ellipsize="end" />
         </LinearLayout>
@@ -143,7 +143,7 @@
         android:background="@drawable/chip_bg"
         android:elevation="4dp"
         android:src="@drawable/ic_locate"
-        android:tint="@color/amber"
+        android:tint="?attr/kAccent"
         android:contentDescription="Konumuma dön" />
 
     <!-- Rota özeti -->
@@ -174,7 +174,7 @@
             android:fontFamily="sans-serif-condensed"
             android:textStyle="bold"
             android:textSize="26sp"
-            android:textColor="@color/amber" />
+            android:textColor="?attr/kAccent" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="60dp"
@@ -182,7 +182,7 @@
             android:orientation="horizontal">
             <Button android:id="@+id/mainBtn" style="@style/OutlineBtn"
                 android:layout_width="0dp" android:layout_weight="1.4"
-                android:background="@drawable/tile_accent" android:textColor="@color/accent_ink"
+                android:background="@drawable/tile_accent" android:textColor="?attr/kAccentInk"
                 android:text="Başlat" />
             <Button android:id="@+id/extBtn" style="@style/OutlineBtn"
                 android:layout_width="0dp" android:layout_weight="1"

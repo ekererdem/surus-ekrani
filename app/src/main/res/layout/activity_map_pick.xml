@@ -62,7 +62,7 @@
             android:background="@drawable/chip_bg"
             android:elevation="4dp"
             android:src="@drawable/ic_locate"
-            android:tint="@color/amber"
+            android:tint="?attr/kAccent"
             android:contentDescription="Konumuma git" />
         <Button
             android:id="@+id/pickSave"
@@ -72,7 +72,7 @@
             android:layout_weight="1"
             android:layout_marginStart="10dp"
             android:background="@drawable/tile_accent"
-            android:textColor="@color/accent_ink"
+            android:textColor="?attr/kAccentInk"
             android:elevation="4dp"
             android:text="Burayı kaydet" />
     </LinearLayout>

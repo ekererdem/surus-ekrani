@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Anahtar yolu: açıkken soluk altın sarısı, kapalıyken kenarlık grisi -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true" android:color="#80F5A623" />
+    <item android:state_checked="true" android:color="?attr/kAccentSoft" />
     <item android:color="@color/line" />
 </selector>
