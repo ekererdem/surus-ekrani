@@ -47,37 +47,69 @@ final class Notifs {
 
     private Notifs() {}
 
-    /** Hiç seçim yapılmadıysa kutuya gelen uygulamalar: bilinen mesajlaşma uygulamaları. */
-    private static final String[] DEFAULT_APPS = {
-            "com.whatsapp", "com.whatsapp.w4b", "org.telegram.messenger", "com.google.android.apps.messaging",
-            "com.android.mms", "com.facebook.orca", "com.instagram.android", "org.thoughtcrime.securesms",
-            "com.viber.voip"};
-
     private static android.content.SharedPreferences sp(Context c) {
         return c.getSharedPreferences("surus", Context.MODE_PRIVATE);
     }
 
-    /** Bildirimleri kutuya gelen uygulamalar (Ayarlar > Bildirim kutusu > Uygulama seç). */
-    static java.util.Set<String> selected(Context c) {
-        java.util.Set<String> s = sp(c).getStringSet("notifApps", null);
-        if (s != null) return s;
-        java.util.Set<String> d = new java.util.HashSet<>(java.util.Arrays.asList(DEFAULT_APPS));
-        // Önceki sürümde kapatılanlar kapalı kalsın
-        d.removeAll(sp(c).getStringSet("notifOff", java.util.Collections.emptySet()));
+    /** Telefonun mesaj (SMS) uygulaması. */
+    private static String smsApp(Context c) {
+        try {
+            return android.provider.Telephony.Sms.getDefaultSmsPackage(c);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Telefonun arama uygulaması. */
+    private static String phoneApp(Context c) {
+        try {
+            android.telecom.TelecomManager tm = c.getSystemService(android.telecom.TelecomManager.class);
+            return tm == null ? null : tm.getDefaultDialerPackage();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Hazır seçim: WhatsApp, Mesajlar ve Telefon (aramalar). */
+    private static java.util.Set<String> defaults(Context c) {
+        java.util.Set<String> d = new java.util.HashSet<>(java.util.Arrays.asList(
+                "com.whatsapp", "com.whatsapp.w4b",
+                "com.google.android.apps.messaging", "com.android.mms",
+                "com.google.android.dialer", "com.android.dialer"));
+        String sms = smsApp(c), phone = phoneApp(c);
+        if (sms != null) d.add(sms);
+        if (phone != null) d.add(phone);
         return d;
     }
 
+    /** Bildirimleri kutuya gelen uygulamalar (Ayarlar > Bildirim kutusu > Değiştir). */
+    static java.util.Set<String> selected(Context c) {
+        java.util.Set<String> s = sp(c).getStringSet("notifApps", null);
+        if (s == null) return defaults(c);
+        // Bir kereliğine: önceden seçim yapıldıysa WhatsApp, Mesajlar ve Telefon da eklensin (diğerleri kalır)
+        if (!sp(c).getBoolean("notifDefaults2", false)) {
+            java.util.Set<String> n = new java.util.HashSet<>(s);
+            n.addAll(defaults(c));
+            sp(c).edit().putStringSet("notifApps", n).putBoolean("notifDefaults2", true).apply();
+            return n;
+        }
+        return s;
+    }
+
     static void setSelected(Context c, java.util.Set<String> apps) {
-        sp(c).edit().putStringSet("notifApps", new java.util.HashSet<>(apps)).apply();
+        sp(c).edit().putStringSet("notifApps", new java.util.HashSet<>(apps)).putBoolean("notifDefaults2", true).apply();
+        boolean calls = callsOn(c, apps);
         MAIN.post(() -> {
-            if (ITEMS.values().removeIf(it -> !it.missedCall && !apps.contains(it.pkg)) && listener != null)
+            if (ITEMS.values().removeIf(it -> it.missedCall ? !calls : !apps.contains(it.pkg)) && listener != null)
                 listener.onNotifsChanged();
         });
     }
 
-    /** Cevapsız aramalar kutuya gelsin mi. */
-    static boolean missedCalls(Context c) {
-        return sp(c).getBoolean("notifMissed", true);
+    /** Cevapsız aramalar: listede telefonun arama uygulaması seçiliyse gelir. */
+    private static boolean callsOn(Context c, java.util.Set<String> sel) {
+        String phone = phoneApp(c);
+        return (phone != null && sel.contains(phone))
+                || sel.contains("com.google.android.dialer") || sel.contains("com.android.dialer");
     }
 
     private static boolean relevant(Context c, StatusBarNotification sbn) {
@@ -86,7 +118,10 @@ final class Notifs {
         if (pkg.equals(c.getPackageName())) return false;
         if ((n.flags & Notification.FLAG_ONGOING_EVENT) != 0) return false;
         if ((n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) return false;
-        if (Notification.CATEGORY_MISSED_CALL.equals(n.category)) return missedCalls(c);
+        if (Notification.CATEGORY_MISSED_CALL.equals(n.category)) {
+            java.util.Set<String> sel = selected(c);
+            return sel.contains(pkg) || callsOn(c, sel);
+        }
         // Müzik, indirme, sistem, yol tarifi gibi bildirimler kutuya gelmez
         String cat = n.category == null ? "" : n.category;
         switch (cat) {

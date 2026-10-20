@@ -123,9 +123,6 @@ public class SettingsActivity extends Activity {
         // Bildirim kutusu: uygulama seçimi ayrı ekranda; cevapsız aramalar anahtarı
         findViewById(R.id.notifAppsBtn).setOnClickListener(v ->
                 startActivity(new Intent(this, NotifAppsActivity.class)));
-        Switch missed = findViewById(R.id.swMissed);
-        missed.setChecked(Notifs.missedCalls(this));
-        missed.setOnCheckedChangeListener((b, on) -> p.edit().putBoolean("notifMissed", on).apply());
 
         // Kısa açıklamalar anahtarın altında, küçük ve gri
         subLine(R.id.swBtOffHide, "Kopilot alta alınınca kapat",
