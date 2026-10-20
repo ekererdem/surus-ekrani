@@ -3,5 +3,7 @@
     <application android:label="WhatsApp">
         <!-- Test: adb ile Post alıcısına yayın gönderilir (who, texts) -->
         <receiver android:name=".Post" android:exported="true" />
+        <!-- Test: Spotify gibi çalan müzik oturumu -->
+        <activity android:name=".Player" android:exported="true" />
     </application>
 </manifest>

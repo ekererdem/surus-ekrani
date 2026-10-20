@@ -52,3 +52,19 @@ shot("shot-missed.png")
 res2 = "cevapsız düğme: " + ((mt.group(1).replace("&#10;", " | ")) if mt else ("var" if m else "yok"))
 print(res2)
 open("notif.txt", "a").write(" | " + res2)
+
+# Müzik kutusu: sahte "Spotify" oturumuyla (kapak, şarkı satırı, nereden çaldığı, uygulama tuşları)
+sh("am start -n com.whatsapp/.Player")
+time.sleep(3)
+sh("am start -n com.erdem.surusekrani/.MainActivity")
+time.sleep(4)
+x = dump()
+shot("shot-music.png")
+def tx(i):
+    m = re.search(r'text="([^"]*)"[^>]*resource-id="com\.erdem\.surusekrani:id/' + i + '"', x)
+    return m.group(1) if m else "-"
+acts = re.search(r'resource-id="com\.erdem\.surusekrani:id/musicActions".*?</node>', x, re.S)
+nact = len(re.findall(r'ImageButton', acts.group(0))) if acts else 0
+res3 = "müzik: " + tx("songTitle") + " / " + tx("songArtist") + " / tuş sayısı " + str(nact)
+print(res3)
+open("notif.txt", "a").write(" | " + res3)
