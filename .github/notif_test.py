@@ -66,5 +66,8 @@ def tx(i):
 acts = re.search(r'resource-id="com\.erdem\.surusekrani:id/musicActions".*?</node>', x, re.S)
 nact = len(re.findall(r'ImageButton', acts.group(0))) if acts else 0
 res3 = "müzik: " + tx("songTitle") + " / " + tx("songArtist") + " / tuş sayısı " + str(nact)
+ms = sh("dumpsys media_session").splitlines()
+res3 += " / oturumlar: " + " ; ".join(l.strip() for l in ms if "package=" in l or "active=" in l or "state=PlaybackState" in l)[:400]
+res3 += " / player: " + sh("am start -W -n com.whatsapp/.Player").replace("\n", " ")[:200]
 print(res3)
 open("notif.txt", "a").write(" | " + res3)
