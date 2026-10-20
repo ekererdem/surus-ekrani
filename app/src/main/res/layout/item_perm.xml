@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ayarlar > İzinler: simge, başlık + kısa açıklama, sağda durum (Açık / Aç / Ayarla) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/RowCard">
+
+    <ImageView
+        android:id="@+id/permIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="10dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/permTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/fg" />
+        <TextView
+            android:id="@+id/permSub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="13sp"
+            android:lineSpacingMultiplier="1.1"
+            android:textColor="@color/muted" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/permState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="56dp"
+        android:gravity="center"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+</LinearLayout>

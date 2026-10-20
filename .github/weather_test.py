@@ -67,3 +67,16 @@ if m:
     res.append("seçim: " + " / ".join(t for t in re.findall(r'text="([^"]+)"', nodes()) if t.startswith("✓"))[:150])
 print(" | ".join(res))
 open("weather.txt", "w").write(" | ".join(res))
+
+# Ayarlar'ın en altı: İzinler bölümü
+sh("input keyevent 4")
+time.sleep(2)
+for i in range(30):
+    sh("input swipe %d %d %d %d 200" % (w // 2, int(h * 0.85), w // 2, int(h * 0.15)))
+time.sleep(1.5)
+x = nodes()
+m = re.search(r'text="[İI]Z[İI]NLER"[^>]*bounds="\[\d+,(\d+)\]', x, re.I)
+if m and int(m.group(1)) > h * 0.2:
+    sh("input swipe %d %d %d %d 600" % (w // 2, int(m.group(1)), w // 2, int(h * 0.08)))
+    time.sleep(1.5)
+shot("shot-perms.png")

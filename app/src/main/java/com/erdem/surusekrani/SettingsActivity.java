@@ -60,7 +60,7 @@ public class SettingsActivity extends Activity {
                 p.edit().putString("music", id == R.id.rbYtm ? "ytm" : "spotify").apply());
 
         try {
-            ((TextView) findViewById(R.id.versionText)).setText("Sürüm " +
+            ((TextView) findViewById(R.id.versionText)).setText("Kopilot · Sürüm " +
                     getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
         } catch (Exception ignored) {
         }
@@ -180,11 +180,8 @@ public class SettingsActivity extends Activity {
         });
 
         findViewById(R.id.carBtn).setOnClickListener(v -> pickCar());
-        findViewById(R.id.overlayBtn).setOnClickListener(v -> safeStart(new Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()))));
-        findViewById(R.id.notifBtn).setOnClickListener(v -> askNotifications());
-        findViewById(R.id.xiaomiBtn).setOnClickListener(v -> openXiaomiPermissions());
         findViewById(R.id.backBtn).setOnClickListener(v -> finish());
+        findViewById(R.id.topBack).setOnClickListener(v -> finish());
 
         // Tanıtım ekranından doğrudan bir işe gelindiyse onu başlat
         String todo = getIntent().getStringExtra(EXTRA_DO);
@@ -194,10 +191,6 @@ public class SettingsActivity extends Activity {
             int n = compactCalls();
             if (n < MAX_CALLS) pickContact(n + 1);
         }
-        findViewById(R.id.listenerBtn).setOnClickListener(v ->
-                safeStart(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
-        findViewById(R.id.appInfoBtn).setOnClickListener(v -> safeStart(new Intent(
-                Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))));
     }
 
     @Override
@@ -926,15 +919,100 @@ public class SettingsActivity extends Activity {
         findViewById(R.id.carChange).setVisibility(hasCar ? View.VISIBLE : View.GONE);
         ((android.widget.ImageView) findViewById(R.id.carIcon)).setImageTintList(
                 android.content.res.ColorStateList.valueOf(getColor(hasCar ? R.color.accent : R.color.muted)));
-        ((TextView) findViewById(R.id.overlayStatus)).setText(
-                Settings.canDrawOverlays(this) ? "Verildi ✓" : "Verilmedi. Otomatik açılma için gerekli.");
+        renderPermissions();
+    }
+
+    // ---------- İzinler: her izin bir satır, sağda durumu ----------
+
+    private void renderPermissions() {
+        android.widget.LinearLayout list = findViewById(R.id.permList);
+        if (list == null) return;
+        list.removeAllViews();
         NotificationManager lnm = getSystemService(NotificationManager.class);
+        boolean overlay = Settings.canDrawOverlays(this);
         boolean listener = lnm != null && lnm.isNotificationListenerAccessGranted(
                 new ComponentName(this, MediaListener.class));
-        ((TextView) findViewById(R.id.listenerStatus)).setText(
-                listener ? "Verildi ✓" : "Verilmedi. Çalan şarkı ve yön bilgisi için gerekli.");
-        ((TextView) findViewById(R.id.notifStatus)).setText(
-                notificationsReady() ? "Hazır ✓" : "Kapalı. Yedek bildirim için gerekli.");
+        boolean post = notificationsReady();
+        boolean xiaomi = isXiaomi();
+
+        addPerm(list, R.drawable.ic_bell, "Bildirim erişimi",
+                "Çalan şarkı, yol tarifi ve mesajlar ana ekranda görünsün diye.", listener ? 1 : 0,
+                v -> safeStart(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
+        addPerm(list, R.drawable.ic_layers, "Diğer uygulamaların üzerinde gösterme",
+                "Arabaya bağlanınca Kopilot kendiliğinden açılsın diye.", overlay ? 1 : 0,
+                v -> safeStart(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()))));
+        addPerm(list, R.drawable.ic_sms, "Bildirim gönderme",
+                "Ekran açılamadığında Kopilot'u açmak için kısa bir bildirim gösterir.", post ? 1 : 0,
+                v -> askNotifications());
+        if (xiaomi) {
+            addPerm(list, R.drawable.ic_shield, "Xiaomi izinleri",
+                    "Otomatik başlatma, arka planda açılır pencere ve kilit ekranında gösterme: İzin ver. "
+                            + "Pil tasarrufu: Kısıtlama yok.", -1, v -> openXiaomiPermissions());
+        }
+
+        // Bildirim erişiminde Kopilot gri görünüyorsa (Android'in kısıtlı ayarı): kısa yol tarifi
+        if (!listener) {
+            TextView help = new TextView(this);
+            help.setTextSize(13);
+            help.setTextColor(getColor(R.color.muted));
+            help.setLineSpacing(0, 1.15f);
+            help.setText("Bildirim erişimi listesinde Kopilot gri ve seçilemiyorsa: Uygulama bilgisi'ni aç, sağ üstteki "
+                    + "⋮ menüsünden \"Kısıtlı ayarlara izin ver\"i seç, sonra tekrar dene.");
+            android.widget.LinearLayout.LayoutParams hl = new android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+            hl.topMargin = dp(10);
+            list.addView(help, hl);
+            TextView link = new TextView(this);
+            link.setText("Uygulama bilgisini aç");
+            link.setTextSize(14);
+            link.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            link.setTextColor(getColor(R.color.amber));
+            link.setPadding(0, dp(8), dp(8), dp(8));
+            link.setOnClickListener(v -> safeStart(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + getPackageName()))));
+            list.addView(link);
+        }
+
+        int missing = (listener ? 0 : 1) + (overlay ? 0 : 1) + (post ? 0 : 1);
+        ((TextView) findViewById(R.id.permNote)).setText(missing == 0
+                ? (xiaomi ? "Gerekli izinler açık. Xiaomi'de arka planda sorunsuz çalışması için Xiaomi izinlerine de bir kez bak."
+                        : "Gerekli izinlerin hepsi açık.")
+                : "Kopilot'un tam çalışması için kapalı olan izinlere dokunup aç.");
+    }
+
+    /** Durum: 1 açık, 0 kapalı, -1 telefon bildirmiyor (elle ayarlanır). */
+    private void addPerm(android.widget.LinearLayout list, int icon, String title, String sub, int state,
+                         View.OnClickListener click) {
+        android.widget.LinearLayout row = (android.widget.LinearLayout)
+                getLayoutInflater().inflate(R.layout.item_perm, list, false);
+        android.widget.ImageView ic = row.findViewById(R.id.permIcon);
+        ic.setImageResource(icon);
+        ic.setImageTintList(android.content.res.ColorStateList.valueOf(getColor(state == 0 ? R.color.amber : R.color.accent)));
+        ((TextView) row.findViewById(R.id.permTitle)).setText(title);
+        ((TextView) row.findViewById(R.id.permSub)).setText(sub);
+        TextView chip = row.findViewById(R.id.permState);
+        int color = getColor(state == 1 ? R.color.chg_high : state == 0 ? R.color.amber : R.color.muted);
+        chip.setText(state == 1 ? "Açık" : state == 0 ? "Aç" : "Ayarla");
+        chip.setTextColor(color);
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setCornerRadius(dp(12));
+        bg.setColor((color & 0x00FFFFFF) | 0x26000000);
+        chip.setBackground(bg);
+        row.setOnClickListener(click);
+        row.setContentDescription(title + ", " + chip.getText());
+        android.widget.LinearLayout.LayoutParams lp = (android.widget.LinearLayout.LayoutParams) row.getLayoutParams();
+        lp.topMargin = dp(10);
+        list.addView(row, lp);
+    }
+
+    private static boolean isXiaomi() {
+        String m = (Build.MANUFACTURER + " " + Build.BRAND).toLowerCase(java.util.Locale.ROOT);
+        return m.contains("xiaomi") || m.contains("redmi") || m.contains("poco");
+    }
+
+    private int dp(int v) {
+        return Math.round(v * getResources().getDisplayMetrics().density);
     }
 
     // ---------- Araba seçimi ----------
