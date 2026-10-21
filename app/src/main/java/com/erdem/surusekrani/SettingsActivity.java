@@ -217,7 +217,7 @@ public class SettingsActivity extends Activity {
         findViewById(R.id.settingsMenu).setVisibility(i < 0 ? View.VISIBLE : View.GONE);
         for (int j = 0; j < SECTIONS.length; j++) findViewById(SECTIONS[j]).setVisibility(j == i ? View.VISIBLE : View.GONE);
         ((TextView) findViewById(R.id.settingsTitle)).setText(i < 0 ? "Ayarlar" : SEC_TITLES[i]);
-        // Sürüm ve güncelleme satırı ana menünün en altında
+        // Logo ve sürüm ana menünün en altında; "Yeni sürüm var" satırı yalnız ana menüde (en üstte)
         findViewById(R.id.versionText).setVisibility(i < 0 ? View.VISIBLE : View.GONE);
         findViewById(R.id.brandLogo).setVisibility(i < 0 ? View.VISIBLE : View.GONE);
         if (i >= 0) findViewById(R.id.updateBtn).setVisibility(View.GONE);
@@ -248,7 +248,6 @@ public class SettingsActivity extends Activity {
         int apps = sp.getString("favApps", "").isEmpty() ? 0 : sp.getString("favApps", "").split("\\|").length;
         int missing = permMissing();
         boolean noCar = p.carName().isEmpty();
-        boolean newVer = updateState != null && updateState.startsWith("Yeni");
         // Kısa açıklama; yalnız dikkat isteyen durumda (araba seçilmedi, izin kapalı, yeni sürüm) uyarı
         String[] subs = {
                 noCar ? "Araba seçilmedi" : "Araba ve Bluetooth",
@@ -257,7 +256,7 @@ public class SettingsActivity extends Activity {
                 "Düğmeler, bildirimler ve renk",
                 "El sallama ve sesli notlar",
                 missing == 0 ? "Gerekli izinler" : missing + " izin kapalı",
-                newVer ? updateState : "Resimli kısa ipuçları"};
+                "Resimli kısa ipuçları"};
         for (int i = 0; i < SECTIONS.length; i++) {
             View row = getLayoutInflater().inflate(R.layout.item_menu, menu, false);
             android.widget.ImageView ic = row.findViewById(R.id.menuIcon);
@@ -266,7 +265,7 @@ public class SettingsActivity extends Activity {
             ((TextView) row.findViewById(R.id.menuTitle)).setText(SEC_TITLES[i]);
             TextView sub = row.findViewById(R.id.menuSub);
             sub.setText(subs[i]);
-            if ((i == 0 && noCar) || (i == 5 && missing > 0) || (i == 6 && newVer))
+            if ((i == 0 && noCar) || (i == 5 && missing > 0))
                 sub.setTextColor(Accent.color(this, R.color.amber));
             int idx = i;
             // Son satır doğrudan ipuçları sayfasını açar
@@ -761,10 +760,8 @@ public class SettingsActivity extends Activity {
         return dr;
     }
 
-    /** GitHub'da daha yeni sürüm varsa en altta "Yeni sürüm var · İndir"; yoksa sürümün yanında "Güncel". */
+    /** GitHub'da daha yeni sürüm varsa en üstte, başlığın altında yanıp sönen "Yeni sürüm var · Güncelle". */
     private void checkUpdate() {
-        TextView ver = findViewById(R.id.versionText);
-        String base = ver.getText().toString();
         Update.check(this, (name, code) -> {
             if (name == null) return; // internet yoksa sessiz
             if (code > Update.current(this)) {
@@ -778,10 +775,8 @@ public class SettingsActivity extends Activity {
                     Update.install(this, pct -> ut.setText(pct >= 0 ? "İndiriliyor… %" + pct
                             : pct == -1 ? "İndiriliyor…" : updateState));
                 });
-                ver.setText(base + " · Yeni sürüm var");
             } else {
                 updateState = "Güncel";
-                ver.setText(base + " · Güncel");
             }
             if (section < 0) renderMenu();
         });
