@@ -183,6 +183,8 @@ final class CarLink {
             //noinspection deprecation
             boolean ok = ad.disable();
             Log.i(TAG, why + ", Bluetooth kapatıldı: " + ok);
+            // Kopilot kapattı: Kopilot yeniden açılınca hemen geri açılsın (10 dakika beklemeden)
+            if (ok) c.getSharedPreferences("surus", Context.MODE_PRIVATE).edit().putBoolean("btOffByUs", true).apply();
         } catch (SecurityException e) {
             Log.w(TAG, "Bluetooth kapatılamadı", e);
         }
@@ -235,9 +237,13 @@ final class CarLink {
             off = false;
         }
         if (off) {
-            // Sen kapattıysan her dönüşte yeniden açmasın: en fazla 10 dakikada bir
-            if (p.btOnOpen() && System.currentTimeMillis() - lastEnable > 10 * 60 * 1000L) {
+            // Bluetooth'u Kopilot kapattıysa (çıkınca / arabadan inince) hemen geri aç.
+            // Sen kendin kapattıysan her dönüşte yeniden açmasın: en fazla 10 dakikada bir.
+            android.content.SharedPreferences sp = a.getSharedPreferences("surus", Context.MODE_PRIVATE);
+            boolean byUs = sp.getBoolean("btOffByUs", false);
+            if (p.btOnOpen() && (byUs || System.currentTimeMillis() - lastEnable > 10 * 60 * 1000L)) {
                 lastEnable = System.currentTimeMillis();
+                sp.edit().putBoolean("btOffByUs", false).apply();
                 turnOn(a);
             }
             return;
