@@ -25,7 +25,7 @@ def ver():
 W, H = map(int, re.findall(r"(\d+)x(\d+)", sh("wm", "size"))[-1])
 res = "önce sürüm " + ver()
 sh("am", "start", "-n", "com.erdem.surusekrani/.MainActivity")
-time.sleep(10)
+time.sleep(18)  # ipucu şeridi (9 sn) kapansın
 shot("shot-update-dot.png")  # Ayarlar simgesinde kırmızı nokta, altta "Yeni sürüm var" şeridi
 sh("am", "start", "-n", "com.erdem.surusekrani/.SettingsActivity")
 time.sleep(8)
