@@ -105,6 +105,7 @@ final class Shortcuts {
         tag.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         tag.setTextColor(0xFFFFFFFF);
         tag.setSingleLine(true);
+        tag.setGravity(Gravity.CENTER);
         tag.setIncludeFontPadding(false);
         tag.setPadding(dp(a, 7), dp(a, 3), dp(a, 7), dp(a, 3));
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
@@ -113,9 +114,10 @@ final class Shortcuts {
         bg.setStroke(Math.max(2, dp(a, 1)), a.getColor(R.color.bg));
         tag.setBackground(bg);
         tag.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        fl.addView(tag, new android.widget.FrameLayout.LayoutParams(
-                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.TOP | Gravity.CENTER_HORIZONTAL));
+        // Genişlik yazıya göre sabit: dar kutuda yazı kesilmesin (kutudan biraz taşabilir)
+        int tw = Math.round(tag.getPaint().measureText("Yeni sürüm var")) + tag.getPaddingLeft() + tag.getPaddingRight() + dp(a, 2);
+        fl.addView(tag, new android.widget.FrameLayout.LayoutParams(tw,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL));
         row.addView(fl, idx, lp);
         row.setClipChildren(false);
         if (row.getParent() instanceof android.view.ViewGroup) ((android.view.ViewGroup) row.getParent()).setClipChildren(false);
