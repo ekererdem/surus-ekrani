@@ -100,10 +100,7 @@ public class SettingsActivity extends Activity {
         });
         findViewById(R.id.wave1Btn).setOnClickListener(v -> pickWave(1));
         renderWave();
-        findViewById(R.id.tipsReset).setOnClickListener(v -> {
-            Tips.reset(this);
-            Toast.makeText(this, "İpuçları ana ekranda yeniden gösterilecek", Toast.LENGTH_SHORT).show();
-        });
+        findViewById(R.id.tipsBtn).setOnClickListener(v -> startActivity(new Intent(this, TipsActivity.class)));
         findViewById(R.id.notesBtn).setOnClickListener(v -> {
             java.util.List<String> l = Notes.list(this);
             if (l.isEmpty()) { Toast.makeText(this, "Henüz sesli not yok", Toast.LENGTH_SHORT).show(); return; }

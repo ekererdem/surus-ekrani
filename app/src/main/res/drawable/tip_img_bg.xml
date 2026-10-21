@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- İpuçları: ekran görüntüsünün köşeleri yuvarlak, boşluklar uygulama zemininde -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/bg" />
+    <corners android:radius="12dp" />
+</shape>

@@ -80,6 +80,7 @@
         <activity android:name=".AppsActivity" android:exported="false" />
         <activity android:name=".NotifAppsActivity" android:exported="false" />
         <activity android:name=".FeaturesActivity" android:exported="false" />
+        <activity android:name=".TipsActivity" android:exported="false" />
         <activity android:name=".OnboardingActivity" android:exported="false" />
         <activity android:name=".MapPickActivity" android:exported="false" />
         <activity

@@ -20,13 +20,4 @@ final class Tips {
         shownThisSession = true;
         shower.show("💡 " + text);
     }
-
-    /** Ayarlar'dan "ipuçlarını yeniden göster". */
-    static void reset(Context c) {
-        SharedPreferences sp = c.getSharedPreferences("surus", Context.MODE_PRIVATE);
-        SharedPreferences.Editor e = sp.edit();
-        for (String k : sp.getAll().keySet()) if (k.startsWith("tip_")) e.remove(k);
-        e.apply();
-        shownThisSession = false;
-    }
 }
