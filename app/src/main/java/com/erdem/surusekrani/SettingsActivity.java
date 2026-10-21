@@ -263,7 +263,7 @@ public class SettingsActivity extends Activity {
                 "Hızlı aramalar ve rotalar",
                 "Düğmeler, bildirimler ve renk",
                 "El sallama ve sesli notlar",
-                missing == 0 ? "Kopilot'un çalışması için gerekenler" : missing + " izin kapalı",
+                missing == 0 ? "Gerekli izinler" : missing + " izin kapalı",
                 newVer ? updateState : "Özellikler ve ipuçları"};
         for (int i = 0; i < SECTIONS.length; i++) {
             View row = getLayoutInflater().inflate(R.layout.item_menu, menu, false);
@@ -1239,11 +1239,14 @@ public class SettingsActivity extends Activity {
         sv.addView(box);
 
         java.util.Set<String> shown = new java.util.HashSet<>();
+        // Aynı adlı cihaz bir kez görünsün (arabalar çoğu zaman iki kez yayın yapar)
+        java.util.Set<String> names = new java.util.HashSet<>();
         Set<BluetoothDevice> bonded = ad.getBondedDevices();
         if (bonded != null && !bonded.isEmpty()) {
             box.addView(carHeader("Telefonda kayıtlı"));
             for (BluetoothDevice dev : bonded) {
                 shown.add(dev.getAddress());
+                try { if (dev.getName() != null) names.add(dev.getName().trim()); } catch (SecurityException ignored) { }
                 box.addView(carRow(dev, false));
             }
         }
@@ -1273,7 +1276,7 @@ public class SettingsActivity extends Activity {
                     try { n = dev.getName(); } catch (SecurityException ignored) { }
                     if (n == null) n = in.getStringExtra(BluetoothDevice.EXTRA_NAME);
                     // Adı olmayanlar (çoğu saat, sensör) listeyi kalabalıklaştırmasın
-                    if (n == null || n.trim().isEmpty() || !shown.add(dev.getAddress())) return;
+                    if (n == null || n.trim().isEmpty() || !shown.add(dev.getAddress()) || !names.add(n.trim())) return;
                     near.addView(carRow(dev, true));
                 } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(a) && pendingBond[0] == null) {
                     status.setText(near.getChildCount() == 0
