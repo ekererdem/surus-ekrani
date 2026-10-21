@@ -20,14 +20,245 @@
             <ImageButton android:id="@+id/topBack" android:layout_width="48dp" android:layout_height="48dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_back" android:tint="@color/fg" android:contentDescription="Geri" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            <TextView android:id="@+id/settingsTitle" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:singleLine="true" android:ellipsize="end"
                 android:layout_marginStart="6dp" android:text="Ayarlar" android:textStyle="bold"
                 android:textSize="28sp" android:textColor="@color/fg" />
         </LinearLayout>
 
-        <!-- Yeni sürüm varsa en üstte ince bir satır: dokununca APK iner -->
+        <!-- Ana menü: başlıklar; satırlar koddan (simge, başlık, kısa özet) -->
+        <LinearLayout android:id="@+id/settingsMenu" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Başlıkların sayfaları: aynı anda yalnızca biri görünür -->
+        <LinearLayout android:id="@+id/secConnection" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+            <TextView style="@style/SubTitle" android:layout_marginTop="8dp" android:text="Araba" />
+            <!-- Seçili araba düğmenin içinde; sağda "Değiştir" -->
+            <LinearLayout android:id="@+id/carBtn" android:layout_width="match_parent" android:layout_height="60dp"
+                android:layout_marginTop="10dp" android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/btn_outline" android:clickable="true" android:focusable="true"
+                android:paddingStart="14dp" android:paddingEnd="14dp">
+                <ImageView android:id="@+id/carIcon" android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_bluetooth" android:tint="?attr/kAccent" android:contentDescription="Bluetooth" />
+                <TextView android:id="@+id/carName" android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="wrap_content" android:layout_marginStart="12dp"
+                    android:textSize="16sp" android:textColor="@color/fg" android:singleLine="true"
+                    android:ellipsize="end" android:text="Arabayı seç" />
+                <TextView android:id="@+id/carChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="14sp" android:textStyle="bold" android:textColor="?attr/kAccent" android:text="Değiştir" />
+            </LinearLayout>
+
+            <TextView style="@style/SubTitle" android:text="Arabaya bağlanınca" />
+            <Switch android:id="@+id/swAutoOpen" style="@style/Toggle" android:text="Kopilot'u aç" />
+            <Switch android:id="@+id/swAutoPlay" style="@style/Toggle" android:text="Müziği devam ettir" />
+            <Switch android:id="@+id/swCarVol" style="@style/Toggle" android:text="Müzik sesini ayarla" />
+            <LinearLayout
+                android:id="@+id/carVolRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <SeekBar
+                    android:id="@+id/carVolSeek"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:max="100"
+                    android:progressTint="?attr/kAccent"
+                    android:progressBackgroundTint="@color/line"
+                    android:thumbTint="?attr/kAccent" />
+                <TextView
+                    android:id="@+id/carVolText"
+                    android:layout_width="56dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textSize="17sp"
+                    android:textColor="@color/fg" />
+            </LinearLayout>
+
+            <TextView style="@style/SubTitle" android:text="Bluetooth" />
+            <Switch android:id="@+id/swBtOnOpen" style="@style/Toggle" android:text="Kopilot açılınca aç" />
+            <Switch android:id="@+id/swBtOffHide" style="@style/Toggle" android:text="Kopilot alta alınınca kapat" />
+            <Switch android:id="@+id/swBtOff" style="@style/Toggle" android:text="Arabadan inince kapat" />
+            <Switch android:id="@+id/swCarLink" style="@style/Toggle" android:text="Araba bağlanmazsa Kopilot bağlasın" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/secApps" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+            <TextView style="@style/SectionTitle" android:text="Navigasyon uygulaması" />
+            <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
+                <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
+            </RadioGroup>
+            <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="14dp"
+                android:text="Açılınca haritayı yan yana başlat" />
+
+            <TextView style="@style/SectionTitle" android:text="Müzik uygulaması" />
+            <TextView style="@style/Note" android:layout_marginTop="0dp"
+                android:text="Müzik kutusunu sola kaydırınca sonraki, sağa kaydırınca önceki şarkıya geçer." />
+            <RadioGroup android:id="@+id/radioMusic" android:layout_width="match_parent" android:layout_height="wrap_content">
+                <RadioButton android:id="@+id/rbSpotify" style="@style/Option" android:text="Spotify" />
+                <RadioButton android:id="@+id/rbYtm" style="@style/Option" android:text="YouTube Music" />
+            </RadioGroup>
+
+            <TextView style="@style/SectionTitle" android:text="Uygulama kısayolları" />
+            <TextView style="@style/Note" android:layout_marginTop="0dp"
+                android:text="Müzik çaların altında görünür, en fazla 4 uygulama. En sağda her zaman Ayarlar durur. Sırayı ≡ işaretinden tutup sürükleyerek değiştirebilirsin." />
+            <LinearLayout
+                android:id="@+id/appsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+        <LinearLayout android:id="@+id/secPeople" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+            <TextView style="@style/SectionTitle" android:text="Hızlı arama" />
+            <TextView style="@style/Note" android:layout_marginTop="0dp"
+                android:text="En fazla 5 kişi. Dokununca arama 3 saniye sonra başlar, o sırada iptal edebilirsin. Basılı tutarsan kişiye WhatsApp'tan &quot;Yoldayım&quot; mesajıyla konumunu gönderirsin." />
+            <LinearLayout
+                android:id="@+id/callsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView style="@style/SectionTitle" android:text="Hızlı rotalar" />
+            <TextView style="@style/Note" android:layout_marginTop="0dp"
+                android:text="En fazla 5 yer. Dokununca rota başlar. Simgeyi değiştirmek için simgeye dokun." />
+            <LinearLayout
+                android:id="@+id/placesList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+        <LinearLayout android:id="@+id/secHome" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+            <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
+            <TextView style="@style/Note" android:layout_marginTop="0dp"
+                android:text="Düğmeleri gizleyip gösterebilir, üst ya da alt sıraya alabilirsin. Sırayı ≡ işaretinden tutup sürükleyerek değiştir." />
+            <LinearLayout
+                android:id="@+id/layoutList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+            <TextView android:id="@+id/layoutReset" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="end" android:layout_marginTop="8dp" android:padding="8dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:textSize="14sp" android:textColor="?attr/kAccent" android:text="Varsayılan düzene dön" />
+
+            <TextView style="@style/SectionTitle" android:text="Bildirim kutusu" />
+            <TextView style="@style/Note" android:layout_marginTop="0dp"
+                android:text="Ana ekrandaki kutuda hangi uygulamaların bildirimleri görünsün, sen seç. Hazırda WhatsApp, Mesajlar ve Telefon (cevapsız aramalar) seçili. Seçmediklerin telefona her zamanki gibi gelir." />
+            <!-- Seçili uygulamaların simgeleri; sağda "Değiştir" -->
+            <LinearLayout android:id="@+id/notifAppsBtn" android:layout_width="match_parent" android:layout_height="60dp"
+                android:layout_marginTop="10dp" android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/btn_outline" android:clickable="true" android:focusable="true"
+                android:paddingStart="14dp" android:paddingEnd="14dp">
+                <LinearLayout android:id="@+id/notifAppsIcons" android:layout_width="0dp" android:layout_weight="1"
+                    android:layout_height="match_parent" android:orientation="horizontal" android:gravity="center_vertical" />
+                <TextView android:id="@+id/notifAppsChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp" android:textSize="14sp" android:textStyle="bold"
+                    android:textColor="?attr/kAccent" android:text="Değiştir" />
+            </LinearLayout>
+
+            <TextView style="@style/SectionTitle" android:text="Vurgu rengi" />
+            <TextView android:id="@+id/accentNote" style="@style/Note" android:layout_marginTop="0dp" />
+            <LinearLayout
+                android:id="@+id/accentRow"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical" />
+
+            <TextView style="@style/SectionTitle" android:text="Ekran ölçeği" />
+            <TextView style="@style/Note" android:layout_marginTop="0dp"
+                android:text="Ana ekrandaki yazı ve düğmeleri büyütüp küçültür." />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <SeekBar
+                    android:id="@+id/scaleSeek"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:max="10"
+                    android:progressTint="?attr/kAccent"
+                    android:progressBackgroundTint="@color/line"
+                    android:thumbTint="?attr/kAccent" />
+                <TextView
+                    android:id="@+id/scaleText"
+                    android:layout_width="64dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textSize="17sp"
+                    android:textColor="@color/fg" />
+            </LinearLayout>
+
+        </LinearLayout>
+        <LinearLayout android:id="@+id/secControl" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+            <Switch android:id="@+id/swWave" style="@style/Toggle" android:layout_marginTop="8dp"
+                android:text="El sallayarak kontrol" />
+            <TextView style="@style/Note" android:layout_marginTop="0dp"
+                android:text="Telefona dokunmadan komut ver: elini ön kameranın üzerinden bir ya da iki kez geçir. Her hareketin ne yapacağını aşağıdan seç. Kopilot ekrandayken çalışır." />
+            <TextView android:id="@+id/wave1Btn" style="@style/Option"
+                android:layout_height="wrap_content" android:minHeight="52dp"
+                android:gravity="center_vertical" android:paddingVertical="8dp"
+                android:background="?android:attr/selectableItemBackground" />
+            <TextView android:id="@+id/wave2Btn" style="@style/Option"
+                android:layout_height="wrap_content" android:minHeight="52dp"
+                android:gravity="center_vertical" android:paddingVertical="8dp"
+                android:background="?android:attr/selectableItemBackground" />
+            <LinearLayout android:id="@+id/notesBtn" style="@style/RowCard" android:layout_marginTop="14dp">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_mic" android:tint="?attr/kAccent" android:contentDescription="@null" />
+                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp" android:textSize="16sp" android:textColor="@color/fg"
+                    android:text="Sesli notlarım" />
+                <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                    android:src="@drawable/ic_chevron" android:tint="@color/muted" android:contentDescription="@null" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/secPerms" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+            <TextView style="@style/SubTitle" android:layout_marginTop="8dp" android:text="Kopilot'un çalışması için" />
+            <TextView android:id="@+id/permNote" style="@style/Note" android:layout_marginTop="0dp" />
+            <LinearLayout
+                android:id="@+id/permList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/secAbout" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:visibility="gone">
+            <LinearLayout android:id="@+id/featuresBtn" style="@style/RowCard" android:layout_marginTop="8dp">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_info" android:tint="?attr/kAccent" android:contentDescription="@null" />
+                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp" android:textSize="16sp" android:textColor="@color/fg"
+                    android:text="Neler yapabilirim?" />
+                <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                    android:src="@drawable/ic_chevron" android:tint="@color/muted" android:contentDescription="@null" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tipsReset" style="@style/RowCard" android:layout_marginTop="10dp">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_star" android:tint="?attr/kAccent" android:contentDescription="@null" />
+                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp" android:textSize="16sp" android:textColor="@color/fg"
+                    android:text="İpuçlarını yeniden göster" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button android:id="@+id/backBtn" style="@style/OutlineBtn" android:textSize="16sp" android:layout_width="match_parent"
+            android:layout_marginTop="32dp" android:background="@drawable/tile_accent"
+            android:textColor="?attr/kAccentInk" android:text="Geri dön" />
+        <!-- Yeni sürüm varsa en altta, sürümün hemen üstünde: dokununca APK iner -->
         <LinearLayout android:id="@+id/updateBtn" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:minHeight="44dp" android:layout_marginTop="6dp" android:orientation="horizontal"
+            android:minHeight="44dp" android:layout_marginTop="14dp" android:orientation="horizontal"
             android:gravity="center_vertical" android:background="@drawable/update_bg"
             android:foreground="?android:attr/selectableItemBackground" android:clickable="true" android:focusable="true"
             android:paddingStart="14dp" android:paddingEnd="14dp" android:visibility="gone">
@@ -39,228 +270,6 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:textSize="14sp" android:textStyle="bold" android:textColor="?attr/kAccent" android:text="İndir" />
         </LinearLayout>
-
-        <LinearLayout android:id="@+id/featuresBtn" style="@style/RowCard" android:layout_marginTop="12dp">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp"
-                android:src="@drawable/ic_info" android:tint="?attr/kAccent" android:contentDescription="@null" />
-            <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:layout_marginStart="14dp" android:textSize="16sp" android:textColor="@color/fg"
-                android:text="Neler yapabilirim?" />
-            <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                android:src="@drawable/ic_chevron" android:tint="@color/muted" android:contentDescription="@null" />
-        </LinearLayout>
-
-        <View style="@style/Divider" />
-
-        <!-- Araba ve Bluetooth: hepsi tek bölümde -->
-        <TextView style="@style/SectionTitle" android:text="Araba ve Bluetooth" />
-        <!-- Seçili araba düğmenin içinde; sağda "Değiştir" -->
-        <LinearLayout android:id="@+id/carBtn" android:layout_width="match_parent" android:layout_height="60dp"
-            android:layout_marginTop="10dp" android:orientation="horizontal" android:gravity="center_vertical"
-            android:background="@drawable/btn_outline" android:clickable="true" android:focusable="true"
-            android:paddingStart="14dp" android:paddingEnd="14dp">
-            <ImageView android:id="@+id/carIcon" android:layout_width="24dp" android:layout_height="24dp"
-                android:src="@drawable/ic_bluetooth" android:tint="?attr/kAccent" android:contentDescription="Bluetooth" />
-            <TextView android:id="@+id/carName" android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="wrap_content" android:layout_marginStart="12dp"
-                android:textSize="16sp" android:textColor="@color/fg" android:singleLine="true"
-                android:ellipsize="end" android:text="Arabayı seç" />
-            <TextView android:id="@+id/carChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textSize="14sp" android:textStyle="bold" android:textColor="?attr/kAccent" android:text="Değiştir" />
-        </LinearLayout>
-
-        <TextView style="@style/SubTitle" android:text="Arabaya bağlanınca" />
-        <Switch android:id="@+id/swAutoOpen" style="@style/Toggle" android:text="Kopilot'u aç" />
-        <Switch android:id="@+id/swAutoPlay" style="@style/Toggle" android:text="Müziği devam ettir" />
-        <Switch android:id="@+id/swCarVol" style="@style/Toggle" android:text="Müzik sesini ayarla" />
-        <LinearLayout
-            android:id="@+id/carVolRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-            <SeekBar
-                android:id="@+id/carVolSeek"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:max="100"
-                android:progressTint="?attr/kAccent"
-                android:progressBackgroundTint="@color/line"
-                android:thumbTint="?attr/kAccent" />
-            <TextView
-                android:id="@+id/carVolText"
-                android:layout_width="56dp"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textSize="17sp"
-                android:textColor="@color/fg" />
-        </LinearLayout>
-
-        <TextView style="@style/SubTitle" android:text="Bluetooth" />
-        <Switch android:id="@+id/swBtOnOpen" style="@style/Toggle" android:text="Kopilot açılınca aç" />
-        <Switch android:id="@+id/swBtOffHide" style="@style/Toggle" android:text="Kopilot alta alınınca kapat" />
-        <Switch android:id="@+id/swBtOff" style="@style/Toggle" android:text="Arabadan inince kapat" />
-        <Switch android:id="@+id/swCarLink" style="@style/Toggle" android:text="Araba bağlanmazsa Kopilot bağlasın" />
-
-        <View style="@style/Divider" />
-
-        <!-- 2. Uygulamalar -->
-        <TextView style="@style/SectionTitle" android:text="Navigasyon uygulaması" />
-        <RadioGroup android:id="@+id/radioNav" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/rbMaps" style="@style/Option" android:text="Google Maps" />
-            <RadioButton android:id="@+id/rbYandex" style="@style/Option" android:text="Yandex Haritalar" />
-        </RadioGroup>
-        <Switch android:id="@+id/swAutoSplit" style="@style/Toggle" android:layout_marginTop="14dp"
-            android:text="Açılınca haritayı yan yana başlat" />
-
-        <TextView style="@style/SectionTitle" android:text="Müzik uygulaması" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Müzik kutusunu sola kaydırınca sonraki, sağa kaydırınca önceki şarkıya geçer." />
-        <RadioGroup android:id="@+id/radioMusic" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <RadioButton android:id="@+id/rbSpotify" style="@style/Option" android:text="Spotify" />
-            <RadioButton android:id="@+id/rbYtm" style="@style/Option" android:text="YouTube Music" />
-        </RadioGroup>
-
-        <TextView style="@style/SectionTitle" android:text="Uygulama kısayolları" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Müzik çaların altında görünür, en fazla 4 uygulama. En sağda her zaman Ayarlar durur. Sırayı ≡ işaretinden tutup sürükleyerek değiştirebilirsin." />
-        <LinearLayout
-            android:id="@+id/appsList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <View style="@style/Divider" />
-
-        <!-- Kişiler ve yerler -->
-        <TextView style="@style/SectionTitle" android:text="Hızlı arama" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="En fazla 5 kişi. Dokununca arama 3 saniye sonra başlar, o sırada iptal edebilirsin. Basılı tutarsan kişiye WhatsApp'tan &quot;Yoldayım&quot; mesajıyla konumunu gönderirsin." />
-        <LinearLayout
-            android:id="@+id/callsList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <TextView style="@style/SectionTitle" android:text="Hızlı rotalar" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="En fazla 5 yer. Dokununca rota başlar. Simgeyi değiştirmek için simgeye dokun." />
-        <LinearLayout
-            android:id="@+id/placesList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <View style="@style/Divider" />
-
-        <!-- 4. Ana ekran görünümü -->
-        <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Düğmeleri gizleyip gösterebilir, üst ya da alt sıraya alabilirsin. Sırayı ≡ işaretinden tutup sürükleyerek değiştir." />
-        <LinearLayout
-            android:id="@+id/layoutList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-        <TextView android:id="@+id/layoutReset" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_gravity="end" android:layout_marginTop="8dp" android:padding="8dp"
-            android:background="?android:attr/selectableItemBackground"
-            android:textSize="14sp" android:textColor="?attr/kAccent" android:text="Varsayılan düzene dön" />
-
-        <TextView style="@style/SectionTitle" android:text="Bildirim kutusu" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Ana ekrandaki kutuda hangi uygulamaların bildirimleri görünsün, sen seç. Hazırda WhatsApp, Mesajlar ve Telefon (cevapsız aramalar) seçili. Seçmediklerin telefona her zamanki gibi gelir." />
-        <!-- Seçili uygulamaların simgeleri; sağda "Değiştir" -->
-        <LinearLayout android:id="@+id/notifAppsBtn" android:layout_width="match_parent" android:layout_height="60dp"
-            android:layout_marginTop="10dp" android:orientation="horizontal" android:gravity="center_vertical"
-            android:background="@drawable/btn_outline" android:clickable="true" android:focusable="true"
-            android:paddingStart="14dp" android:paddingEnd="14dp">
-            <LinearLayout android:id="@+id/notifAppsIcons" android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="match_parent" android:orientation="horizontal" android:gravity="center_vertical" />
-            <TextView android:id="@+id/notifAppsChange" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginStart="8dp" android:textSize="14sp" android:textStyle="bold"
-                android:textColor="?attr/kAccent" android:text="Değiştir" />
-        </LinearLayout>
-
-        <TextView style="@style/SectionTitle" android:text="Vurgu rengi" />
-        <TextView android:id="@+id/accentNote" style="@style/Note" android:layout_marginTop="0dp" />
-        <LinearLayout
-            android:id="@+id/accentRow"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical" />
-
-        <TextView style="@style/SectionTitle" android:text="Ekran ölçeği" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Ana ekrandaki yazı ve düğmeleri büyütüp küçültür." />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-            <SeekBar
-                android:id="@+id/scaleSeek"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:max="10"
-                android:progressTint="?attr/kAccent"
-                android:progressBackgroundTint="@color/line"
-                android:thumbTint="?attr/kAccent" />
-            <TextView
-                android:id="@+id/scaleText"
-                android:layout_width="64dp"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textSize="17sp"
-                android:textColor="@color/fg" />
-        </LinearLayout>
-
-        <View style="@style/Divider" />
-
-        <!-- Sürüş yardımı -->
-        <TextView style="@style/SectionTitle" android:text="Sürüş yardımı" />
-        <Switch android:id="@+id/swWave" style="@style/Toggle"
-            android:text="El sallayarak kontrol" />
-        <TextView style="@style/Note" android:layout_marginTop="0dp"
-            android:text="Telefona dokunmadan komut ver: elini ön kameranın üzerinden bir ya da iki kez geçir. Her hareketin ne yapacağını aşağıdan seç. Kopilot ekrandayken çalışır." />
-        <TextView android:id="@+id/wave1Btn" style="@style/Option"
-            android:layout_height="wrap_content" android:minHeight="52dp"
-            android:gravity="center_vertical" android:paddingVertical="8dp"
-            android:background="?android:attr/selectableItemBackground" />
-        <TextView android:id="@+id/wave2Btn" style="@style/Option"
-            android:layout_height="wrap_content" android:minHeight="52dp"
-            android:gravity="center_vertical" android:paddingVertical="8dp"
-            android:background="?android:attr/selectableItemBackground" />
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginTop="8dp">
-            <TextView android:id="@+id/notesBtn" android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="wrap_content" android:padding="8dp"
-                android:background="?android:attr/selectableItemBackground"
-                android:textSize="14sp" android:textColor="?attr/kAccent" android:text="Sesli notlarım" />
-            <TextView android:id="@+id/tipsReset" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:padding="8dp"
-                android:background="?android:attr/selectableItemBackground"
-                android:textSize="14sp" android:textColor="?attr/kAccent" android:text="İpuçlarını yeniden göster" />
-        </LinearLayout>
-
-        <View style="@style/Divider" />
-
-        <!-- İzinler: her izin bir satır, sağda durumu; satırlar koddan -->
-        <TextView style="@style/SectionTitle" android:text="İzinler" />
-        <TextView android:id="@+id/permNote" style="@style/Note" android:layout_marginTop="0dp" />
-        <LinearLayout
-            android:id="@+id/permList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <Button android:id="@+id/backBtn" style="@style/OutlineBtn" android:textSize="16sp" android:layout_width="match_parent"
-            android:layout_marginTop="32dp" android:background="@drawable/tile_accent"
-            android:textColor="?attr/kAccentInk" android:text="Geri dön" />
         <TextView android:id="@+id/versionText" style="@style/Note" android:gravity="center"
             android:layout_marginTop="12dp" />
     </LinearLayout>

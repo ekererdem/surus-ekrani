@@ -19,8 +19,19 @@ def order(x):
     return [t for t, _, _ in nodes(x) if "Ahmet" in t or "Ayşe" in t]
 
 W, H = map(int, re.findall(r"(\d+)x(\d+)", sh("wm", "size"))[-1])
+def tap_text(label):
+    for t, cx, cy in nodes(dump()):
+        if t == label:
+            sh("input", "tap", str(cx), str(cy))
+            time.sleep(2)
+            return True
+    return False
+
 sh("am", "start", "-n", "com.erdem.surusekrani/.SettingsActivity")
 time.sleep(5)
+with open("shot-menu.png", "wb") as f:
+    f.write(subprocess.run(["adb", "exec-out", "screencap", "-p"], capture_output=True).stdout)
+tap_text("Kişiler ve yerler")
 res = "tutamak bulunamadı"
 for _ in range(10):
     x = dump()
@@ -43,6 +54,9 @@ print(res)
 open("drag.txt", "w").write(res)
 
 # Ana ekran düğmeleri bölümünün ekran görüntüsü
+sh("input", "keyevent", "4")  # başlıktan menüye dön
+time.sleep(2)
+tap_text("Ana ekran")
 for _ in range(15):
     x = dump()
     if any(t in ("Gizle", "Göster") for t, _, _ in nodes(x)):

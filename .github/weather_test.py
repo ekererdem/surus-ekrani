@@ -12,6 +12,14 @@ def nodes():
     sh("uiautomator dump /sdcard/w.xml")
     return sh("cat /sdcard/w.xml")
 
+def tap_menu(label):
+    x = nodes()
+    m = re.search(r'text="' + label + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', x)
+    if m:
+        x1, y1, x2, y2 = map(int, m.groups())
+        sh("input tap %d %d" % ((x1 + x2) // 2, (y1 + y2) // 2))
+        time.sleep(2)
+
 res = []
 now = int(time.time())
 codes = [3, 61, 80, 63, 2, 0]
@@ -39,6 +47,7 @@ else:
 
 sh("am start -n com.erdem.surusekrani/.SettingsActivity")
 time.sleep(4)
+tap_menu("Ana ekran")
 w, h = 320, 640
 mm = re.search(r"(\d+)x(\d+)", sh("wm size"))
 if mm:
@@ -71,8 +80,7 @@ open("weather.txt", "w").write(" | ".join(res))
 # Ayarlar'ın en altı: İzinler bölümü
 sh("am start -n com.erdem.surusekrani/.SettingsActivity")
 time.sleep(3)
-for i in range(30):
-    sh("input swipe %d %d %d %d 200" % (w // 2, int(h * 0.85), w // 2, int(h * 0.15)))
+tap_menu("İzinler")
 time.sleep(1.5)
 x = nodes()
 m = re.search(r'text="[İI]Z[İI]NLER"[^>]*bounds="\[\d+,(\d+)\]', x, re.I)
@@ -84,6 +92,7 @@ shot("shot-perms.png")
 # Vurgu rengi: Ayarlar'da Turkuaz'a dokun, ana ekranın görüntüsünü al
 sh("am start -n com.erdem.surusekrani/.SettingsActivity")
 time.sleep(3)
+tap_menu("Ana ekran")
 tapped = False
 for i in range(40):
     x = nodes()

@@ -187,16 +187,102 @@ public class SettingsActivity extends Activity {
         });
 
         findViewById(R.id.carBtn).setOnClickListener(v -> pickCar());
-        findViewById(R.id.backBtn).setOnClickListener(v -> finish());
-        findViewById(R.id.topBack).setOnClickListener(v -> finish());
+        findViewById(R.id.backBtn).setOnClickListener(v -> onBackPressed());
+        findViewById(R.id.topBack).setOnClickListener(v -> onBackPressed());
+
+        // Menü: renk değişince ekran yeniden açılır, aynı başlıkta kalınsın
+        showSection(savedInstanceState == null ? -1 : savedInstanceState.getInt("sec", -1));
 
         // Tanıtım ekranından doğrudan bir işe gelindiyse onu başlat
         String todo = getIntent().getStringExtra(EXTRA_DO);
-        if ("car".equals(todo)) pickCar();
-        else if ("place".equals(todo) && Places.count(this) < Places.MAX) addPlace(Places.count(this) + 1);
+        if ("car".equals(todo)) { showSection(0); pickCar(); }
+        else if ("place".equals(todo) && Places.count(this) < Places.MAX) { showSection(2); addPlace(Places.count(this) + 1); }
         else if ("call".equals(todo)) {
+            showSection(2);
             int n = compactCalls();
             if (n < MAX_CALLS) pickContact(n + 1);
+        }
+    }
+
+    // ---------- Menü ve başlık sayfaları ----------
+
+    private static final int[] SECTIONS = {R.id.secConnection, R.id.secApps, R.id.secPeople, R.id.secHome,
+            R.id.secControl, R.id.secPerms, R.id.secAbout};
+    private static final String[] SEC_TITLES = {"Bağlantı seçenekleri", "Uygulamalar", "Kişiler ve yerler",
+            "Ana ekran", "Kontrol", "İzinler", "Hakkında"};
+    private static final int[] SEC_ICONS = {R.drawable.ic_bluetooth, R.drawable.ic_apps, R.drawable.ic_phone,
+            R.drawable.ic_home, R.drawable.ic_mic, R.drawable.ic_shield, R.drawable.ic_info};
+    private int section = -1;
+    /** Güncelleme durumu (Hakkında özeti için): null bilinmiyor. */
+    private String updateState;
+
+    /** -1: ana menü; 0..6: o başlığın sayfası. */
+    private void showSection(int i) {
+        section = i;
+        findViewById(R.id.settingsMenu).setVisibility(i < 0 ? View.VISIBLE : View.GONE);
+        for (int j = 0; j < SECTIONS.length; j++) findViewById(SECTIONS[j]).setVisibility(j == i ? View.VISIBLE : View.GONE);
+        ((TextView) findViewById(R.id.settingsTitle)).setText(i < 0 ? "Ayarlar" : SEC_TITLES[i]);
+        // Sürüm ve güncelleme satırı ana menünün en altında
+        findViewById(R.id.versionText).setVisibility(i < 0 ? View.VISIBLE : View.GONE);
+        if (i >= 0) findViewById(R.id.updateBtn).setVisibility(View.GONE);
+        else if (updateState != null && updateState.startsWith("Yeni")) findViewById(R.id.updateBtn).setVisibility(View.VISIBLE);
+        if (i < 0) renderMenu();
+        findViewById(R.id.settingsRoot).scrollTo(0, 0);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (section >= 0) showSection(-1);
+        else super.onBackPressed();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle out) {
+        super.onSaveInstanceState(out);
+        out.putInt("sec", section);
+    }
+
+    /** Ana menü: her başlık bir satır; altında o başlığın kısa özeti. */
+    private void renderMenu() {
+        android.widget.LinearLayout menu = findViewById(R.id.settingsMenu);
+        menu.removeAllViews();
+        android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
+        int calls = 0;
+        for (int k = 1; k <= MAX_CALLS; k++) if (!sp.getString("call" + k + "Num", "").isEmpty()) calls++;
+        int apps = sp.getString("favApps", "").isEmpty() ? 0 : sp.getString("favApps", "").split("\\|").length;
+        int missing = permMissing();
+        String[] subs = {
+                (p.carName().isEmpty() ? "Araba seçilmedi" : p.carName()) + " · Bağlanınca olacaklar · Bluetooth",
+                Apps.navName(p.nav()) + " · " + Apps.musicName(p.music()) + " · " + Math.min(apps, Shortcuts.MAX) + " kısayol",
+                calls + " kişi · " + Places.count(this) + " yer",
+                "Düğmeler · Bildirim kutusu · " + Accent.NAMES[Accent.index(this)] + " renk",
+                "El sallayarak kontrol " + (Wave.enabled(this) ? "açık" : "kapalı") + " · Sesli notlar",
+                missing == 0 ? "Hepsi açık" : missing + " izin kapalı",
+                "Sürüm " + versionName() + (updateState == null ? "" : " · " + updateState)};
+        for (int i = 0; i < SECTIONS.length; i++) {
+            View row = getLayoutInflater().inflate(R.layout.item_menu, menu, false);
+            android.widget.ImageView ic = row.findViewById(R.id.menuIcon);
+            ic.setImageResource(SEC_ICONS[i]);
+            ic.setImageTintList(android.content.res.ColorStateList.valueOf(Accent.color(this, R.color.accent)));
+            ((TextView) row.findViewById(R.id.menuTitle)).setText(SEC_TITLES[i]);
+            TextView sub = row.findViewById(R.id.menuSub);
+            sub.setText(subs[i]);
+            if ((i == 5 && missing > 0) || (i == 6 && updateState != null && updateState.startsWith("Yeni")))
+                sub.setTextColor(Accent.color(this, R.color.amber));
+            int idx = i;
+            row.setOnClickListener(v -> showSection(idx));
+            row.setContentDescription(SEC_TITLES[i] + ", " + subs[i]);
+            android.widget.LinearLayout.LayoutParams lp = (android.widget.LinearLayout.LayoutParams) row.getLayoutParams();
+            lp.topMargin = Math.round((i == 0 ? 8 : 10) * getResources().getDisplayMetrics().density);
+            menu.addView(row, lp);
+        }
+    }
+
+    private String versionName() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            return "";
         }
     }
 
@@ -208,6 +294,7 @@ public class SettingsActivity extends Activity {
         renderNotifApps();
         Places.cleanup(this);
         renderPlaces();
+        if (section < 0) renderMenu();
     }
 
     // ---------- Hızlı rotalar ----------
@@ -663,13 +750,17 @@ public class SettingsActivity extends Activity {
         Update.check(this, (name, code) -> {
             if (name == null) return; // internet yoksa sessiz
             if (code > Update.current(this)) {
-                ((TextView) findViewById(R.id.updateText)).setText("Yeni sürüm var: " + name);
+                updateState = "Yeni sürüm var: " + name;
+                ((TextView) findViewById(R.id.updateText)).setText(updateState);
                 View b = findViewById(R.id.updateBtn);
-                b.setVisibility(View.VISIBLE);
+                b.setVisibility(section < 0 ? View.VISIBLE : View.GONE);
                 b.setOnClickListener(v -> safeStart(new Intent(Intent.ACTION_VIEW, Uri.parse(Update.APK))));
+                ver.setText(base + " · Yeni sürüm var");
             } else {
+                updateState = "Güncel";
                 ver.setText(base + " · Güncel");
             }
+            if (section < 0) renderMenu();
         });
     }
 
@@ -1036,6 +1127,14 @@ public class SettingsActivity extends Activity {
                 ? (xiaomi ? "Gerekli izinler açık. Xiaomi'de arka planda sorunsuz çalışması için Xiaomi izinlerine de bir kez bak."
                         : "Gerekli izinlerin hepsi açık.")
                 : "Kopilot'un tam çalışması için kapalı olan izinlere dokunup aç.");
+    }
+
+    /** Kapalı olan gerekli izin sayısı (menü özeti için). */
+    private int permMissing() {
+        NotificationManager lnm = getSystemService(NotificationManager.class);
+        boolean listener = lnm != null && lnm.isNotificationListenerAccessGranted(
+                new ComponentName(this, MediaListener.class));
+        return (listener ? 0 : 1) + (Settings.canDrawOverlays(this) ? 0 : 1) + (notificationsReady() ? 0 : 1);
     }
 
     /** Durum: 1 açık, 0 kapalı, -1 telefon bildirmiyor (elle ayarlanır). */
