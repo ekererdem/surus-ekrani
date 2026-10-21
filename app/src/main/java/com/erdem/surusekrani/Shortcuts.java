@@ -140,6 +140,8 @@ final class Shortcuts {
             float drawnTop = m[android.graphics.Matrix.MTRANS_Y] + tf * d.getIntrinsicHeight() * m[android.graphics.Matrix.MSCALE_Y];
             float edge = st.getTop() + icon.getTop() + icon.getPaddingTop() + drawnTop;
             tag.setTranslationY(edge - tag.getHeight() / 2f);
+            // En sağdaki kutu: etiket ekranın kenarından taşmasın, sağ kenarı kutunun sağ kenarında dursun
+            if (tag.getRight() > fl.getWidth()) tag.setTranslationX(fl.getWidth() - tag.getRight());
         });
     }
 
