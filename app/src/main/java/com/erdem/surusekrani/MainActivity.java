@@ -1757,6 +1757,33 @@ public class MainActivity extends Activity {
         strip.postDelayed(bannerHide, 8000);
     }
 
+    /**
+     * Yeni sürüm varsa ana ekranın altında kısa bir uyarı (günde en fazla bir kez); dokununca APK iner.
+     * GitHub'a en fazla 6 saatte bir bakılır.
+     */
+    private void maybeAnnounceUpdate() {
+        android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
+        long now = System.currentTimeMillis();
+        if (now - sp.getLong("updCheckAt", 0) < 6 * 3600_000L) return;
+        if (now - sp.getLong("updAskAt", 0) < 20 * 3600_000L) return;
+        sp.edit().putLong("updCheckAt", now).apply();
+        Update.check(this, (name, code) -> {
+            if (name == null || code <= Update.current(this)) return;
+            sp.edit().putLong("updAskAt", System.currentTimeMillis()).apply();
+            playBtn.postDelayed(() -> {
+                if (isFinishing() || !hasWindowFocus()) return;
+                showTip("Yeni sürüm var: " + name + ". İndirmek için dokun.");
+                if (bannerView != null) bannerView.setOnClickListener(v -> {
+                    hideBanner();
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(Update.APK)));
+                    } catch (Exception ignored) {
+                    }
+                });
+            }, 2500);
+        });
+    }
+
     /** İpucu şeridi: ekranın altında 9 saniye, dokununca kapanır. */
     private void showTip(String text) {
         ViewGroup content = findViewById(android.R.id.content);
@@ -2081,6 +2108,7 @@ public class MainActivity extends Activity {
         }, 5000);
         Shortcuts.render(this);
         CarLink.onAppOpen(this);
+        maybeAnnounceUpdate();
         refreshParkBadge();
         renderCalls();
         arrangeQuick();
