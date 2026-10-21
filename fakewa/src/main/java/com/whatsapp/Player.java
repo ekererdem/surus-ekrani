@@ -11,7 +11,11 @@ import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
 
-/** Test: Spotify gibi çalan bir müzik oturumu (kapak, "• Akıllı Mix'ten", beğen / radyo / kaldır tuşları). */
+/**
+ * Test: Spotify gibi çalan bir müzik oturumu (kapak, "• Akıllı Mix'ten", beğen / radyo / kaldır tuşları).
+ * Bildiriminde ayrıca yalnız orada duran "Beğenmedim" tuşu var (Spotify'ın akıllı mix şarkıları gibi).
+ * Dokunulan tuşlar logcat'e "FakeWA" etiketiyle yazılır.
+ */
 public class Player extends Activity {
     static MediaSession session;
 
@@ -38,7 +42,39 @@ public class Player extends Activity {
                     .addCustomAction("radio", "Radyoya git", android.R.drawable.ic_menu_rotate)
                     .addCustomAction("hide", "Öneriyi kaldır", android.R.drawable.ic_menu_close_clear_cancel)
                     .build());
+            session.setCallback(new MediaSession.Callback() {
+                @Override
+                public void onCustomAction(String action, Bundle extras) {
+                    android.util.Log.i("FakeWA", "ozel tus: " + action);
+                }
+            });
             session.setActive(true);
+            android.app.NotificationManager nm = getSystemService(android.app.NotificationManager.class);
+            nm.createNotificationChannel(new android.app.NotificationChannel("music", "Müzik",
+                    android.app.NotificationManager.IMPORTANCE_LOW));
+            android.app.PendingIntent dislike = android.app.PendingIntent.getBroadcast(this, 7,
+                    new android.content.Intent(this, Tap.class).setAction("dislike"),
+                    android.app.PendingIntent.FLAG_IMMUTABLE);
+            android.app.PendingIntent none = android.app.PendingIntent.getBroadcast(this, 8,
+                    new android.content.Intent(this, Tap.class).setAction("transport"),
+                    android.app.PendingIntent.FLAG_IMMUTABLE);
+            android.app.Notification n = new android.app.Notification.Builder(this, "music")
+                    .setSmallIcon(android.R.drawable.ic_media_play)
+                    .setContentTitle("Yalnızlar Treni")
+                    .setContentText("Tarkan, Nazan Öncel")
+                    .addAction(new android.app.Notification.Action.Builder(null, "Beğenilenlere ekle", none).build())
+                    .addAction(new android.app.Notification.Action.Builder(null, "Önceki", none).build())
+                    .addAction(new android.app.Notification.Action.Builder(null, "Duraklat", none).build())
+                    .addAction(new android.app.Notification.Action.Builder(null, "Sonraki", none).build())
+                    .addAction(new android.app.Notification.Action.Builder(
+                            android.graphics.drawable.Icon.createWithResource(this, android.R.drawable.ic_delete),
+                            "Beğenmedim", dislike).build())
+                    .setStyle(new android.app.Notification.MediaStyle().setMediaSession(session.getSessionToken())
+                            .setShowActionsInCompactView(1, 2, 3))
+                    .setCategory(android.app.Notification.CATEGORY_TRANSPORT)
+                    .setOngoing(true)
+                    .build();
+            nm.notify(77, n);
         }
         moveTaskToBack(true);
     }

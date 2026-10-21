@@ -71,3 +71,22 @@ res3 += " / oturumlar: " + " ; ".join(l.strip() for l in ms if "package=" in l o
 res3 += " / player: " + sh("am start -W -n com.whatsapp/.Player").replace("\n", " ")[:200]
 print(res3)
 open("notif.txt", "a").write(" | " + res3)
+
+# Müzik tuşları: oturumdaki "Beğenilenlere ekle" ve yalnız bildirimde duran "Beğenmedim" dokununca uygulamaya ulaşıyor mu
+sh("logcat -c")
+descs = re.findall(r'content-desc="([^"]*)"[^>]*class="android.widget.ImageButton"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+                   acts.group(0)) if acts else []
+if not descs and acts:
+    descs = re.findall(r'class="android.widget.ImageButton"[^>]*content-desc="([^"]*)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+                       acts.group(0))
+names = [d[0] for d in descs]
+for want in ("Beğenilenlere ekle", "Beğenmedim"):
+    for d in descs:
+        if d[0] == want:
+            sh("input tap %d %d" % ((int(d[1]) + int(d[3])) // 2, (int(d[2]) + int(d[4])) // 2))
+            time.sleep(1.5)
+log = subprocess.run(["adb", "logcat", "-d", "-s", "FakeWA:I"], capture_output=True, text=True).stdout
+got = [l.split("FakeWA:")[-1].strip() for l in log.splitlines() if "FakeWA" in l and "tus" in l]
+res4 = "müzik tuşları: " + " / ".join(names) + " | dokununca: " + (" ; ".join(got) if got else "hiçbiri ulaşmadı")
+print(res4)
+open("notif.txt", "a").write(" | " + res4)

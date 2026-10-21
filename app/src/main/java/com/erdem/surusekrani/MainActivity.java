@@ -1340,6 +1340,7 @@ public class MainActivity extends Activity {
     /**
      * Müzik uygulamasının telefona açtığı kendi tuşları (Spotify: beğen, öneriyi kaldır, karıştır…).
      * Uygulama hangi tuşları veriyorsa onlar görünür; dokununca uygulama açılmadan işini yapar.
+     * Spotify'ın yalnız bildirimine koyduğu "beğenmedim / öneriyi kaldır" tuşu da (akıllı mix şarkıları) eklenir.
      * (Oynat tuşuna dokunmaz; sadece o anki oturumun kendi tuşlarını gönderir.)
      */
     private void renderActions() {
@@ -1348,64 +1349,127 @@ public class MainActivity extends Activity {
         MediaController c = ctrl;
         PlaybackState s = c == null ? null : c.getPlaybackState();
         List<PlaybackState.CustomAction> acts = s == null ? null : s.getCustomActions();
+        if (acts == null) acts = Collections.emptyList();
+        java.util.Locale tr = new java.util.Locale("tr", "TR");
+        // Oturumda olmayan, bildirimdeki "beğenmedim" tuşları
+        java.util.Set<String> have = new java.util.HashSet<>();
+        for (PlaybackState.CustomAction a : acts) have.add(String.valueOf(a.getName()).trim().toLowerCase(tr));
+        List<android.app.Notification.Action> fromNotif = new java.util.ArrayList<>();
+        android.app.Notification.Action[] na = c == null ? null : MediaListener.MEDIA_ACTIONS.get(c.getPackageName());
+        if (na != null) for (android.app.Notification.Action x : na) {
+            String t = x == null || x.title == null ? "" : x.title.toString().trim().toLowerCase(tr);
+            if (!t.isEmpty() && x.actionIntent != null && !have.contains(t) && isDislike(t)) fromNotif.add(x);
+        }
         StringBuilder key = new StringBuilder(c == null ? "" : c.getPackageName());
-        if (acts != null) for (PlaybackState.CustomAction a : acts) key.append('|').append(a.getAction()).append(a.getIcon());
+        for (PlaybackState.CustomAction a : acts) key.append('|').append(a.getAction()).append(a.getIcon());
+        for (android.app.Notification.Action x : fromNotif) key.append("|n:").append(x.title);
         if (key.toString().equals(actionsKey)) return;
         actionsKey = key.toString();
         box.removeAllViews();
-        if (c == null || acts == null || acts.isEmpty()) {
+        if (c == null || (acts.isEmpty() && fromNotif.isEmpty())) {
             box.setVisibility(View.GONE);
             return;
         }
-        android.content.res.Resources res;
+        String pkg = c.getPackageName();
+        android.content.res.Resources res = null;
+        android.content.Context pkgCtx = null;
         try {
-            res = getPackageManager().getResourcesForApplication(c.getPackageName());
-        } catch (Exception e) {
-            box.setVisibility(View.GONE);
-            return;
+            res = getPackageManager().getResourcesForApplication(pkg);
+        } catch (Exception ignored) {
+        }
+        try {
+            pkgCtx = createPackageContext(pkg, 0);
+        } catch (Exception ignored) {
         }
         StringBuilder names = new StringBuilder();
+        final int max = 5;
+        for (PlaybackState.CustomAction a : acts) {
+            names.append(a.getName()).append(" (").append(a.getAction()).append("); ");
+            if (box.getChildCount() >= max) continue;
+            // Radyo tuşu istenmedi
+            String id = (a.getAction() + " " + a.getName()).toLowerCase(tr);
+            if (id.contains("radio") || id.contains("radyo")) continue;
+            android.graphics.drawable.Drawable icon = null;
+            try {
+                if (res != null) icon = res.getDrawable(a.getIcon(), null).mutate();
+            } catch (Exception ignored) {
+            }
+            if (icon == null) try {
+                // Bazı simgeler uygulamanın kendi temasıyla açılıyor
+                if (pkgCtx != null) icon = pkgCtx.getDrawable(a.getIcon()).mutate();
+            } catch (Exception ignored) {
+            }
+            if (icon == null) icon = fallbackIcon(String.valueOf(a.getName()).toLowerCase(tr));
+            String action = a.getAction();
+            Bundle extras = a.getExtras();
+            addActionButton(box, icon, a.getName(), () -> {
+                MediaController now = ctrl;
+                if (now != null && now.getPackageName().equals(pkg))
+                    now.getTransportControls().sendCustomAction(action, extras);
+            });
+        }
+        for (android.app.Notification.Action x : fromNotif) {
+            names.append("bildirim: ").append(x.title).append("; ");
+            if (box.getChildCount() >= max) continue;
+            android.graphics.drawable.Drawable icon = null;
+            try {
+                if (x.getIcon() != null) icon = x.getIcon().loadDrawable(this);
+                if (icon != null) icon = icon.mutate();
+            } catch (Exception ignored) {
+            }
+            if (icon == null) icon = getDrawable(R.drawable.ic_minus_circle).mutate();
+            android.app.PendingIntent pi = x.actionIntent;
+            addActionButton(box, icon, x.title, () -> {
+                try {
+                    pi.send();
+                } catch (Exception ignored) {
+                }
+            });
+        }
+        fitActions();
+        android.util.Log.i("Kopilot", "müzik uygulamasının tuşları (" + pkg + "): " + names);
+        box.setVisibility(box.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    /** "Beğenmedim", "Öneriyi kaldır", "Bu şarkıyı gizle"… (beğenilenlerden çıkarma değil). */
+    static boolean isDislike(String t) {
+        if (t.contains("beğenilen") || t.contains("liked") || t.contains("favori")
+                || t.contains("radyo") || t.contains("radio")) return false;
+        for (String k : new String[]{"beğenme", "beğenmi", "dislike", "öneri", "gizle", "hide", "istemiyorum",
+                "don't", "do not", "not interested", "kaldır", "remove"}) {
+            if (t.contains(k)) return true;
+        }
+        return false;
+    }
+
+    /** Uygulamanın simgesi açılamazsa adına göre bizim simgemiz (tuş hiç kaybolmasın). */
+    private android.graphics.drawable.Drawable fallbackIcon(String name) {
+        int r = isDislike(name) ? R.drawable.ic_minus_circle
+                : (name.contains("beğen") || name.contains("like") || name.contains("ekle") || name.contains("kaydet"))
+                ? R.drawable.ic_heart : R.drawable.ic_star;
+        return getDrawable(r).mutate();
+    }
+
+    private void addActionButton(android.widget.LinearLayout box, android.graphics.drawable.Drawable icon,
+                                 CharSequence name, Runnable onTap) {
         float d = getResources().getDisplayMetrics().density;
         android.util.TypedValue tv = new android.util.TypedValue();
         getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, tv, true);
-        for (PlaybackState.CustomAction a : acts) {
-            names.append(a.getName()).append(" (").append(a.getAction()).append("); ");
-            if (box.getChildCount() >= 4) continue;
-            // Radyo tuşu istenmedi
-            String id = (a.getAction() + " " + a.getName()).toLowerCase(new java.util.Locale("tr", "TR"));
-            if (id.contains("radio") || id.contains("radyo")) continue;
-            android.graphics.drawable.Drawable icon;
-            try {
-                icon = res.getDrawable(a.getIcon(), null).mutate();
-            } catch (Exception e) {
-                continue;
-            }
-            ImageButton b = new ImageButton(this);
-            b.setImageDrawable(icon);
-            b.setImageTintList(ColorStateList.valueOf(getColor(R.color.fg)));
-            b.setBackgroundResource(tv.resourceId);
-            b.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            int pad = Math.round(7 * d);
-            b.setPadding(pad, pad, pad, pad);
-            b.setContentDescription(a.getName());
-            String action = a.getAction();
-            Bundle extras = a.getExtras();
-            CharSequence name = a.getName();
-            b.setOnClickListener(v -> {
-                MediaController now = ctrl;
-                if (now != null && now.getPackageName().equals(c.getPackageName()))
-                    now.getTransportControls().sendCustomAction(action, extras);
-            });
-            b.setOnLongClickListener(v -> { showTip(String.valueOf(name)); return true; });
-            android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
-                    Math.round(52 * d), Math.round(40 * d));
-            lp.setMarginStart(Math.round(3 * d));
-            lp.setMarginEnd(Math.round(3 * d));
-            box.addView(b, lp);
-        }
-        fitActions();
-        android.util.Log.i("Kopilot", "müzik uygulamasının tuşları (" + c.getPackageName() + "): " + names);
-        box.setVisibility(box.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+        ImageButton b = new ImageButton(this);
+        b.setImageDrawable(icon);
+        b.setImageTintList(ColorStateList.valueOf(getColor(R.color.fg)));
+        b.setBackgroundResource(tv.resourceId);
+        b.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        int pad = Math.round(7 * d);
+        b.setPadding(pad, pad, pad, pad);
+        b.setContentDescription(name);
+        b.setOnClickListener(v -> onTap.run());
+        b.setOnLongClickListener(v -> { showTip(String.valueOf(name)); return true; });
+        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                Math.round(52 * d), Math.round(40 * d));
+        lp.setMarginStart(Math.round(3 * d));
+        lp.setMarginEnd(Math.round(3 * d));
+        box.addView(b, lp);
     }
 
     /** "Beğenilen Şarkılar" → "Beğenilen Şarkılar'dan" (Türkçe ses uyumuyla); rakamla bitiyorsa olduğu gibi. */
@@ -1434,7 +1498,7 @@ public class MainActivity extends Activity {
             int n = box.getChildCount();
             int room = row.getWidth() - Math.round(84 * d); // iki taraftaki süreler
             if (row.getWidth() == 0 || n == 0) return;
-            int w = Math.max(Math.round(36 * d), Math.min(Math.round(52 * d), room / n - Math.round(6 * d)));
+            int w = Math.max(Math.round(34 * d), Math.min(Math.round(52 * d), room / n - Math.round(6 * d)));
             for (int i = 0; i < n; i++) {
                 android.widget.LinearLayout.LayoutParams lp = (android.widget.LinearLayout.LayoutParams) box.getChildAt(i).getLayoutParams();
                 if (lp.width != w) { lp.width = w; box.getChildAt(i).setLayoutParams(lp); }
@@ -2116,6 +2180,7 @@ public class MainActivity extends Activity {
         NavState.listener = this::renderNav;
         renderNav();
         Notifs.listener = () -> { renderNotifs(); renderMissed(); };
+        MediaListener.onMedia = this::renderActions;
         // Bildirim dinleyicisi kapanmışsa yeniden bağla, açıksa mevcut bildirimleri tazele
         if (hasListenerAccess()) {
             if (MediaListener.instance != null) MediaListener.instance.resync();
@@ -2160,6 +2225,7 @@ public class MainActivity extends Activity {
         seek.removeCallbacks(progressTick);
         NavState.listener = null;
         Notifs.listener = null;
+        MediaListener.onMedia = null;
         Notifs.banner = null;
         playBtn.removeCallbacks(notifTick);
         hideBanner();
