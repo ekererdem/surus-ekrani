@@ -41,6 +41,9 @@ for _ in range(4):
     sh("input", "swipe", str(W // 2), str(int(H * 0.8)), str(W // 2), str(int(H * 0.3)), "400")
     time.sleep(2)
 res += " | Güncelle " + ("bulundu" if found else "yok")
+if not found:
+    shot("shot-update-settings.png")
+    res += " | dump: " + sh("uiautomator", "dump", "/sdcard/up2.xml").strip()[:120]
 confirm = ""
 if found:
     for _ in range(20):
