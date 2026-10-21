@@ -204,12 +204,8 @@
             <Switch android:id="@+id/swWave" style="@style/Toggle" android:layout_marginTop="8dp"
                 android:text="El sallayarak kontrol" />
             <TextView style="@style/Note" android:layout_marginTop="0dp"
-                android:text="Telefona dokunmadan komut ver: elini ön kameranın üzerinden bir ya da iki kez geçir. Her hareketin ne yapacağını aşağıdan seç. Kopilot ekrandayken çalışır." />
+                android:text="Telefona dokunmadan komut ver: elini ön kameranın üzerinden bir kez geçir. Ne yapacağını aşağıdan seç." />
             <TextView android:id="@+id/wave1Btn" style="@style/Option"
-                android:layout_height="wrap_content" android:minHeight="52dp"
-                android:gravity="center_vertical" android:paddingVertical="8dp"
-                android:background="?android:attr/selectableItemBackground" />
-            <TextView android:id="@+id/wave2Btn" style="@style/Option"
                 android:layout_height="wrap_content" android:minHeight="52dp"
                 android:gravity="center_vertical" android:paddingVertical="8dp"
                 android:background="?android:attr/selectableItemBackground" />

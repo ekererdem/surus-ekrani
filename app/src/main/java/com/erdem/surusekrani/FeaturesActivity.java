@@ -15,8 +15,8 @@ public class FeaturesActivity extends Activity {
 
         Ui.section(this, box, "Dokunmadan");
         Ui.item(this, box, "👋 El sallayarak kontrol",
-                "Elini telefonun üst kısmının (ön kameranın) üzerinden bir kez ya da art arda iki kez geçir. "
-                        + "Ne yapacağını Ayarlar → Sürüş yardımı'ndan seç: şarkı geç/durdur, bildirimi göster "
+                "Elini telefonun üst kısmının (ön kameranın) üzerinden bir kez geçir. "
+                        + "Ne yapacağını Ayarlar › Uzaktan kontrol'den seç: şarkı geç/durdur, bildirimi göster "
                         + "ya da sesli oku, sesi kapat, sesli komut, eve rota, park yerini kaydet.");
         Ui.item(this, box, "↔️ Kaydırarak şarkı değiştir",
                 "Müzik kutusunu sola kaydır: sonraki şarkı. Sağa kaydır: önceki şarkı.");

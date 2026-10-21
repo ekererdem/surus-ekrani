@@ -24,7 +24,7 @@ Android 11 ve üstü telefonlarda çalışır. Kurarken telefon "bilinmeyen kayn
 - **Hızlı arama:** En sık aradığın kişiler tek dokunuşta. Basılı tutarsan WhatsApp'tan konumunu gönderirsin.
 - **Arabam nerede:** Arabadan inmeden park yerini kaydet, sonra yürüyerek kolayca bul.
 - **Bluetooth:** Kopilot açılınca Bluetooth'u açar, arabadan inince kapatır.
-- **El sallayarak kontrol:** Elini ön kameranın üzerinden geçir; şarkı geçsin, müzik dursun.
+- **El sallayarak kontrol:** Elini ön kameranın üzerinden bir kez geçir; şarkı geçsin ya da seçtiğin başka bir iş yapılsın.
 
 ## İlk kurulum
 

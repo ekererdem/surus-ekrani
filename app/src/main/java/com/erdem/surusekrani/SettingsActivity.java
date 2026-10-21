@@ -99,7 +99,6 @@ public class SettingsActivity extends Activity {
             renderWave();
         });
         findViewById(R.id.wave1Btn).setOnClickListener(v -> pickWave(1));
-        findViewById(R.id.wave2Btn).setOnClickListener(v -> pickWave(2));
         renderWave();
         findViewById(R.id.tipsReset).setOnClickListener(v -> {
             Tips.reset(this);
@@ -211,7 +210,7 @@ public class SettingsActivity extends Activity {
     private static final int[] SECTIONS = {R.id.secConnection, R.id.secApps, R.id.secPeople, R.id.secHome,
             R.id.secControl, R.id.secPerms, R.id.secAbout};
     private static final String[] SEC_TITLES = {"Bağlantı seçenekleri", "Uygulamalar", "Kişiler ve yerler",
-            "Ana ekran", "Kontrol", "İzinler", "Hakkında"};
+            "Ana ekran", "Uzaktan kontrol", "İzinler", "Hakkında"};
     private static final int[] SEC_ICONS = {R.drawable.ic_bluetooth, R.drawable.ic_apps, R.drawable.ic_phone,
             R.drawable.ic_home, R.drawable.ic_mic, R.drawable.ic_shield, R.drawable.ic_info};
     private int section = -1;
@@ -941,8 +940,7 @@ public class SettingsActivity extends Activity {
 
     private void renderWave() {
         boolean on = Wave.enabled(this);
-        waveRow(R.id.wave1Btn, "Bir kez el salla", WaveActions.get(this, 1), on);
-        waveRow(R.id.wave2Btn, "İki kez el salla", WaveActions.get(this, 2), on);
+        waveRow(R.id.wave1Btn, "Elini geçirince", WaveActions.get(this, 1), on);
     }
 
     private void waveRow(int id, String title, String key, boolean on) {
@@ -961,7 +959,7 @@ public class SettingsActivity extends Activity {
     private void pickWave(int times) {
         String cur = WaveActions.get(this, times);
         new AlertDialog.Builder(this)
-                .setTitle(times == 2 ? "İki kez el sallayınca" : "Bir kez el sallayınca")
+                .setTitle("Elini geçirince")
                 .setSingleChoiceItems(WaveActions.LABELS, WaveActions.index(cur), (d, which) -> {
                     WaveActions.set(this, times, WaveActions.KEYS[which]);
                     renderWave();

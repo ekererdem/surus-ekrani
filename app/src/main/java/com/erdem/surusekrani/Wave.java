@@ -5,34 +5,28 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Handler;
-import android.os.Looper;
 
 /**
- * El sallama: elini telefonun üst kısmının (yakınlık sensörü) üzerinden geçir.
- * 1 kez = sonraki şarkı, 1 saniye içinde 2 kez = oynat/duraklat.
+ * El sallama: elini telefonun üst kısmının (yakınlık sensörü) üzerinden bir kez geçir, seçilen iş hemen yapılır.
+ * (İki kez geçirme kaldırıldı: güvenilir ayırt edilemiyordu.) Hemen ardından gelen ikinci geçiş yok sayılır.
  * Sensör kapalıyken neredeyse hiç pil harcamaz; sadece uygulama ekrandayken dinlenir.
  */
 final class Wave implements SensorEventListener {
     interface Action { void run(); }
 
     private static final long MAX_COVER = 900;   // daha uzun kapalı kalırsa el sallama değil (cep, tutucu vb.)
-    private static final long DOUBLE_GAP = 1000;
+    private static final long QUIET = 1500;      // bir el sallamadan sonra bu kadar süre yeni geçiş sayılmaz
 
     private final SensorManager sm;
     private final Sensor prox;
-    private final Action onSingle, onDouble;
-    private final Handler main = new Handler(Looper.getMainLooper());
+    private final Action onWave;
     private boolean near, running;
-    private long nearAt;
-    private int waves;
-    private final Runnable fire = this::fire;
+    private long nearAt, firedAt;
 
-    Wave(Context c, Action onSingle, Action onDouble) {
+    Wave(Context c, Action onWave) {
         sm = c.getSystemService(SensorManager.class);
         prox = sm == null ? null : sm.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        this.onSingle = onSingle;
-        this.onDouble = onDouble;
+        this.onWave = onWave;
     }
 
     static boolean enabled(Context c) {
@@ -52,8 +46,6 @@ final class Wave implements SensorEventListener {
         if (!running) return;
         running = false;
         sm.unregisterListener(this);
-        main.removeCallbacks(fire);
-        waves = 0;
     }
 
     @Override
@@ -63,19 +55,13 @@ final class Wave implements SensorEventListener {
         if (isNear && !near) {
             nearAt = now;
         } else if (!isNear && near) {
-            if (now - nearAt <= MAX_COVER) { // kısa bir geçiş = el sallama
-                waves++;
-                main.removeCallbacks(fire);
-                main.postDelayed(fire, DOUBLE_GAP);
+            // kısa bir geçiş = el sallama
+            if (now - nearAt <= MAX_COVER && now - firedAt > QUIET) {
+                firedAt = now;
+                onWave.run();
             }
         }
         near = isNear;
-    }
-
-    private void fire() {
-        int n = waves;
-        waves = 0;
-        if (n >= 2) onDouble.run(); else if (n == 1) onSingle.run();
     }
 
     @Override public void onAccuracyChanged(Sensor s, int a) {}

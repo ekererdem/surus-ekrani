@@ -3,7 +3,7 @@ package com.erdem.surusekrani;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/** El sallama hareketine atanabilen işler (Ayarlar → Sürüş yardımı). */
+/** El sallama hareketine atanabilen işler (Ayarlar › Uzaktan kontrol). */
 final class WaveActions {
     static final String[] KEYS = {
             "next", "prev", "play", "notif", "read", "mute", "assist", "home", "park", "none"};
@@ -25,7 +25,7 @@ final class WaveActions {
         return c.getSharedPreferences("surus", Context.MODE_PRIVATE);
     }
 
-    /** times: 1 = bir kez el sallama, 2 = iki kez. Varsayılanlar eski davranış: sonraki şarkı / durdur-başlat. */
+    /** times: 1 = el sallama (2 = eski iki kez sallama, artık kullanılmıyor). Varsayılan: sonraki şarkı. */
     static String get(Context c, int times) {
         return sp(c).getString(times == 2 ? "wave2" : "wave1", times == 2 ? "play" : "next");
     }

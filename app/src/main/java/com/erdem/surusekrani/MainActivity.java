@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
         if (compact) ((TextView) findViewById(R.id.clock)).setTextSize(38);
         status = new Status(this);
         // El sallama: 1 kez / 2 kez ne yapacağı Ayarlar'dan seçilir (varsayılan: sonraki şarkı / durdur-başlat)
-        wave = new Wave(this, () -> runWave(WaveActions.get(this, 1)), () -> runWave(WaveActions.get(this, 2)));
+        wave = new Wave(this, () -> runWave(WaveActions.get(this, 1)));
 
         navIcon = findViewById(R.id.navIcon);
         navTitle = findViewById(R.id.navTitle);
@@ -1299,8 +1299,6 @@ public class MainActivity extends Activity {
         if (playing && wave.available() && Wave.enabled(this))
             Tips.maybe(this, "wave", "Elini telefonun üst kısmının üzerinden geçir: "
                     + WaveActions.label(WaveActions.get(this, 1)).toLowerCase(new java.util.Locale("tr", "TR"))
-                    + ". İki kez geçir: "
-                    + WaveActions.label(WaveActions.get(this, 2)).toLowerCase(new java.util.Locale("tr", "TR"))
                     + ". Ayarlar'dan değiştirebilirsin.");
         playBtn.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
         updateProgress();
