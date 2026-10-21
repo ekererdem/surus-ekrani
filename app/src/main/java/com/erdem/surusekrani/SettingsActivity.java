@@ -129,12 +129,14 @@ public class SettingsActivity extends Activity {
                 startActivity(new Intent(this, NotifAppsActivity.class)));
 
         // Kısa açıklamalar anahtarın altında, küçük ve gri
-        subLine(R.id.swBtOffHide, "Kopilot alta alınınca kapat",
-                "Yarım dakika sonra kapanır; araba, kulaklık ya da saat bağlıysa dokunmaz.");
+        subLine(R.id.swBtOnOpen, "Kopilot açılınca aç",
+                "Arabaya binince Bluetooth'u açmayı unutsan da araban bağlanır.");
+        subLine(R.id.swBtOffHide, "Kopilot'tan çıkınca kapat",
+                "Yarım dakika sonra kapanır, şarjın boşa gitmez. Kulaklık ya da saat bağlıysa açık kalır.");
         subLine(R.id.swBtOff, "Arabadan inince kapat",
-                "Bir dakika sonra kapanır; kulaklık ya da saat bağlıysa dokunmaz.");
+                "Arabayla bağlantı kopunca bir dakika sonra kapanır. Kulaklık ya da saat bağlıysa açık kalır.");
         subLine(R.id.swCarLink, "Araba bağlanmazsa Kopilot bağlasın",
-                "Şarja takınca ya da Kopilot'u açınca dener. Olmazsa Gösterge paneline dokun.");
+                "Araba telefonu bulamazsa bağlantıyı Kopilot başlatır. Yine olmazsa Gösterge paneline dokun.");
 
         Switch btOnOpen = findViewById(R.id.swBtOnOpen);
         btOnOpen.setChecked(p.btOnOpen());
@@ -252,14 +254,17 @@ public class SettingsActivity extends Activity {
         for (int k = 1; k <= MAX_CALLS; k++) if (!sp.getString("call" + k + "Num", "").isEmpty()) calls++;
         int apps = sp.getString("favApps", "").isEmpty() ? 0 : sp.getString("favApps", "").split("\\|").length;
         int missing = permMissing();
+        boolean noCar = p.carName().isEmpty();
+        boolean newVer = updateState != null && updateState.startsWith("Yeni");
+        // Kısa açıklama; yalnız dikkat isteyen durumda (araba seçilmedi, izin kapalı, yeni sürüm) uyarı
         String[] subs = {
-                (p.carName().isEmpty() ? "Araba seçilmedi" : p.carName()) + " · Bağlanınca olacaklar · Bluetooth",
-                Apps.navName(p.nav()) + " · " + Apps.musicName(p.music()) + " · " + Math.min(apps, Shortcuts.MAX) + " kısayol",
-                calls + " kişi · " + Places.count(this) + " yer",
-                "Düğmeler · Bildirim kutusu · " + Accent.NAMES[Accent.index(this)] + " renk",
-                "El sallayarak kontrol " + (Wave.enabled(this) ? "açık" : "kapalı") + " · Sesli notlar",
-                missing == 0 ? "Hepsi açık" : missing + " izin kapalı",
-                "Sürüm " + versionName() + (updateState == null ? "" : " · " + updateState)};
+                noCar ? "Araba seçilmedi" : "Araba ve Bluetooth",
+                "Harita, müzik ve kısayollar",
+                "Hızlı aramalar ve rotalar",
+                "Düğmeler, bildirimler ve renk",
+                "El sallama ve sesli notlar",
+                missing == 0 ? "Kopilot'un çalışması için gerekenler" : missing + " izin kapalı",
+                newVer ? updateState : "Özellikler ve ipuçları"};
         for (int i = 0; i < SECTIONS.length; i++) {
             View row = getLayoutInflater().inflate(R.layout.item_menu, menu, false);
             android.widget.ImageView ic = row.findViewById(R.id.menuIcon);
@@ -268,7 +273,7 @@ public class SettingsActivity extends Activity {
             ((TextView) row.findViewById(R.id.menuTitle)).setText(SEC_TITLES[i]);
             TextView sub = row.findViewById(R.id.menuSub);
             sub.setText(subs[i]);
-            if ((i == 5 && missing > 0) || (i == 6 && updateState != null && updateState.startsWith("Yeni")))
+            if ((i == 0 && noCar) || (i == 5 && missing > 0) || (i == 6 && newVer))
                 sub.setTextColor(Accent.color(this, R.color.amber));
             int idx = i;
             row.setOnClickListener(v -> showSection(idx));
@@ -821,6 +826,8 @@ public class SettingsActivity extends Activity {
         b.setSpan(new android.text.style.RelativeSizeSpan(0.8f), st, b.length(), 0);
         b.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), st, b.length(), 0);
         sw.setText(b);
+        sw.setLineSpacing(0, 1.1f);
+        sw.setPadding(sw.getPaddingLeft(), dp(10), sw.getPaddingRight(), dp(10));
     }
 
     /** Bildirim kutusu satırı: seçili uygulamaların simgeleri (en fazla 6, fazlası "+N"). */
@@ -1189,9 +1196,27 @@ public class SettingsActivity extends Activity {
 
     // ---------- Araba seçimi ----------
 
+    private boolean scanAsked;
+    private AlertDialog carDialog;
+
+    /** Yakındaki cihazları aramak için izin (Android 12+: Yakındaki cihazlar; 11: konum). */
+    private String scanPerm() {
+        return Build.VERSION.SDK_INT >= 31 ? Manifest.permission.BLUETOOTH_SCAN : Manifest.permission.ACCESS_FINE_LOCATION;
+    }
+
+    /**
+     * Araba seçimi: üstte telefonda kayıtlı cihazlar, altta o an yakında bulunanlar (arama sürerken eklenir).
+     * Yakındakilerden birine dokununca telefon onunla eşleşir ve araba olarak kaydedilir.
+     */
     private void pickCar() {
-        if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, REQ_BT);
+        java.util.List<String> need = new ArrayList<>();
+        if (Build.VERSION.SDK_INT >= 31
+                && checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED)
+            need.add(Manifest.permission.BLUETOOTH_CONNECT);
+        if (!scanAsked && checkSelfPermission(scanPerm()) != PackageManager.PERMISSION_GRANTED) need.add(scanPerm());
+        if (!need.isEmpty()) {
+            scanAsked = true;
+            requestPermissions(need.toArray(new String[0]), REQ_BT);
             return;
         }
         BluetoothManager bm = getSystemService(BluetoothManager.class);
@@ -1204,28 +1229,147 @@ public class SettingsActivity extends Activity {
             Toast.makeText(this, "Önce Bluetooth'u aç", Toast.LENGTH_SHORT).show();
             return;
         }
+        boolean canScan = checkSelfPermission(scanPerm()) == PackageManager.PERMISSION_GRANTED;
+
+        float d = getResources().getDisplayMetrics().density;
+        android.widget.ScrollView sv = new android.widget.ScrollView(this);
+        android.widget.LinearLayout box = new android.widget.LinearLayout(this);
+        box.setOrientation(android.widget.LinearLayout.VERTICAL);
+        box.setPadding(0, dp(4), 0, dp(12));
+        sv.addView(box);
+
+        java.util.Set<String> shown = new java.util.HashSet<>();
         Set<BluetoothDevice> bonded = ad.getBondedDevices();
-        if (bonded == null || bonded.isEmpty()) {
-            Toast.makeText(this, "Eşleşmiş cihaz yok. Önce telefonu arabayla eşleştir.",
-                    Toast.LENGTH_LONG).show();
-            return;
+        if (bonded != null && !bonded.isEmpty()) {
+            box.addView(carHeader("Telefonda kayıtlı"));
+            for (BluetoothDevice dev : bonded) {
+                shown.add(dev.getAddress());
+                box.addView(carRow(dev, false));
+            }
         }
-        List<BluetoothDevice> list = new ArrayList<>(bonded);
-        String[] names = new String[list.size()];
-        for (int i = 0; i < list.size(); i++) {
-            String n = list.get(i).getName();
-            names[i] = (n == null || n.isEmpty()) ? list.get(i).getAddress() : n;
+        android.widget.LinearLayout near = new android.widget.LinearLayout(this);
+        near.setOrientation(android.widget.LinearLayout.VERTICAL);
+        TextView status = new TextView(this);
+        status.setTextSize(13);
+        status.setTextColor(getColor(R.color.muted));
+        status.setPadding(dp(24), dp(4), dp(24), dp(8));
+        if (canScan) {
+            box.addView(carHeader("Yakındakiler"));
+            box.addView(near);
+            status.setText("Aranıyor… Araban çıkmazsa arabanın ekranından Bluetooth eşleştirmeyi aç.");
+        } else {
+            status.setText("Yakındaki cihazları görmek için Bluetooth arama iznini ver.");
         }
-        new AlertDialog.Builder(this)
+        box.addView(status);
+
+        String[] pendingBond = {null};
+        android.content.BroadcastReceiver rx = new android.content.BroadcastReceiver() {
+            @Override
+            public void onReceive(android.content.Context c, Intent in) {
+                String a = in.getAction();
+                BluetoothDevice dev = in.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (BluetoothDevice.ACTION_FOUND.equals(a) && dev != null) {
+                    String n = null;
+                    try { n = dev.getName(); } catch (SecurityException ignored) { }
+                    if (n == null) n = in.getStringExtra(BluetoothDevice.EXTRA_NAME);
+                    // Adı olmayanlar (çoğu saat, sensör) listeyi kalabalıklaştırmasın
+                    if (n == null || n.trim().isEmpty() || !shown.add(dev.getAddress())) return;
+                    near.addView(carRow(dev, true));
+                } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(a) && pendingBond[0] == null) {
+                    status.setText(near.getChildCount() == 0
+                            ? "Yakında yeni cihaz bulunamadı. Arabanın ekranından Bluetooth eşleştirmeyi açıp tekrar dene."
+                            : "Araban yoksa arabanın ekranından Bluetooth eşleştirmeyi açıp tekrar dene.");
+                } else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(a) && dev != null
+                        && dev.getAddress().equals(pendingBond[0])) {
+                    int st = in.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE);
+                    if (st == BluetoothDevice.BOND_BONDED) {
+                        chooseCar(dev);
+                        if (carDialog != null) carDialog.dismiss();
+                        Toast.makeText(SettingsActivity.this, "Eşleşti, araban olarak kaydedildi", Toast.LENGTH_LONG).show();
+                    } else if (st == BluetoothDevice.BOND_NONE) {
+                        pendingBond[0] = null;
+                        status.setText("Eşleşmedi. Arabanın ekranında eşleştirme açık mı? Tekrar dokunabilirsin.");
+                    }
+                }
+            }
+        };
+        android.content.IntentFilter f = new android.content.IntentFilter(BluetoothDevice.ACTION_FOUND);
+        f.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        f.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        registerReceiver(rx, f);
+
+        carTap = dev -> {
+            if (dev.getBondState() == BluetoothDevice.BOND_BONDED) {
+                chooseCar(dev);
+                if (carDialog != null) carDialog.dismiss();
+                return;
+            }
+            // Yeni cihaz: önce eşleş (telefon kodu sorar), eşleşince araba olarak kaydedilir
+            try { ad.cancelDiscovery(); } catch (SecurityException ignored) { }
+            pendingBond[0] = dev.getAddress();
+            status.setText("Eşleştiriliyor… Telefonda ve arabanın ekranında çıkan kodu onayla.");
+            boolean ok = false;
+            try { ok = dev.createBond(); } catch (SecurityException ignored) { }
+            if (!ok) {
+                pendingBond[0] = null;
+                status.setText("Eşleştirme başlamadı. Telefonun Bluetooth ayarlarından eşleştirip sonra buradan seç.");
+            }
+        };
+
+        carDialog = new AlertDialog.Builder(this)
                 .setTitle("Araban hangisi?")
-                .setItems(names, (dialog, which) -> {
-                    p.edit()
-                            .putString("carAddr", list.get(which).getAddress())
-                            .putString("carName", names[which])
-                            .apply();
-                    refreshStatus();
-                })
-                .show();
+                .setView(sv)
+                .setNegativeButton("Vazgeç", null)
+                .create();
+        carDialog.setOnDismissListener(di -> {
+            try { ad.cancelDiscovery(); } catch (SecurityException ignored) { }
+            try { unregisterReceiver(rx); } catch (Exception ignored) { }
+            carTap = null;
+        });
+        carDialog.show();
+        if (canScan) {
+            boolean started = false;
+            try { started = ad.startDiscovery(); } catch (SecurityException ignored) { }
+            if (!started) status.setText("Yakındakiler aranamadı. Telefonun Bluetooth ayarlarından eşleştirip sonra buradan seç.");
+        }
+    }
+
+    private java.util.function.Consumer<BluetoothDevice> carTap;
+
+    private TextView carHeader(String t) {
+        TextView h = new TextView(this);
+        h.setText(t);
+        h.setTextSize(13);
+        h.setTextColor(Accent.color(this, R.color.accent));
+        h.setPadding(dp(24), dp(14), dp(24), dp(4));
+        return h;
+    }
+
+    private View carRow(BluetoothDevice dev, boolean nearby) {
+        String n = null;
+        try { n = dev.getName(); } catch (SecurityException ignored) { }
+        String name = n == null || n.trim().isEmpty() ? dev.getAddress() : n;
+        TextView t = new TextView(this);
+        boolean cur = dev.getAddress().equalsIgnoreCase(getSharedPreferences("surus", MODE_PRIVATE).getString("carAddr", ""));
+        t.setText(cur ? name + "  ✓" : name);
+        t.setTextSize(17);
+        t.setTextColor(cur ? Accent.color(this, R.color.accent) : getColor(R.color.fg));
+        t.setPadding(dp(24), dp(13), dp(24), dp(13));
+        android.util.TypedValue tv = new android.util.TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, tv, true);
+        t.setBackgroundResource(tv.resourceId);
+        t.setOnClickListener(v -> { if (carTap != null) carTap.accept(dev); });
+        return t;
+    }
+
+    private void chooseCar(BluetoothDevice dev) {
+        String n = null;
+        try { n = dev.getName(); } catch (SecurityException ignored) { }
+        p.edit()
+                .putString("carAddr", dev.getAddress())
+                .putString("carName", n == null || n.trim().isEmpty() ? dev.getAddress() : n)
+                .apply();
+        refreshStatus();
     }
 
     @Override
@@ -1233,7 +1377,9 @@ public class SettingsActivity extends Activity {
         super.onRequestPermissionsResult(code, perms, results);
         boolean granted = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
         if (code == REQ_BT) {
-            if (granted) pickCar();
+            // Bağlantı izni şart; arama izni verilmezse yalnız kayıtlı cihazlar listelenir
+            if (Build.VERSION.SDK_INT < 31
+                    || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) pickCar();
             else Toast.makeText(this, "Arabayı seçmek için Bluetooth izni gerekli", Toast.LENGTH_LONG).show();
         } else if (code == REQ_NOTIF) {
             askFullScreenIfNeeded();

@@ -50,7 +50,7 @@
             </LinearLayout>
 
             <TextView style="@style/SubTitle" android:text="Arabaya bağlanınca" />
-            <Switch android:id="@+id/swAutoOpen" style="@style/Toggle" android:text="Kopilot'u aç" />
+            <Switch android:id="@+id/swAutoOpen" style="@style/Toggle" android:text="Kopilot'u otomatik aç" />
             <Switch android:id="@+id/swAutoPlay" style="@style/Toggle" android:text="Müziği devam ettir" />
             <Switch android:id="@+id/swCarVol" style="@style/Toggle" android:text="Müzik sesini ayarla" />
             <LinearLayout

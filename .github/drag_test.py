@@ -67,3 +67,25 @@ for _ in range(15):
         break
     sh("input", "swipe", str(W // 2), str(int(H * 0.8)), str(W // 2), str(int(H * 0.35)), "400")
     time.sleep(1)
+
+# Bağlantı seçenekleri sayfası ve araba seçimi (emülatörde Bluetooth yoksa yalnız uyarı çıkar, çökmemeli)
+def shot(name):
+    with open(name, "wb") as f:
+        f.write(subprocess.run(["adb", "exec-out", "screencap", "-p"], capture_output=True).stdout)
+sh("am", "start", "-n", "com.erdem.surusekrani/.SettingsActivity")
+time.sleep(4)
+for _ in range(3):
+    if tap_text("Bağlantı seçenekleri"):
+        break
+    sh("input", "keyevent", "4")
+    time.sleep(2)
+shot("shot-connection.png")
+sh("input", "swipe", str(W // 2), str(int(H * 0.8)), str(W // 2), str(int(H * 0.3)), "400")
+time.sleep(1)
+shot("shot-connection2.png")
+sh("input", "swipe", str(W // 2), str(int(H * 0.3)), str(W // 2), str(int(H * 0.9)), "400")
+time.sleep(1)
+tap_text("Arabayı seç") or tap_text("Değiştir")
+time.sleep(2)
+shot("shot-carpick.png")
+sh("input", "keyevent", "4")
