@@ -1118,11 +1118,13 @@ public class SettingsActivity extends Activity {
         addPerm(list, R.drawable.ic_sms, "Bildirim gönderme",
                 "Ekran açılamadığında Kopilot'u açmak için kısa bir bildirim gösterir.", post ? 1 : 0,
                 v -> askNotifications());
-        if (xiaomi) {
-            addPerm(list, R.drawable.ic_shield, "Xiaomi izinleri",
-                    "Otomatik başlatma, arka planda açılır pencere ve kilit ekranında gösterme: İzin ver. "
-                            + "Pil tasarrufu: Kısıtlama yok.", -1, v -> openXiaomiPermissions());
-        }
+        // Arka planda çalışma: pil kısıtlaması ve otomatik başlatma. Bazı telefonlar durumunu bildirmez → "Ayarla"
+        android.os.PowerManager pw = getSystemService(android.os.PowerManager.class);
+        boolean bgFree = pw != null && pw.isIgnoringBatteryOptimizations(getPackageName());
+        int bgState = xiaomi ? -1 : (bgFree ? 1 : -1);
+        addPerm(list, R.drawable.ic_shield, "Arka planda çalışma",
+                "Arabaya binince Kopilot'un kendiliğinden açılabilmesi için pil kısıtlamasını kaldır, "
+                        + "otomatik başlatmaya izin ver.", bgState, v -> openBackgroundSettings());
 
         // Bildirim erişiminde Kopilot gri görünüyorsa (Android'in kısıtlı ayarı): kısa yol tarifi
         if (!listener) {
@@ -1149,8 +1151,8 @@ public class SettingsActivity extends Activity {
 
         int missing = (listener ? 0 : 1) + (overlay ? 0 : 1) + (post ? 0 : 1);
         ((TextView) findViewById(R.id.permNote)).setText(missing == 0
-                ? (xiaomi ? "Gerekli izinler açık. Xiaomi'de arka planda sorunsuz çalışması için Xiaomi izinlerine de bir kez bak."
-                        : "Gerekli izinlerin hepsi açık.")
+                ? (bgState == 1 ? "Gerekli izinlerin hepsi açık."
+                        : "Gerekli izinler açık. Kesintisiz çalışması için Arka planda çalışma ayarına da bir kez bak.")
                 : "Kopilot'un tam çalışması için kapalı olan izinlere dokunup aç.");
     }
 
@@ -1425,15 +1427,30 @@ public class SettingsActivity extends Activity {
         }
     }
 
-    private void openXiaomiPermissions() {
-        Intent miui = new Intent("miui.intent.action.APP_PERM_EDITOR")
-                .putExtra("extra_pkgname", getPackageName());
-        try {
-            startActivity(miui);
-        } catch (ActivityNotFoundException | SecurityException e) {
-            safeStart(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.parse("package:" + getPackageName())));
+    /**
+     * Arka planda çalışma ayarı: telefonun kendi izin ekranı varsa (otomatik başlatma vb.) o, yoksa
+     * Android'in "pil kısıtlamasını kaldır" sorusu, o da yoksa uygulama bilgisi.
+     */
+    private void openBackgroundSettings() {
+        if (isXiaomi()) {
+            try {
+                startActivity(new Intent("miui.intent.action.APP_PERM_EDITOR")
+                        .putExtra("extra_pkgname", getPackageName()));
+                return;
+            } catch (ActivityNotFoundException | SecurityException ignored) {
+            }
         }
+        android.os.PowerManager pw = getSystemService(android.os.PowerManager.class);
+        if (pw != null && !pw.isIgnoringBatteryOptimizations(getPackageName())) {
+            try {
+                startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        Uri.parse("package:" + getPackageName())));
+                return;
+            } catch (ActivityNotFoundException | SecurityException ignored) {
+            }
+        }
+        safeStart(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:" + getPackageName())));
     }
 
 

@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <!-- Yeni sürümü Kopilot'un içinden kurmak için (tarayıcısız güncelleme) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- İzinler › Arka planda çalışma: "pil kısıtlamasını kaldır" sorusu -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- Araba seçerken yakındaki cihazları aramak için (konum için kullanılmıyor) -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
