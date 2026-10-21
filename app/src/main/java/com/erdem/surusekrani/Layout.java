@@ -41,27 +41,28 @@ final class Layout {
     }
 
     /**
-     * Ayarlar'da düğme adının altındaki kısa açıklama: ilk satır ne gösterdiği, ikinci satır dokununca /
-     * basılı tutunca ne olduğu. Ayrıntılar Hakkında › Neler yapabilirim? sayfasında.
+     * Ayarlar'da düğme adının altındaki kısa açıklama: ne gösterdiği, sonra dokununca / basılı tutunca ne olduğu.
+     * Daha fazlası Hakkında › Neler yapabilirim? sayfasında.
      */
     static String desc(String key) {
         switch (key) {
-            case "weather": return "Şimdi ve 1 saat sonrası. Hava bozacaksa renkli çerçeveyle uyarır.\n"
-                    + "Dokun: önümüzdeki 6 saat";
-            case "notif": return "Seçtiğin uygulamaların mesajları ve cevapsız aramalar.\n"
-                    + "Dokun: mesajları oku · Basılı tut: sohbete geç";
-            case "status": return "Çekim, Bluetooth ve şarj. Arabada şarj olmuyorsa şimşek kırmızı yanar.\n"
-                    + "Dokun: arabaya bağlan";
-            case "assist": return "Dokun: sesli asistan (arama, mesaj)\n"
-                    + "Basılı tut: sesli not, arabadan inince hatırlatır";
-            case "calls": return "En sık aradığın kişiler.\n"
-                    + "Dokun: 3 sn sonra arar, iptal edebilirsin · Basılı tut: WhatsApp'tan konumunu gönder";
-            case "missed": return "Cevapsız arama olunca arayanın adıyla çıkar.\n"
-                    + "Dokun: geri ara · Basılı tut: kaldır";
-            case "places": return "Ev, iş gibi sık gittiğin yerler.\n"
-                    + "Dokun: haritada rota hemen başlar";
-            case "park": return "Park yerin kayıtlıysa simgenin köşesinde P görünür.\n"
-                    + "Basılı tut: park yerini kaydet · Dokun: ne kadar uzakta, yol tarifi, paylaş";
+            case "weather": return "Şimdi ve 1 saat sonrasının havasını gösterir. Hava bozacaksa renkli çerçeveyle "
+                    + "önceden uyarır. Dokunursan önümüzdeki 6 saatin havasını görürsün.";
+            case "notif": return "Seçtiğin uygulamaların mesajlarını ve cevapsız aramaları bir arada gösterir. "
+                    + "Dokunursan mesajları okursun, basılı tutarsan doğrudan sohbete geçersin.";
+            case "status": return "Çekimi, Bluetooth'u ve şarjı gösterir. Arabadayken telefon şarj olmuyorsa şimşek "
+                    + "kırmızı yanıp söner. Araban bağlı değilse dokunursan Kopilot bağlamayı dener.";
+            case "assist": return "Dokunursan sesli asistan açılır; elini direksiyondan ayırmadan arar, mesaj "
+                    + "gönderirsin. Basılı tutarsan sesli not alırsın, arabadan inince sana hatırlatılır.";
+            case "calls": return "En sık aradığın kişiler. Dokunursan 3 saniye sonra arama başlar, bu sürede iptal "
+                    + "edebilirsin. Basılı tutarsan WhatsApp'tan konumunu gönderirsin.";
+            case "missed": return "Cevapsız arama olunca arayanın adıyla görünür. Dokunursan geri ararsın, basılı "
+                    + "tutarsan düğme kalkar.";
+            case "places": return "Ev, iş gibi sık gittiğin yerler. Dokunursan haritada rota hemen başlar, adres "
+                    + "yazmana gerek kalmaz.";
+            case "park": return "Arabadan inmeden basılı tutarsan park ettiğin yer kaydedilir, simgenin köşesinde P "
+                    + "belirir. Dokunursan arabanın ne kadar uzakta olduğunu görür, yürüyerek yol tarifi alır ya da "
+                    + "konumu paylaşırsın.";
             case "settings": return "Gizlenemez ama istediğin yere taşıyabilirsin.";
             default: return "";
         }

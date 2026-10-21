@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <!-- Yeni sürümü Kopilot'un içinden kurmak için (tarayıcısız güncelleme) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Araba seçerken yakındaki cihazları aramak için (konum için kullanılmıyor) -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -95,6 +97,8 @@
             </intent-filter>
         </service>
 
+        <!-- Kopilot'un içinden güncelleme: kurulum onayı / sonucu -->
+        <receiver android:name=".UpdateReceiver" android:exported="false" />
         <receiver android:name=".BtReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />

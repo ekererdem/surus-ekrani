@@ -58,6 +58,7 @@ jobs:
             adb shell uiautomator dump /sdcard/u2.xml ; adb shell cat /sdcard/u2.xml > ui2.xml || true
             python3 .github/drag_test.py || true
             adb shell input keyevent KEYCODE_HOME ; sleep 3 ; adb shell input swipe 160 600 160 120 400 ; sleep 3 ; adb exec-out screencap -p > shot-drawer.png || true
+            sed -i 's/versionCode [0-9]*/versionCode 1/' app/build.gradle ; ./gradlew :app:assembleDebug --no-daemon -q > build2.log 2>&1 && adb install -r -d app/build/outputs/apk/debug/app-debug.apk ; adb shell appops set com.erdem.surusekrani REQUEST_INSTALL_PACKAGES allow ; python3 .github/update_test.py || true
             adb logcat -d -b crash > crash.txt || true
             adb logcat -d '*:E' | grep -A40 -i 'FATAL\|AndroidRuntime' > err.txt || true
             cat crash.txt err.txt
@@ -89,6 +90,7 @@ jobs:
           echo "::notice::park $(cat park.txt 2>/dev/null)"
           echo "::notice::notif $(cat notif.txt 2>/dev/null)"
           echo "::notice::hava $(cat weather.txt 2>/dev/null)"
+          echo "::notice::güncelleme $(cat update.txt 2>/dev/null)"
       - name: Ayarlar düzeni
         if: always()
         run: |

@@ -725,10 +725,10 @@ public class SettingsActivity extends Activity {
         }
     }
 
-    /** "Dokun:" ve "Basılı tut:" kalın ve beyaz olsun, göz hemen bulsun. */
+    /** "Dokunursan" ve "basılı tutarsan" beyaz ve kalın olsun, göz hemen bulsun. */
     private CharSequence gestureText(String t) {
         android.text.SpannableStringBuilder b = new android.text.SpannableStringBuilder(t);
-        for (String w : new String[]{"Dokun:", "Basılı tut:"}) {
+        for (String w : new String[]{"Dokunursan", "dokunursan", "Basılı tutarsan", "basılı tutarsan"}) {
             int i = t.indexOf(w);
             while (i >= 0) {
                 b.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), i, i + w.length(), 0);
@@ -775,7 +775,11 @@ public class SettingsActivity extends Activity {
                 ((TextView) findViewById(R.id.updateText)).setText(updateState);
                 View b = findViewById(R.id.updateBtn);
                 b.setVisibility(section < 0 ? View.VISIBLE : View.GONE);
-                b.setOnClickListener(v -> safeStart(new Intent(Intent.ACTION_VIEW, Uri.parse(Update.APK))));
+                b.setOnClickListener(v -> {
+                    TextView ut = findViewById(R.id.updateText);
+                    Update.install(this, pct -> ut.setText(pct >= 0 ? "İndiriliyor… %" + pct
+                            : pct == -1 ? "İndiriliyor…" : updateState));
+                });
                 ver.setText(base + " · Yeni sürüm var");
             } else {
                 updateState = "Güncel";

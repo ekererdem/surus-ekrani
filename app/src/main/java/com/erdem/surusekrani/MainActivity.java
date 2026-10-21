@@ -1822,27 +1822,30 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Yeni sürüm varsa ana ekranın altında kısa bir uyarı (günde en fazla bir kez); dokununca APK iner.
-     * GitHub'a en fazla 6 saatte bir bakılır.
+     * Yeni sürüm varsa ana ekranın altında kısa bir uyarı; dokununca Kopilot'un içinden indirip kurar.
+     * GitHub'a en fazla 15 dakikada bir bakılır. Her yeni sürüm bir kez söylenir; güncellenmezse ertesi gün yeniden.
+     * (Yan yana ekranda Kopilot odakta olmasa da görünür.)
      */
     private void maybeAnnounceUpdate() {
         android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
         long now = System.currentTimeMillis();
-        if (now - sp.getLong("updCheckAt", 0) < 6 * 3600_000L) return;
-        if (now - sp.getLong("updAskAt", 0) < 20 * 3600_000L) return;
+        if (now - sp.getLong("updCheckAt", 0) < 15 * 60_000L) return;
         sp.edit().putLong("updCheckAt", now).apply();
         Update.check(this, (name, code) -> {
             if (name == null || code <= Update.current(this)) return;
-            sp.edit().putLong("updAskAt", System.currentTimeMillis()).apply();
+            if (code == sp.getLong("updAskCode", 0)
+                    && System.currentTimeMillis() - sp.getLong("updAskAt", 0) < 20 * 3600_000L) return;
             playBtn.postDelayed(() -> {
-                if (isFinishing() || !hasWindowFocus()) return;
-                showTip("Yeni sürüm var: " + name + ". İndirmek için dokun.");
+                if (isFinishing() || isDestroyed() || (!hasWindowFocus() && !isInMultiWindowMode())) {
+                    sp.edit().putLong("updCheckAt", 0).apply(); // görülmedi: bir dahaki açılışta yeniden
+                    return;
+                }
+                sp.edit().putLong("updAskCode", code).putLong("updAskAt", System.currentTimeMillis()).apply();
+                showTip("Yeni sürüm var: " + name + ". Güncellemek için dokun.");
                 if (bannerView != null) bannerView.setOnClickListener(v -> {
                     hideBanner();
-                    try {
-                        startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(Update.APK)));
-                    } catch (Exception ignored) {
-                    }
+                    if (Update.install(this, pct -> { }))
+                        showTip("Yeni sürüm indiriliyor… Birazdan telefon kurmak için onay isteyecek.");
                 });
             }, 2500);
         });
