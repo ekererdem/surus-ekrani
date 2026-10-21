@@ -136,7 +136,7 @@
             android:orientation="vertical" android:visibility="gone">
             <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
             <TextView style="@style/Note" android:layout_marginTop="0dp"
-                android:text="Düğmeleri gizleyip gösterebilir, üst ya da alt sıraya alabilirsin. Sırayı ≡ işaretinden tutup sürükleyerek değiştir." />
+                android:text="Gizle ya da göster, üst veya alt sıraya al. Sırayı ≡ işaretinden sürükleyerek değiştir. Her düğmenin ayrıntısı: Hakkında › Neler yapabilirim?" />
             <LinearLayout
                 android:id="@+id/layoutList"
                 android:layout_width="match_parent"
@@ -149,7 +149,7 @@
 
             <TextView style="@style/SectionTitle" android:text="Bildirim kutusu" />
             <TextView style="@style/Note" android:layout_marginTop="0dp"
-                android:text="Ana ekrandaki kutuda hangi uygulamaların bildirimleri görünsün, sen seç. Hazırda WhatsApp, Mesajlar ve Telefon (cevapsız aramalar) seçili. Seçmediklerin telefona her zamanki gibi gelir." />
+                android:text="Kutuda hangi uygulamaların bildirimleri görünsün, sen seç. Seçmediklerin telefona her zamanki gibi gelir." />
             <!-- Seçili uygulamaların simgeleri; sağda "Değiştir" -->
             <LinearLayout android:id="@+id/notifAppsBtn" android:layout_width="match_parent" android:layout_height="60dp"
                 android:layout_marginTop="10dp" android:orientation="horizontal" android:gravity="center_vertical"

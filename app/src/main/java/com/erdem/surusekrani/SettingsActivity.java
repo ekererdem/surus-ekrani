@@ -704,7 +704,8 @@ public class SettingsActivity extends Activity {
             card.addView(row);
 
             TextView desc = new TextView(this);
-            desc.setText(Layout.desc(e.key));
+            desc.setText(gestureText(Layout.desc(e.key)));
+            desc.setLineSpacing(0, 1.15f);
             desc.setTextSize(13);
             desc.setTextColor(getColor(R.color.muted));
             desc.setPadding(Math.round(84 * d), 0, Math.round(14 * d), 0);
@@ -717,6 +718,20 @@ public class SettingsActivity extends Activity {
             }
             addDraggable(list, (f, t) -> { DragSort.move(l, f, t); Layout.save(this, l); renderLayout(); }, card);
         }
+    }
+
+    /** "Dokun:" ve "Basılı tut:" kalın ve beyaz olsun, göz hemen bulsun. */
+    private CharSequence gestureText(String t) {
+        android.text.SpannableStringBuilder b = new android.text.SpannableStringBuilder(t);
+        for (String w : new String[]{"Dokun:", "Basılı tut:"}) {
+            int i = t.indexOf(w);
+            while (i >= 0) {
+                b.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), i, i + w.length(), 0);
+                b.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.fg)), i, i + w.length(), 0);
+                i = t.indexOf(w, i + w.length());
+            }
+        }
+        return b;
     }
 
     /** Ana ekrandaki düğmenin simgesi (ayarlar listesinde). */

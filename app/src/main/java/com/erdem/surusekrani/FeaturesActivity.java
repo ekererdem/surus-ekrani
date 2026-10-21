@@ -27,7 +27,7 @@ public class FeaturesActivity extends Activity {
         Ui.section(this, box, "Yolda");
         Ui.item(this, box, "🗺️ Hızlı rotalar", "Ev, iş gibi yerlere tek dokunuşla rota. Harita yandaki Yandex/Google'da açılır.");
         Ui.item(this, box, "📞 Hızlı arama", "Dokun: 3 saniye sonra arar (iptal edebilirsin). Basılı tut: WhatsApp ile konumunu gönderir.");
-        Ui.item(this, box, "🚗 Arabam nerede", "Kısaca basılı tut: park yerin kaydedilir, simgede sarı P belirir. Dokun: ne zaman park ettiğin, ne kadar uzakta olduğu, notun; yürüyerek git, paylaş ya da sil.");
+        Ui.item(this, box, "🚗 Arabam nerede", "Kısaca basılı tut: park yerin kaydedilir, simgenin köşesinde P belirir. Dokun: ne zaman park ettiğin, ne kadar uzakta olduğu, notun; yürüyerek git, paylaş ya da sil.");
 
         Ui.section(this, box, "Bilgi");
         Ui.item(this, box, "🌦️ Hava durumu", "Şimdi ve 1 saat sonrası. Hava kötüleşecekse sağ taraf sarı, turuncu ya da kırmızı çerçeveli. "
