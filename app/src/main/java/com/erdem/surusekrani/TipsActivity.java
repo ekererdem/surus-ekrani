@@ -8,13 +8,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/** Ayarlar › Hakkında › İpuçları: ana ekrandan küçük görüntülerle kısa kısa ipuçları. */
+/** Ayarlar › Neler yapabilirim?: ana ekrandan küçük görüntülerle kısa kısa ipuçları. */
 public class TipsActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         Accent.apply(this);
         super.onCreate(b);
-        LinearLayout box = Ui.page(this, "İpuçları");
+        LinearLayout box = Ui.page(this, "Neler yapabilirim?");
         tip(box, R.drawable.tip_music, "Şarkı değiştir",
                 "Müzik kutusunu sola kaydır: sonraki şarkı. Sağa kaydır: önceki şarkı.");
         tip(box, R.drawable.tip_park, "Park yerini kaydet",
@@ -31,8 +31,9 @@ public class TipsActivity extends Activity {
                 "Ev gibi kayıtlı yerlere dokun: haritada rota hemen başlar, adres yazmana gerek kalmaz.");
         tip(box, R.drawable.tip_status, "Araba bağlanmadıysa",
                 "Gösterge paneline dokun: Kopilot arabana bağlanmayı dener.");
-        tip(box, 0, "👋 El salla",
-                "Elini ön kameranın üzerinden bir kez geçir: şarkı geçer. Ne yapacağını Ayarlar › Uzaktan kontrol'den seçebilirsin.");
+        tip(box, R.drawable.tip_wave, "El salla",
+                "Telefona dokunmadan elini ön kameranın üzerinden bir kez geçir. Şarkı geçsin, bildirimler görünsün "
+                        + "ya da eve rota başlasın; ne olacağını Ayarlar › Uzaktan kontrol'den seçersin.");
     }
 
     private void tip(LinearLayout box, int img, String head, String body) {

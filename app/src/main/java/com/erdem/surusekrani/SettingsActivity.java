@@ -90,8 +90,6 @@ public class SettingsActivity extends Activity {
         Places.migrate(this);
         setupCalls();
 
-        findViewById(R.id.featuresBtn).setOnClickListener(v ->
-                startActivity(new Intent(this, FeaturesActivity.class)));
         Switch waveSw = findViewById(R.id.swWave);
         waveSw.setChecked(Wave.enabled(this));
         waveSw.setOnCheckedChangeListener((b, on) -> {
@@ -100,7 +98,6 @@ public class SettingsActivity extends Activity {
         });
         findViewById(R.id.wave1Btn).setOnClickListener(v -> pickWave(1));
         renderWave();
-        findViewById(R.id.tipsBtn).setOnClickListener(v -> startActivity(new Intent(this, TipsActivity.class)));
         findViewById(R.id.notesBtn).setOnClickListener(v -> {
             java.util.List<String> l = Notes.list(this);
             if (l.isEmpty()) { Toast.makeText(this, "Henüz sesli not yok", Toast.LENGTH_SHORT).show(); return; }
@@ -207,11 +204,11 @@ public class SettingsActivity extends Activity {
     private static final int[] SECTIONS = {R.id.secConnection, R.id.secApps, R.id.secPeople, R.id.secHome,
             R.id.secControl, R.id.secPerms, R.id.secAbout};
     private static final String[] SEC_TITLES = {"Bağlantı seçenekleri", "Uygulamalar", "Kişiler ve yerler",
-            "Ana ekran", "Uzaktan kontrol", "İzinler", "Hakkında"};
+            "Ana ekran", "Uzaktan kontrol", "İzinler", "Neler yapabilirim?"};
     private static final int[] SEC_ICONS = {R.drawable.ic_bluetooth, R.drawable.ic_apps, R.drawable.ic_phone,
             R.drawable.ic_home, R.drawable.ic_mic, R.drawable.ic_shield, R.drawable.ic_info};
     private int section = -1;
-    /** Güncelleme durumu (Hakkında özeti için): null bilinmiyor. */
+    /** Güncelleme durumu (menüdeki son satırın özeti için): null bilinmiyor. */
     private String updateState;
 
     /** -1: ana menü; 0..6: o başlığın sayfası. */
@@ -260,7 +257,7 @@ public class SettingsActivity extends Activity {
                 "Düğmeler, bildirimler ve renk",
                 "El sallama ve sesli notlar",
                 missing == 0 ? "Gerekli izinler" : missing + " izin kapalı",
-                newVer ? updateState : "Özellikler ve ipuçları"};
+                newVer ? updateState : "Resimli kısa ipuçları"};
         for (int i = 0; i < SECTIONS.length; i++) {
             View row = getLayoutInflater().inflate(R.layout.item_menu, menu, false);
             android.widget.ImageView ic = row.findViewById(R.id.menuIcon);
@@ -272,7 +269,11 @@ public class SettingsActivity extends Activity {
             if ((i == 0 && noCar) || (i == 5 && missing > 0) || (i == 6 && newVer))
                 sub.setTextColor(Accent.color(this, R.color.amber));
             int idx = i;
-            row.setOnClickListener(v -> showSection(idx));
+            // Son satır doğrudan ipuçları sayfasını açar
+            row.setOnClickListener(v -> {
+                if (idx == SECTIONS.length - 1) startActivity(new Intent(this, TipsActivity.class));
+                else showSection(idx);
+            });
             row.setContentDescription(SEC_TITLES[i] + ", " + subs[i]);
             android.widget.LinearLayout.LayoutParams lp = (android.widget.LinearLayout.LayoutParams) row.getLayoutParams();
             lp.topMargin = Math.round((i == 0 ? 8 : 10) * getResources().getDisplayMetrics().density);
@@ -791,8 +792,8 @@ public class SettingsActivity extends Activity {
         if (row == null) return;
         row.removeAllViews();
         int cur = Accent.index(this);
-        ((TextView) findViewById(R.id.accentNote)).setText("Düğmeler, çubuklar ve başlıklar bu renkte olur. Seçili: "
-                + Accent.NAMES[cur] + ".");
+        ((TextView) findViewById(R.id.accentNote)).setText(
+                "Kopilot'u zevkine göre renklendir; düğmeler ve başlıklar seçtiğin renkte görünür.");
         float d = getResources().getDisplayMetrics().density;
         for (int i = 0; i < Accent.KEYS.length; i++) {
             View dot = new View(this);
@@ -937,18 +938,13 @@ public class SettingsActivity extends Activity {
 
     private void renderWave() {
         boolean on = Wave.enabled(this);
-        waveRow(R.id.wave1Btn, "Elini geçirince", WaveActions.get(this, 1), on);
+        waveRow(R.id.wave1Btn, WaveActions.get(this, 1), on);
     }
 
-    private void waveRow(int id, String title, String key, boolean on) {
+    private void waveRow(int id, String key, boolean on) {
         TextView t = findViewById(id);
-        String value = WaveActions.label(key) + "  ›";
-        android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(title + "\n" + value);
-        int s = title.length() + 1;
-        sb.setSpan(new android.text.style.ForegroundColorSpan(getColor(R.color.muted)), 0, title.length(), 0);
-        sb.setSpan(new android.text.style.RelativeSizeSpan(0.85f), 0, title.length(), 0);
-        sb.setSpan(new android.text.style.ForegroundColorSpan(Accent.color(this, R.color.accent)), s, sb.length(), 0);
-        t.setText(sb);
+        t.setText(WaveActions.label(key) + "  ›");
+        t.setTextColor(Accent.color(this, R.color.accent));
         t.setEnabled(on);
         t.setAlpha(on ? 1f : 0.4f);
     }
@@ -956,7 +952,7 @@ public class SettingsActivity extends Activity {
     private void pickWave(int times) {
         String cur = WaveActions.get(this, times);
         new AlertDialog.Builder(this)
-                .setTitle("Elini geçirince")
+                .setTitle("Elini geçirince ne olsun?")
                 .setSingleChoiceItems(WaveActions.LABELS, WaveActions.index(cur), (d, which) -> {
                     WaveActions.set(this, times, WaveActions.KEYS[which]);
                     renderWave();

@@ -136,7 +136,7 @@
             android:orientation="vertical" android:visibility="gone">
             <TextView style="@style/SectionTitle" android:text="Ana ekran düğmeleri" />
             <TextView style="@style/Note" android:layout_marginTop="0dp"
-                android:text="Gizle ya da göster, üst veya alt sıraya al. Sırayı ≡ işaretinden sürükleyerek değiştir. Her düğmenin ayrıntısı: Hakkında › Neler yapabilirim?" />
+                android:text="Gizle ya da göster, üst veya alt sıraya al. Sırayı ≡ işaretinden sürükleyerek değiştir. Ayrıntılar: Neler yapabilirim?" />
             <LinearLayout
                 android:id="@+id/layoutList"
                 android:layout_width="match_parent"
@@ -204,7 +204,7 @@
             <Switch android:id="@+id/swWave" style="@style/Toggle" android:layout_marginTop="8dp"
                 android:text="El sallayarak kontrol" />
             <TextView style="@style/Note" android:layout_marginTop="0dp"
-                android:text="Telefona dokunmadan komut ver: elini ön kameranın üzerinden bir kez geçir. Ne yapacağını aşağıdan seç." />
+                android:text="Telefona dokunmadan komut verebilirsin. Elini ön kameranın üzerinden geçirdiğinde ne olacağını aşağıdan seç." />
             <TextView android:id="@+id/wave1Btn" style="@style/Option"
                 android:layout_height="wrap_content" android:minHeight="52dp"
                 android:gravity="center_vertical" android:paddingVertical="8dp"
@@ -231,24 +231,7 @@
         </LinearLayout>
         <LinearLayout android:id="@+id/secAbout" android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical" android:visibility="gone">
-            <LinearLayout android:id="@+id/featuresBtn" style="@style/RowCard" android:layout_marginTop="8dp">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp"
-                    android:src="@drawable/ic_info" android:tint="?attr/kAccent" android:contentDescription="@null" />
-                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp" android:textSize="16sp" android:textColor="@color/fg"
-                    android:text="Neler yapabilirim?" />
-                <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                    android:src="@drawable/ic_chevron" android:tint="@color/muted" android:contentDescription="@null" />
-            </LinearLayout>
-            <LinearLayout android:id="@+id/tipsBtn" style="@style/RowCard" android:layout_marginTop="10dp">
-                <ImageView android:layout_width="24dp" android:layout_height="24dp"
-                    android:src="@drawable/ic_star" android:tint="?attr/kAccent" android:contentDescription="@null" />
-                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp" android:textSize="16sp" android:textColor="@color/fg"
-                    android:text="İpuçları" />
-                <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                    android:src="@drawable/ic_chevron" android:tint="@color/muted" android:contentDescription="@null" />
-            </LinearLayout>
+            <!-- İçeriği yok: menüdeki "Neler yapabilirim?" doğrudan ipuçları sayfasını açar -->
         </LinearLayout>
 
         <Button android:id="@+id/backBtn" style="@style/OutlineBtn" android:textSize="16sp" android:layout_width="match_parent"

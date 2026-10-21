@@ -42,7 +42,7 @@ final class Layout {
 
     /**
      * Ayarlar'da düğme adının altındaki kısa açıklama: ne gösterdiği, sonra dokununca / basılı tutunca ne olduğu.
-     * Daha fazlası Hakkında › Neler yapabilirim? sayfasında.
+     * Daha fazlası Ayarlar › Neler yapabilirim? sayfasında.
      */
     static String desc(String key) {
         switch (key) {

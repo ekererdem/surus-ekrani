@@ -53,7 +53,7 @@ jobs:
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.SettingsActivity ; sleep 6
             adb exec-out screencap -p > shot-settings.png || true
             adb shell input swipe 160 560 160 60 300 ; sleep 1 ; adb shell input swipe 160 560 160 60 300 ; sleep 2 ; adb exec-out screencap -p > shot-settings-alt.png || true
-            adb shell am start -n com.erdem.surusekrani/.FeaturesActivity ; sleep 4 ; adb shell am start -n com.erdem.surusekrani/.OnboardingActivity ; sleep 4
+            adb shell am start -n com.erdem.surusekrani/.TipsActivity ; sleep 4 ; adb shell am start -n com.erdem.surusekrani/.OnboardingActivity ; sleep 4
             adb exec-out screencap -p > shot-onboarding.png || true
             adb shell uiautomator dump /sdcard/u2.xml ; adb shell cat /sdcard/u2.xml > ui2.xml || true
             python3 .github/drag_test.py || true

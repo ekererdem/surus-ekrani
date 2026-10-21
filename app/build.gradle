@@ -12,8 +12,8 @@ android {
         // 32: Android 13'ten itibaren 33+ hedefleyen uygulamalar Bluetooth'u kendisi açamıyor.
         // Kopilot açılınca Bluetooth'u sessizce açabilmek için bilerek 32. (Play Store'a çıkarken 34+ gerekir.)
         targetSdk 32
-        versionCode 159
-        versionName '16.8'
+        versionCode 160
+        versionName '16.9'
     }
 
     // Sabit imza: her derleme aynı anahtarla imzalanır, böylece yeni sürüm eskisinin üzerine kurulur.
