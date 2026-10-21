@@ -17,25 +17,6 @@ public class MediaListener extends NotificationListenerService {
     /** Bağlı dinleyici; ana ekran açıldığında bildirimleri yeniden okumak için. */
     static MediaListener instance;
 
-    /**
-     * Müzik uygulamalarının bildirimindeki tuşlar (paket → tuşlar). Spotify bazı tuşları (ör. akıllı mix
-     * şarkısında "beğenmedim") yalnız bildirimine koyuyor; ana ekran oradan alır.
-     */
-    static final java.util.Map<String, Notification.Action[]> MEDIA_ACTIONS =
-            new java.util.concurrent.ConcurrentHashMap<>();
-    /** Müzik bildirimi değişince ana ekranın tuşları tazelemesi için. */
-    static volatile Runnable onMedia;
-    private static final android.os.Handler MAIN = new android.os.Handler(android.os.Looper.getMainLooper());
-
-    private static void media(StatusBarNotification sbn, boolean removed) {
-        Notification n = sbn.getNotification();
-        if (n == null || n.extras == null || !n.extras.containsKey(Notification.EXTRA_MEDIA_SESSION)) return;
-        if (removed || n.actions == null) MEDIA_ACTIONS.remove(sbn.getPackageName());
-        else MEDIA_ACTIONS.put(sbn.getPackageName(), n.actions);
-        Runnable r = onMedia;
-        if (r != null) MAIN.post(r);
-    }
-
     @Override
     public void onListenerConnected() {
         instance = this;
@@ -84,8 +65,7 @@ public class MediaListener extends NotificationListenerService {
         try {
             StatusBarNotification[] all = getActiveNotifications();
             Notifs.clear();
-            MEDIA_ACTIONS.clear();
-            if (all != null) for (StatusBarNotification s : all) { handle(s); media(s, false); Notifs.posted(this, s, false); }
+            if (all != null) for (StatusBarNotification s : all) { handle(s); Notifs.posted(this, s, false); }
         } catch (Exception ignored) {
         }
     }
@@ -93,14 +73,12 @@ public class MediaListener extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         handle(sbn);
-        media(sbn, false);
         Notifs.posted(this, sbn);
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         if (isNav(sbn)) NavState.clear(sbn.getPackageName());
-        media(sbn, true);
         Notifs.removed(sbn);
     }
 

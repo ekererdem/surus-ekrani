@@ -1336,7 +1336,6 @@ public class MainActivity extends Activity {
     /**
      * Müzik uygulamasının telefona açtığı kendi tuşları (Spotify: beğen, öneriyi kaldır, karıştır…).
      * Uygulama hangi tuşları veriyorsa onlar görünür; dokununca uygulama açılmadan işini yapar.
-     * Spotify'ın yalnız bildirimine koyduğu "beğenmedim / öneriyi kaldır" tuşu da (akıllı mix şarkıları) eklenir.
      * (Oynat tuşuna dokunmaz; sadece o anki oturumun kendi tuşlarını gönderir.)
      */
     private void renderActions() {
@@ -1347,22 +1346,12 @@ public class MainActivity extends Activity {
         List<PlaybackState.CustomAction> acts = s == null ? null : s.getCustomActions();
         if (acts == null) acts = Collections.emptyList();
         java.util.Locale tr = new java.util.Locale("tr", "TR");
-        // Oturumda olmayan, bildirimdeki "beğenmedim" tuşları
-        java.util.Set<String> have = new java.util.HashSet<>();
-        for (PlaybackState.CustomAction a : acts) have.add(String.valueOf(a.getName()).trim().toLowerCase(tr));
-        List<android.app.Notification.Action> fromNotif = new java.util.ArrayList<>();
-        android.app.Notification.Action[] na = c == null ? null : MediaListener.MEDIA_ACTIONS.get(c.getPackageName());
-        if (na != null) for (android.app.Notification.Action x : na) {
-            String t = x == null || x.title == null ? "" : x.title.toString().trim().toLowerCase(tr);
-            if (!t.isEmpty() && x.actionIntent != null && !have.contains(t) && isDislike(t)) fromNotif.add(x);
-        }
         StringBuilder key = new StringBuilder(c == null ? "" : c.getPackageName());
         for (PlaybackState.CustomAction a : acts) key.append('|').append(a.getAction()).append(a.getIcon());
-        for (android.app.Notification.Action x : fromNotif) key.append("|n:").append(x.title);
         if (key.toString().equals(actionsKey)) return;
         actionsKey = key.toString();
         box.removeAllViews();
-        if (c == null || (acts.isEmpty() && fromNotif.isEmpty())) {
+        if (c == null || acts.isEmpty()) {
             box.setVisibility(View.GONE);
             return;
         }
@@ -1402,24 +1391,6 @@ public class MainActivity extends Activity {
                 MediaController now = ctrl;
                 if (now != null && now.getPackageName().equals(pkg))
                     now.getTransportControls().sendCustomAction(action, extras);
-            });
-        }
-        for (android.app.Notification.Action x : fromNotif) {
-            names.append("bildirim: ").append(x.title).append("; ");
-            if (box.getChildCount() >= max) continue;
-            android.graphics.drawable.Drawable icon = null;
-            try {
-                if (x.getIcon() != null) icon = x.getIcon().loadDrawable(this);
-                if (icon != null) icon = icon.mutate();
-            } catch (Exception ignored) {
-            }
-            if (icon == null) icon = getDrawable(R.drawable.ic_minus_circle).mutate();
-            android.app.PendingIntent pi = x.actionIntent;
-            addActionButton(box, icon, x.title, () -> {
-                try {
-                    pi.send();
-                } catch (Exception ignored) {
-                }
             });
         }
         fitActions();
@@ -2191,7 +2162,6 @@ public class MainActivity extends Activity {
         NavState.listener = this::renderNav;
         renderNav();
         Notifs.listener = () -> { renderNotifs(); renderMissed(); };
-        MediaListener.onMedia = this::renderActions;
         // Bildirim dinleyicisi kapanmışsa yeniden bağla, açıksa mevcut bildirimleri tazele
         if (hasListenerAccess()) {
             if (MediaListener.instance != null) MediaListener.instance.resync();
@@ -2236,7 +2206,6 @@ public class MainActivity extends Activity {
         seek.removeCallbacks(progressTick);
         NavState.listener = null;
         Notifs.listener = null;
-        MediaListener.onMedia = null;
         Notifs.banner = null;
         playBtn.removeCallbacks(notifTick);
         hideBanner();
