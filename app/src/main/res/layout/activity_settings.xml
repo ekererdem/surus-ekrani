@@ -25,6 +25,21 @@
                 android:textSize="28sp" android:textColor="@color/fg" />
         </LinearLayout>
 
+        <!-- Yeni sürüm varsa en üstte ince bir satır: dokununca APK iner -->
+        <LinearLayout android:id="@+id/updateBtn" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:minHeight="44dp" android:layout_marginTop="6dp" android:orientation="horizontal"
+            android:gravity="center_vertical" android:background="@drawable/update_bg"
+            android:foreground="?android:attr/selectableItemBackground" android:clickable="true" android:focusable="true"
+            android:paddingStart="14dp" android:paddingEnd="14dp" android:visibility="gone">
+            <ImageView android:layout_width="18dp" android:layout_height="18dp"
+                android:src="@drawable/ic_info" android:tint="?attr/kAccent" android:contentDescription="@null" />
+            <TextView android:id="@+id/updateText" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:layout_marginStart="10dp"
+                android:textSize="14sp" android:textColor="@color/fg" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="14sp" android:textStyle="bold" android:textColor="?attr/kAccent" android:text="İndir" />
+        </LinearLayout>
+
         <LinearLayout android:id="@+id/featuresBtn" style="@style/RowCard" android:layout_marginTop="12dp">
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
                 android:src="@drawable/ic_info" android:tint="?attr/kAccent" android:contentDescription="@null" />
@@ -246,17 +261,6 @@
         <Button android:id="@+id/backBtn" style="@style/OutlineBtn" android:textSize="16sp" android:layout_width="match_parent"
             android:layout_marginTop="32dp" android:background="@drawable/tile_accent"
             android:textColor="?attr/kAccentInk" android:text="Geri dön" />
-        <!-- Yeni sürüm varsa görünür: dokununca APK iner -->
-        <LinearLayout android:id="@+id/updateBtn" style="@style/RowCard" android:layout_marginTop="16dp"
-            android:visibility="gone">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp"
-                android:src="@drawable/ic_info" android:tint="?attr/kAccent" android:contentDescription="@null" />
-            <TextView android:id="@+id/updateText" android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="wrap_content" android:layout_marginStart="14dp"
-                android:textSize="16sp" android:textColor="@color/fg" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textSize="15sp" android:textStyle="bold" android:textColor="?attr/kAccent" android:text="İndir" />
-        </LinearLayout>
         <TextView android:id="@+id/versionText" style="@style/Note" android:gravity="center"
             android:layout_marginTop="12dp" />
     </LinearLayout>
