@@ -68,6 +68,8 @@ nact = len(re.findall(r'ImageButton', acts.group(0))) if acts else 0
 res3 = "müzik: " + tx("songTitle") + " / " + tx("songArtist") + " / tuş sayısı " + str(nact)
 ms = sh("dumpsys media_session").splitlines()
 res3 += " / oturumlar: " + " ; ".join(l.strip() for l in ms if "package=" in l or "active=" in l or "state=PlaybackState" in l)[:400]
+klog = subprocess.run(["adb", "logcat", "-d", "-s", "Kopilot:I"], capture_output=True, text=True).stdout
+res3 += " / kopilot: " + " ; ".join(l.split("Kopilot :")[-1].strip() for l in klog.splitlines() if "oturumlar" in l or "tuşları" in l)[-500:]
 res3 += " / player: " + sh("am start -W -n com.whatsapp/.Player").replace("\n", " ")[:200]
 print(res3)
 open("notif.txt", "a").write(" | " + res3)

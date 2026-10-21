@@ -259,6 +259,10 @@ public class MainActivity extends Activity {
                 if (s != null && s.getState() == PlaybackState.STATE_PLAYING) { best = c; break; }
             }
         }
+        StringBuilder dbg = new StringBuilder();
+        for (MediaController c : list) dbg.append(c.getPackageName()).append('/')
+                .append(c.getPlaybackState() == null ? -1 : c.getPlaybackState().getState()).append(' ');
+        android.util.Log.i("Kopilot", "oturumlar: " + dbg + "erişim=" + hasListenerAccess() + " seçilen=" + (best == null ? "-" : best.getPackageName()));
         // Durmuş başka uygulama oturumlarını (Instagram/TikTok videosu vb.) gösterme:
         // seçili müzik uygulaması yoksa yalnızca o an gerçekten çalan oturum gösterilir.
         setController(best);
