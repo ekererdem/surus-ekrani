@@ -2106,17 +2106,38 @@ public class MainActivity extends Activity {
         startActivity(i);
     }
 
+    private int splitTries;
     private final Runnable autoSplitRun = () -> {
-        if (!isFinishing() && !isDestroyed() && !isInMultiWindowMode()) {
-            Apps.openNavSplit(this, p, null);
+        if (isFinishing() || isDestroyed() || isInMultiWindowMode()) return;
+        // Üstte bir pencere varsa (ör. telefonun "Bluetooth açılsın mı?" sorusu) bölme kaybolmasın: biraz sonra yeniden dene
+        if (!hasWindowFocus() && ++splitTries < 8) {
+            playBtn.postDelayed(this.autoSplitRun, 700);
+            return;
         }
+        Apps.openNavSplit(this, p, null);
     };
 
     /** Ekran bölünmüş değilse haritayı yanına aç. */
     private void autoSplit() {
         playBtn.removeCallbacks(autoSplitRun);
         if (!p.autoSplit() || isInMultiWindowMode()) return;
+        splitTries = 0;
         playBtn.postDelayed(autoSplitRun, 700);
+    }
+
+    private long startedAt;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        startedAt = SystemClock.uptimeMillis();
+    }
+
+    /** Kopilot tamamen arka plana gidince (ana ekran tuşu vb.) bir sonraki açılışta harita yine yanda açılsın. */
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        if (level == TRIM_MEMORY_UI_HIDDEN) sOwnScreen = false;
     }
 
     /** Bildirim erişimi olmadan da çalışan medya tuşu: son çalan uygulamaya gider. */
@@ -2137,7 +2158,9 @@ public class MainActivity extends Activity {
     @Override
     public void onMultiWindowModeChanged(boolean inMultiWindow, android.content.res.Configuration cfg) {
         super.onMultiWindowModeChanged(inMultiWindow, cfg);
-        if (!inMultiWindow) sOwnScreen = true; // elle tam ekrana geçildi, haritayı geri açma
+        // Kopilot ekrandayken bölücü sürüklenip tam ekrana geçildiyse haritayı geri açma. Uygulama yeniden
+        // açılırken ya da ekran açılırken bölme kendiliğinden kalktıysa bu sayılmaz: harita yine yanda açılır.
+        if (!inMultiWindow && sResumed && SystemClock.uptimeMillis() - startedAt > 1500) sOwnScreen = true;
         if (inMultiWindow != compact) {
             recreate();
             return;
