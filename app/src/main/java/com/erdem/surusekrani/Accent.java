@@ -8,14 +8,21 @@ import android.util.TypedValue;
 final class Accent {
     private Accent() {}
 
-    static final String[] KEYS = {"gold", "teal", "blue", "green", "coral", "purple"};
-    static final String[] NAMES = {"Altın", "Turkuaz", "Mavi", "Yeşil", "Mercan", "Mor"};
-    static final int[] COLORS = {0xFFF5A623, 0xFF22C3B5, 0xFF3B82F6, 0xFF22C55E, 0xFFF2545B, 0xFF8B5CF6};
-    private static final int[] THEMES = {R.style.AppTheme, R.style.AppTheme_Teal, R.style.AppTheme_Blue,
+    // İlk renk varsayılan: logodaki turkuaz
+    static final String[] KEYS = {"teal", "gold", "blue", "green", "coral", "purple"};
+    static final String[] NAMES = {"Turkuaz", "Altın", "Mavi", "Yeşil", "Mercan", "Mor"};
+    static final int[] COLORS = {0xFF1DB9AA, 0xFFF5A623, 0xFF3B82F6, 0xFF22C55E, 0xFFF2545B, 0xFF8B5CF6};
+    private static final int[] THEMES = {R.style.AppTheme, R.style.AppTheme_Gold, R.style.AppTheme_Blue,
             R.style.AppTheme_Green, R.style.AppTheme_Coral, R.style.AppTheme_Purple};
 
     static int index(Context c) {
-        String k = c.getSharedPreferences("surus", Context.MODE_PRIVATE).getString("accent", "gold");
+        android.content.SharedPreferences sp = c.getSharedPreferences("surus", Context.MODE_PRIVATE);
+        String k = sp.getString("accent", "teal");
+        // Yeni logoyla varsayılan turkuaz oldu: eski varsayılan altın bir kez turkuaza geçer, sonra seçim serbest
+        if (!sp.getBoolean("accentLogo", false)) {
+            if ("gold".equals(k)) k = "teal";
+            sp.edit().putString("accent", k).putBoolean("accentLogo", true).apply();
+        }
         for (int i = 0; i < KEYS.length; i++) if (KEYS[i].equals(k)) return i;
         return 0;
     }

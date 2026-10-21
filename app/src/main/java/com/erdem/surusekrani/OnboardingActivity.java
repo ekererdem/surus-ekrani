@@ -65,6 +65,16 @@ public class OnboardingActivity extends Activity {
 
     private void welcome() {
         LinearLayout box = Ui.page(this, "Hoş geldin 👋");
+        // En üstte Kopilot logosu
+        android.widget.ImageView logo = new android.widget.ImageView(this);
+        logo.setImageResource(R.drawable.logo_wordmark);
+        logo.setAdjustViewBounds(true);
+        logo.setContentDescription("Kopilot");
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(Ui.dp(this, 170), LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        lp.topMargin = Ui.dp(this, 8);
+        lp.bottomMargin = Ui.dp(this, 14);
+        box.addView(logo, 0, lp);
         Ui.note(this, box, "Arabadayken telefonu tek ekrandan kullanman için: harita yanda, müzik, aramalar ve "
                 + "rotalar büyük tuşlarla bu tarafta.");
         Ui.section(this, box, "En çok işine yarayacaklar");

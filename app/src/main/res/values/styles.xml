@@ -11,15 +11,15 @@
         <item name="android:textColorSecondary">@color/muted</item>
         <item name="kAccent">@color/accent</item>
         <item name="kAccentInk">@color/accent_ink</item>
-        <item name="kAccentSoft">#80F5A623</item>
+        <item name="kAccentSoft">#801DB9AA</item>
     </style>
 
-    <!-- Vurgu rengi seçenekleri (Altın = AppTheme) -->
-    <style name="AppTheme.Teal">
-        <item name="android:colorAccent">#22C3B5</item>
-        <item name="kAccent">#22C3B5</item>
-        <item name="kAccentInk">#062A27</item>
-        <item name="kAccentSoft">#8022C3B5</item>
+    <!-- Vurgu rengi seçenekleri (Turkuaz = AppTheme, logodaki renk) -->
+    <style name="AppTheme.Gold">
+        <item name="android:colorAccent">#F5A623</item>
+        <item name="kAccent">#F5A623</item>
+        <item name="kAccentInk">#2B1A00</item>
+        <item name="kAccentSoft">#80F5A623</item>
     </style>
     <style name="AppTheme.Blue">
         <item name="android:colorAccent">#3B82F6</item>

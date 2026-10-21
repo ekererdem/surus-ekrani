@@ -1,4 +1,9 @@
-# Kopilot
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo-koyu.png">
+    <img src="docs/logo.png" alt="Kopilot" width="320">
+  </picture>
+</p>
 
 Arabada telefonu tek ekrandan kullanmak için Android uygulaması. Harita yanda açık dururken müzik, aramalar, hızlı rotalar, hava durumu ve mesajlar büyük düğmelerle hep elinin altında.
 
@@ -24,7 +29,7 @@ Android 11 ve üstü telefonlarda çalışır. Kurarken telefon "bilinmeyen kayn
 ## İlk kurulum
 
 1. Kopilot'u aç ve kısa tanıtımı geç.
-2. **Ayarlar › Araba ve Bluetooth** bölümünden arabanın Bluetooth adını seç.
+2. **Ayarlar › Bağlantı seçenekleri** bölümünden arabanın Bluetooth adını seç.
 3. **Ayarlar › İzinler** bölümünde kapalı görünen izinlere dokunup aç.
 4. Hızlı arama ve hızlı rotalara kişilerini ve yerlerini ekle.
 

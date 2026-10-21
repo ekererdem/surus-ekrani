@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Tema: koyu lacivert zemin, antrasit kutular, logodaki altın sarısı vurgu -->
+    <!-- Tema: koyu lacivert zemin, antrasit kutular, logodaki turkuaz vurgu -->
     <color name="bg">#0B1730</color>
+    <!-- Logo renkleri (kurumsal) -->
+    <color name="brand_navy">#162738</color>
+    <color name="brand_teal">#1DB9AA</color>
     <color name="panel">#20252C</color>
     <color name="panel2">#252A31</color>
     <color name="line">#3A414B</color>
     <color name="fg">#FFFFFF</color>
     <color name="muted">#B9C3CD</color>
-    <color name="amber">#F5A623</color>
-    <!-- Vurgu rengi: logodaki altın sarısı (eskiden turkuaz) -->
-    <color name="accent">#F5A623</color>
+    <!-- amber ve accent: varsayılan vurgu (seçilen renk temadan gelir, bkz. Accent.color) -->
+    <color name="amber">#1DB9AA</color>
+    <color name="accent">#1DB9AA</color>
     <color name="low">#E5484D</color>
     <color name="rain">#1E90FF</color>
     <color name="chg_low">#FF8A1F</color>
@@ -17,6 +20,6 @@
     <color name="chg_high">#22D65E</color>
     <color name="alert_yellow">#F5D90A</color>
     <color name="alert_orange">#FF8A1F</color>
-    <color name="accent_ink">#2B1A00</color>
+    <color name="accent_ink">#0B2A2B</color>
     <color name="art">#323944</color>
 </resources>

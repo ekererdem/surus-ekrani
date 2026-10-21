@@ -61,7 +61,7 @@ public class SettingsActivity extends Activity {
                 p.edit().putString("music", id == R.id.rbYtm ? "ytm" : "spotify").apply());
 
         try {
-            ((TextView) findViewById(R.id.versionText)).setText("Kopilot · Sürüm " +
+            ((TextView) findViewById(R.id.versionText)).setText("Sürüm " +
                     getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
         } catch (Exception ignored) {
         }
@@ -224,6 +224,7 @@ public class SettingsActivity extends Activity {
         ((TextView) findViewById(R.id.settingsTitle)).setText(i < 0 ? "Ayarlar" : SEC_TITLES[i]);
         // Sürüm ve güncelleme satırı ana menünün en altında
         findViewById(R.id.versionText).setVisibility(i < 0 ? View.VISIBLE : View.GONE);
+        findViewById(R.id.brandLogo).setVisibility(i < 0 ? View.VISIBLE : View.GONE);
         if (i >= 0) findViewById(R.id.updateBtn).setVisibility(View.GONE);
         else if (updateState != null && updateState.startsWith("Yeni")) findViewById(R.id.updateBtn).setVisibility(View.VISIBLE);
         if (i < 0) renderMenu();
