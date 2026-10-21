@@ -772,6 +772,7 @@ public class SettingsActivity extends Activity {
                 ((TextView) findViewById(R.id.updateText)).setText(updateState);
                 View b = findViewById(R.id.updateBtn);
                 b.setVisibility(section < 0 ? View.VISIBLE : View.GONE);
+                pulse(b);
                 b.setOnClickListener(v -> {
                     TextView ut = findViewById(R.id.updateText);
                     Update.install(this, pct -> ut.setText(pct >= 0 ? "İndiriliyor… %" + pct
@@ -784,6 +785,17 @@ public class SettingsActivity extends Activity {
             }
             if (section < 0) renderMenu();
         });
+    }
+
+    /** Göze çarpsın diye yavaşça yanıp söner (görünür olduğu sürece). */
+    private void pulse(View v) {
+        if (v.getTag(R.id.drag_handle) != null) return;
+        android.animation.ObjectAnimator an = android.animation.ObjectAnimator.ofFloat(v, "alpha", 1f, 0.35f);
+        an.setDuration(800);
+        an.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+        an.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        an.start();
+        v.setTag(R.id.drag_handle, an);
     }
 
     /** Vurgu rengi: renk yuvarlakları; seçili olanın etrafı beyaz halka. Dokununca ekran o renkle açılır. */

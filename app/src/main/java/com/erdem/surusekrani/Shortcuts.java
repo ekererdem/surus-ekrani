@@ -81,10 +81,7 @@ final class Shortcuts {
         if (Update.pending(a) != null) gd = withDot(a, gd);
         gear.setImageDrawable(gd);
         st.setContentDescription(Update.pending(a) != null ? "Ayarlar, yeni sürüm var" : "Ayarlar");
-        st.setOnClickListener(v -> {
-            MainActivity.sOwnScreen = true;
-            a.startActivity(new Intent(a, SettingsActivity.class));
-        });
+        st.setOnClickListener(v -> a.startActivity(new Intent(a, SettingsActivity.class)));
         st.setOnLongClickListener(v -> { openEditor(a); return true; });
     }
 
@@ -93,13 +90,14 @@ final class Shortcuts {
         android.graphics.drawable.GradientDrawable dot = new android.graphics.drawable.GradientDrawable();
         dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);
         dot.setColor(a.getColor(R.color.low));
-        dot.setStroke(Math.max(2, w / 40), a.getColor(R.color.bg));
+        dot.setStroke(Math.max(2, w / 64), a.getColor(R.color.bg));
         android.graphics.drawable.LayerDrawable ld = new android.graphics.drawable.LayerDrawable(new Drawable[]{base, dot});
-        int size = Math.round(w * 0.26f);
+        // Küçük nokta, simgenin sağ üst köşesine oturur
+        int size = Math.round(w * 0.15f);
         ld.setLayerSize(1, size, size);
         ld.setLayerGravity(1, Gravity.TOP | Gravity.END);
-        ld.setLayerInsetTop(1, Math.round(w * 0.02f));
-        ld.setLayerInsetEnd(1, Math.round(w * 0.02f));
+        ld.setLayerInsetTop(1, Math.round(w * 0.07f));
+        ld.setLayerInsetEnd(1, Math.round(w * 0.07f));
         return ld;
     }
 
@@ -210,7 +208,6 @@ final class Shortcuts {
     }
 
     private static void openEditor(Activity a) {
-        MainActivity.sOwnScreen = true;
         a.startActivity(new Intent(a, AppsActivity.class).putExtra(AppsActivity.EXTRA_EDIT, true));
     }
 
