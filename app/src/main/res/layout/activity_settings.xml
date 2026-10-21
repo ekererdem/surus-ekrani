@@ -103,7 +103,7 @@
 
             <TextView style="@style/SectionTitle" android:text="Uygulama kısayolları" />
             <TextView style="@style/Note" android:layout_marginTop="0dp"
-                android:text="Müzik çaların altında görünür, en fazla 4 uygulama. En sağda her zaman Ayarlar durur. Sırayı ≡ işaretinden tutup sürükleyerek değiştirebilirsin." />
+                android:text="En sık kullandığın 4 uygulamayı buraya ekle; ana ekranın en altından tek dokunuşla açarsın. Sırayı ≡ işaretinden tutup sürükleyerek değiştirebilirsin." />
             <LinearLayout
                 android:id="@+id/appsList"
                 android:layout_width="match_parent"
