@@ -12,6 +12,11 @@
     android:paddingTop="6dp"
     android:paddingBottom="8dp">
 
+    <!-- Üst satır: şarkı (ortada) ve sağ üst köşede küçük Kopilot simgesi -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
     <LinearLayout
         android:id="@+id/musicOpen"
         android:layout_width="match_parent"
@@ -25,6 +30,8 @@
             android:id="@+id/songTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingStart="26dp"
+            android:paddingEnd="26dp"
             android:gravity="center"
             android:textSize="19sp"
             android:textStyle="bold"
@@ -43,6 +50,17 @@
             android:singleLine="true"
             android:ellipsize="end" />
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/musicLogo"
+        android:layout_width="wrap_content"
+        android:layout_height="18dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="4dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/logo_k"
+        android:importantForAccessibility="no" />
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/musicBody"
