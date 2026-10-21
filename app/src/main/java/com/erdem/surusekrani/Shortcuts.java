@@ -76,13 +76,31 @@ final class Shortcuts {
         // En sağda her zaman Ayarlar; yanındaki logolarla aynı boyut ve şekilde.
         View st = tile(a, row, Math.max(1, apps.size()), false);
         ImageView gear = st.findViewWithTag("icon");
-        gear.setImageDrawable(settingsIcon(a, logos));
-        st.setContentDescription("Ayarlar");
+        Drawable gd = settingsIcon(a, logos);
+        // Yeni sürüm varsa Ayarlar'ın köşesinde kırmızı nokta (güncelleme Ayarlar'ın en altında)
+        if (Update.pending(a) != null) gd = withDot(a, gd);
+        gear.setImageDrawable(gd);
+        st.setContentDescription(Update.pending(a) != null ? "Ayarlar, yeni sürüm var" : "Ayarlar");
         st.setOnClickListener(v -> {
             MainActivity.sOwnScreen = true;
             a.startActivity(new Intent(a, SettingsActivity.class));
         });
         st.setOnLongClickListener(v -> { openEditor(a); return true; });
+    }
+
+    private static Drawable withDot(Activity a, Drawable base) {
+        int w = Math.max(1, base.getIntrinsicWidth());
+        android.graphics.drawable.GradientDrawable dot = new android.graphics.drawable.GradientDrawable();
+        dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        dot.setColor(a.getColor(R.color.low));
+        dot.setStroke(Math.max(2, w / 40), a.getColor(R.color.bg));
+        android.graphics.drawable.LayerDrawable ld = new android.graphics.drawable.LayerDrawable(new Drawable[]{base, dot});
+        int size = Math.round(w * 0.26f);
+        ld.setLayerSize(1, size, size);
+        ld.setLayerGravity(1, Gravity.TOP | Gravity.END);
+        ld.setLayerInsetTop(1, Math.round(w * 0.02f));
+        ld.setLayerInsetEnd(1, Math.round(w * 0.02f));
+        return ld;
     }
 
     /** Ayarlar simgesinin zemini (açık) ve çark rengi (canlı mavi). */

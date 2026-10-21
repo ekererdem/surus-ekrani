@@ -35,6 +35,9 @@ final class Update {
                 if (m.find()) {
                     name = m.group(1);
                     code = Long.parseLong(m.group(2));
+                    // Ana ekrandaki "yeni sürüm" işareti internet beklemeden gösterilebilsin
+                    a.getSharedPreferences("surus", Context.MODE_PRIVATE).edit()
+                            .putLong("updCode", code).putString("updName", name).apply();
                 }
             } catch (Exception ignored) {
             }
@@ -124,6 +127,12 @@ final class Update {
             a.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(APK)));
         } catch (Exception ignored) {
         }
+    }
+
+    /** Son bakışta bulunan, henüz kurulmamış yeni sürümün adı; yoksa null. */
+    static String pending(Context c) {
+        android.content.SharedPreferences sp = c.getSharedPreferences("surus", Context.MODE_PRIVATE);
+        return sp.getLong("updCode", 0) > current(c) ? sp.getString("updName", null) : null;
     }
 
     static long current(Context c) {

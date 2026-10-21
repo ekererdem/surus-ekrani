@@ -1821,16 +1821,18 @@ public class MainActivity extends Activity {
 
     /**
      * Yeni sürüm varsa ana ekranın altında kısa bir uyarı; dokununca Kopilot'un içinden indirip kurar.
-     * GitHub'a en fazla 15 dakikada bir bakılır. Her yeni sürüm bir kez söylenir; güncellenmezse ertesi gün yeniden.
+     * GitHub'a en fazla 3 dakikada bir bakılır. Her yeni sürüm bir kez söylenir; güncellenmezse ertesi gün yeniden.
+     * Güncellenene kadar Ayarlar simgesinin köşesinde kırmızı nokta durur.
      * (Yan yana ekranda Kopilot odakta olmasa da görünür.)
      */
     private void maybeAnnounceUpdate() {
         android.content.SharedPreferences sp = getSharedPreferences("surus", MODE_PRIVATE);
         long now = System.currentTimeMillis();
-        if (now - sp.getLong("updCheckAt", 0) < 15 * 60_000L) return;
+        if (now - sp.getLong("updCheckAt", 0) < 3 * 60_000L) return;
         sp.edit().putLong("updCheckAt", now).apply();
         Update.check(this, (name, code) -> {
             if (name == null || code <= Update.current(this)) return;
+            Shortcuts.render(this); // Ayarlar'da kırmızı nokta
             if (code == sp.getLong("updAskCode", 0)
                     && System.currentTimeMillis() - sp.getLong("updAskAt", 0) < 20 * 3600_000L) return;
             playBtn.postDelayed(() -> {
