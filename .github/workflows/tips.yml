@@ -37,11 +37,12 @@ jobs:
             adb install -r fakewa/build/outputs/apk/debug/fakewa-debug.apk || true
             adb root ; sleep 3 ; adb shell am start -n com.erdem.surusekrani/.MainActivity ; sleep 5 ; adb shell am force-stop com.erdem.surusekrani ; sleep 2
             python3 .github/tips_shots.py || true
+            python3 .github/readme_shots.py || true
       - name: "tips-shots dalına kaydet"
         if: always()
         run: |
-          ls tips-* 2>/dev/null || exit 0
-          mkdir /tmp/t && cp tips-* /tmp/t/
+          ls tips-* readme-* 2>/dev/null || exit 0
+          mkdir /tmp/t && cp tips-* readme-* /tmp/t/ 2>/dev/null || true
           git config user.name "smoke" && git config user.email "smoke@users.noreply.github.com"
           git checkout --orphan tips-shots && git rm -rfq . && git clean -fdq
-          cp /tmp/t/* . && git add tips-* && git commit -qm "ipucu görüntüleri" && git push -fq origin tips-shots
+          cp /tmp/t/* . && git add tips-* readme-* && git commit -qm "ipucu görüntüleri" && git push -fq origin tips-shots
