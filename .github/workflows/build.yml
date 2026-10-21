@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     # Sadece README ya da ekran görüntüsü değişince APK'yı yeniden derleme
-    paths-ignore: ['README.md', 'docs/**']
+    paths-ignore: ['README.md', 'docs/**', '.github/*.py', '.github/workflows/smoke.yml', '.github/workflows/tips.yml']
   workflow_dispatch:
 
 permissions:
