@@ -77,28 +77,68 @@ final class Shortcuts {
         View st = tile(a, row, Math.max(1, apps.size()), false);
         ImageView gear = st.findViewWithTag("icon");
         Drawable gd = settingsIcon(a, logos);
-        // Yeni sürüm varsa Ayarlar'ın köşesinde kırmızı nokta (güncelleme Ayarlar'ın en altında)
-        if (Update.pending(a) != null) gd = withDot(a, gd);
         gear.setImageDrawable(gd);
+        // Yeni sürüm varsa simgenin üst kenarında küçük kırmızı "Yeni sürüm var" etiketi (güncelleme Ayarlar'ın en altında)
+        if (Update.pending(a) != null) addUpdateTag(a, row, st, gear, gd);
         st.setContentDescription(Update.pending(a) != null ? "Ayarlar, yeni sürüm var" : "Ayarlar");
         st.setOnClickListener(v -> a.startActivity(new Intent(a, SettingsActivity.class)));
         st.setOnLongClickListener(v -> { openEditor(a); return true; });
     }
 
-    private static Drawable withDot(Activity a, Drawable base) {
-        int w = Math.max(1, base.getIntrinsicWidth());
-        android.graphics.drawable.GradientDrawable dot = new android.graphics.drawable.GradientDrawable();
-        dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-        dot.setColor(a.getColor(R.color.low));
-        dot.setStroke(Math.max(2, w / 64), a.getColor(R.color.bg));
-        android.graphics.drawable.LayerDrawable ld = new android.graphics.drawable.LayerDrawable(new Drawable[]{base, dot});
-        // Küçük nokta, simgenin sağ üst köşesine oturur
-        int size = Math.round(w * 0.15f);
-        ld.setLayerSize(1, size, size);
-        ld.setLayerGravity(1, Gravity.TOP | Gravity.END);
-        ld.setLayerInsetTop(1, Math.round(w * 0.07f));
-        ld.setLayerInsetEnd(1, Math.round(w * 0.07f));
-        return ld;
+    /**
+     * Ayarlar kutusunun üstüne, simgenin görünen üst kenarına ortalı küçük kırmızı etiket.
+     * Kutu bir FrameLayout'a alınır; etiket satırın dışına taşabilsin diye kırpma kapatılır.
+     */
+    private static void addUpdateTag(Activity a, LinearLayout row, View st, ImageView icon, Drawable gd) {
+        int idx = row.indexOfChild(st);
+        android.view.ViewGroup.LayoutParams lp = st.getLayoutParams();
+        row.removeView(st);
+        android.widget.FrameLayout fl = new android.widget.FrameLayout(a);
+        fl.setClipChildren(false);
+        fl.setClipToPadding(false);
+        fl.addView(st, new android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        TextView tag = new TextView(a);
+        tag.setText("Yeni sürüm var");
+        tag.setTextSize(8.5f);
+        tag.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        tag.setTextColor(0xFFFFFFFF);
+        tag.setSingleLine(true);
+        tag.setIncludeFontPadding(false);
+        tag.setPadding(dp(a, 7), dp(a, 3), dp(a, 7), dp(a, 3));
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setColor(a.getColor(R.color.low));
+        bg.setCornerRadius(dp(a, 20));
+        bg.setStroke(Math.max(2, dp(a, 1)), a.getColor(R.color.bg));
+        tag.setBackground(bg);
+        tag.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        fl.addView(tag, new android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP | Gravity.CENTER_HORIZONTAL));
+        row.addView(fl, idx, lp);
+        row.setClipChildren(false);
+        if (row.getParent() instanceof android.view.ViewGroup) ((android.view.ViewGroup) row.getParent()).setClipChildren(false);
+
+        // Simge şeklinin görünen üst kenarı (çizimdeki saydam boşluk hariç)
+        float topFrac = 0f;
+        if (gd instanceof BitmapDrawable) {
+            Bitmap b = ((BitmapDrawable) gd).getBitmap();
+            int x = b.getWidth() / 2;
+            for (int y = 0; y < b.getHeight(); y++) {
+                if ((b.getPixel(x, y) >>> 24) > 40) { topFrac = y / (float) b.getHeight(); break; }
+            }
+        }
+        float tf = topFrac;
+        fl.post(() -> {
+            Drawable d = icon.getDrawable();
+            if (d == null) return;
+            float[] m = new float[9];
+            icon.getImageMatrix().getValues(m);
+            float drawnTop = m[android.graphics.Matrix.MTRANS_Y] + tf * d.getIntrinsicHeight() * m[android.graphics.Matrix.MSCALE_Y];
+            float edge = st.getTop() + icon.getTop() + icon.getPaddingTop() + drawnTop;
+            tag.setTranslationY(edge - tag.getHeight() / 2f);
+        });
     }
 
     /** Ayarlar simgesinin zemini (açık) ve çark rengi (canlı mavi). */
